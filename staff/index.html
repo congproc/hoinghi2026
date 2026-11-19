@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Theo dõi đăng ký</title>
+<link rel="icon" href="../assets/favicon.png">
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -419,6 +420,56 @@ dialog .ack input { margin-top: 3px; }
 .burn-table td { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
 .burn-table .num-c { text-align: right; }
 @media (prefers-reduced-motion: reduce) { .burn .draw, .burn .fade-in { animation: none; stroke-dashoffset: 0; } }
+
+/* ================= brand alignment with the check-in page and the welcome screen ================= */
+:root {
+  --bg: #f2f6fa; --surface: #ffffff; --surface-2: #edf3f8; --surface-3: #dfe8f0; --border: #d9e3ec; --track: #e4ecf3;
+  --text: #0a2236; --text-2: #3f566b; --text-3: #5f7488;
+  --accent: #0070b8; --accent-strong: #005a96; --accent-soft: #e1f0fa; --sky: #29a5dd; --yellow: #fff200; --branch: #d49a00;
+  --shadow: 0 1px 2px rgba(0, 50, 90, .05), 0 2px 10px rgba(0, 50, 90, .06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #00192f; --surface: #06233d; --surface-2: #0b2d4b; --surface-3: #12385a; --border: #1b405f; --track: #0f2f4d;
+    --text: #eaf3fb; --text-2: #b3c8da; --text-3: #86a1b8;
+    --accent: #29a5dd; --accent-strong: #5fb9e6; --accent-soft: #0b3555; --branch: #fff200;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #00192f; --surface: #06233d; --surface-2: #0b2d4b; --surface-3: #12385a; --border: #1b405f; --track: #0f2f4d;
+  --text: #eaf3fb; --text-2: #b3c8da; --text-3: #86a1b8;
+  --accent: #29a5dd; --accent-strong: #5fb9e6; --accent-soft: #0b3555; --branch: #fff200;
+}
+.topbar { position: sticky; }
+.topbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: linear-gradient(90deg, var(--accent), var(--sky) 38%, transparent 75%); opacity: .85; }
+.topbar::before { content: ""; position: absolute; left: 0; bottom: -1px; width: 110px; height: 2px; background: var(--yellow); z-index: 1; box-shadow: 0 0 8px rgba(255, 242, 0, .6); }
+.topbar .logo, .brand-logo { border-radius: 50%; flex: none; box-shadow: 0 0 0 2px #fff, 0 2px 8px rgba(0, 112, 184, .35); background: #fff; }
+.topbar .logo { width: 40px; height: 40px; }
+.brand-logo { width: 44px; height: 44px; }
+.topbar h1 { font-size: 17px; font-weight: 700; }
+/* the same colour coding as the welcome screen: Công ty = blue, Chi nhánh = yellow/amber */
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; flex: none; }
+.dot.c { background: var(--accent); }
+.dot.b { background: var(--branch); }
+.unit-cols h3 { align-items: center; }
+.bar-row.g-branch:not(.done) .fill.reg { background: var(--branch); }
+.bar-row.g-branch:not(.done) .fill.only, .bar-row.g-branch:not(.done) .fill.reg.only { border-radius: 4px 0 0 4px; }
+.kpi .note .dot { margin-left: 2px; }
+.base-note { margin: 10px 0 0; font-size: 12.5px; color: var(--text-3); line-height: 1.45; }
+
+/* ================= layout rhythm: equal paddings, equal-height columns ================= */
+.card { padding: 20px 24px; }
+.kpi { padding: 16px 20px; }
+.kpis { align-items: stretch; }
+.grid { align-items: stretch; }
+.grid > .card { display: flex; flex-direction: column; }
+.grid > .card .unit-cols { flex: 1; align-content: start; }
+.stack { grid-template-rows: 1fr 1fr; align-content: stretch; min-height: 0; }
+.stack > .card { display: flex; flex-direction: column; min-height: 0; }
+.stack .scroll { flex: 1; min-height: 150px; max-height: 320px; }
+.card-head { min-height: 28px; align-items: center; }
+.card-head h2 { font-size: 15.5px; font-weight: 700; }
+.card-head .hint { font-size: 12.5px; }
 </style>
 </head>
 <body>
@@ -440,7 +491,7 @@ dialog .ack input { margin-top: 3px; }
 <section class="login" id="login">
   <form class="login-card" id="loginForm" novalidate>
     <div class="brand">
-      <div class="brand-mark" aria-hidden="true">2026</div>
+      <img class="brand-logo" src="../assets/logo.png" alt="" width="44" height="44">
       <div>
         <h1>Theo dõi đăng ký</h1>
         <p class="lead">Hội nghị Tổng kết 2026 · Ban Tổ chức</p>
@@ -465,6 +516,7 @@ dialog .ack input { margin-top: 3px; }
 <div id="app" hidden>
   <header class="topbar">
     <div class="topbar-inner">
+      <img class="logo" src="../assets/logo.png" alt="Saigontourist Travel" width="40" height="40">
       <div>
         <h1>Theo dõi đăng ký</h1>
         <div class="sub">Hội nghị Tổng kết 2026 · 22/12/2026</div>
@@ -512,6 +564,7 @@ dialog .ack input { margin-top: 3px; }
             <li><i class="s-miss"></i><span>Chưa đăng ký</span> <b id="lgMiss">0</b></li>
             <li class="lg-extra" id="lgExtra" hidden></li>
           </ul>
+          <p class="base-note" id="baseNote" hidden></p>
         </div>
         <div class="ov-side">
           <div class="k">Nhịp độ tới hạn đăng ký</div>
@@ -537,8 +590,8 @@ dialog .ack input { margin-top: 3px; }
             <button type="button" class="chipx" id="unitClear" hidden></button>
             <div class="seg2" id="unitSort" role="group" aria-label="Sắp xếp" hidden><button type="button" data-sort="behind" aria-pressed="true">Chậm nhất trước</button><button type="button" data-sort="name" aria-pressed="false">Theo tên</button></div></div>
           <div class="unit-cols">
-            <div><h3><span>Khối / Phòng Công ty</span><span id="companyTotal" class="num"></span></h3><ul class="bars" id="companyBars"></ul></div>
-            <div><h3><span>Chi nhánh</span><span id="branchTotal" class="num"></span></h3><ul class="bars" id="branchBars"></ul>
+            <div><h3><span><i class="dot c"></i>Công ty</span><span id="companyTotal" class="num"></span></h3><ul class="bars" id="companyBars"></ul></div>
+            <div><h3><span><i class="dot b"></i>Chi nhánh</span><span id="branchTotal" class="num"></span></h3><ul class="bars" id="branchBars"></ul>
               <div id="otherWrap" hidden><h3 style="margin-top:16px"><span>Đơn vị khác</span><span id="otherTotal" class="num"></span></h3><ul class="bars" id="otherBars"></ul></div>
             </div>
           </div>
@@ -707,9 +760,14 @@ dialog .ack input { margin-top: 3px; }
   function isAuthError(msg) { return /mật khẩu/i.test(msg); }
 
   /* ---------- formatting ---------- */
+  // One naming rule across the three apps: "Chi nhánh Đà Nẵng (STD)"; compact lists under a "Chi nhánh" heading drop the prefix.
   function shortUnit(u) {
     var m = /^(ST\w+) - Saigontourist Travel (.+)$/.exec(u || '');
-    return m ? m[1] + ' · ' + m[2] : u;
+    return m ? 'Chi nhánh ' + m[2] + ' (' + m[1] + ')' : (u || '');
+  }
+  function unitCompact(u) {
+    var m = /^(ST\w+) - Saigontourist Travel (.+)$/.exec(u || '');
+    return m ? m[2] + ' (' + m[1] + ')' : (u || '');
   }
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
   function fmtTime(ms) {
@@ -998,11 +1056,11 @@ dialog .ack input { margin-top: 3px; }
       : kpi('Đơn vị chưa đăng ký', empty + ' <small>/ ' + allUnits.length + '</small>', 'chưa có ai đăng ký');
     $('kpis').innerHTML =
       regKpi +
-      kpi('Công ty / Chi nhánh', company + ' <small>/ ' + branch + '</small>', 'người đã đăng ký') +
+      kpi('Công ty / Chi nhánh', company + ' <small>/ ' + branch + '</small>', '<i class="dot c"></i>Công ty · <i class="dot b"></i>Chi nhánh · tổng ' + p.length + ' người') +
       kpi('Ăn chay', veg, (dietOther ? dietOther + ' chế độ khác · ' : '') + unknown + ' chưa có thông tin') +
       kpi('Tiết mục Gala', gala.length, performers + ' người biểu diễn') +
       unitsKpi +
-      kpi('Đã check-in', checked + ' <small>/ ' + p.length + '</small>', p.length ? Math.round(checked / p.length * 100) + '% đã có mặt' : 'chưa có dữ liệu');
+      kpi('Đã check-in', checked + ' <small>/ ' + p.length + '</small>', p.length ? Math.round(checked / p.length * 100) + '% số người đã đăng ký' : 'chưa có dữ liệu');
     animateKpis();
   }
 
@@ -1086,6 +1144,8 @@ dialog .ack input { margin-top: 3px; }
       setNum($('lgReg'), reg); setNum($('lgExc'), exc); setNum($('lgMiss'), miss);
       $('lgExtra').hidden = !st.extra.length;
       $('lgExtra').textContent = st.extra.length ? '+' + st.extra.length + ' đăng ký ngoài danh sách mời' : '';
+      var bn = $('baseNote'); bn.hidden = !st.extra.length;
+      bn.textContent = st.extra.length ? 'Các số liệu bên dưới (Công ty / Chi nhánh, ăn chay, Gala, check-in) tính trên tất cả ' + d.people.length + ' người đã đăng ký, gồm ' + st.extra.length + ' người ngoài danh sách mời.' : '';
     }
     // deadline
     var dl = $('deadline'), ms = DEADLINE - new Date(), days = Math.ceil(ms / 86400000);
@@ -1235,10 +1295,10 @@ dialog .ack input { margin-top: 3px; }
     function update(li, r, i) {
       var b = li.firstChild, hasInv = r.inv > 0, active = state.unit === r.u;
       var done = hasInv && r.miss === 0 && r.n > 0;
-      b.className = 'bar-row' + (r.n ? '' : ' zero') + (hasInv && r.miss && r.n / r.inv < 0.5 ? ' behind' : '') + (done ? ' done' : '') + (active ? ' active' : '');
+      b.className = 'bar-row g-' + (r.g || 'x') + (r.n ? '' : ' zero') + (hasInv && r.miss && r.n / r.inv < 0.5 ? ' behind' : '') + (done ? ' done' : '') + (active ? ' active' : '');
       b.setAttribute('aria-pressed', String(active));
       b.title = r.u + ': ' + (hasInv ? r.n + ' / ' + r.inv + ' người được mời đã đăng ký' + (r.miss ? ', còn ' + r.miss + ' chưa đăng ký' : '') + (r.exc ? ', ' + r.exc + ' vắng dự kiến' : '') : r.n + ' người');
-      b.querySelector('.name').textContent = shortUnit(r.u);
+      b.querySelector('.name').textContent = unitCompact(r.u);
       var reg = hasInv ? r.n / r.inv * 100 : r.n / max * 100, exc = hasInv ? r.exc / r.inv * 100 : 0;
       var fr = b.querySelector('.fill.reg'), fe = b.querySelector('.fill.exc');
       fr.className = 'fill reg' + (exc ? '' : ' only'); fe.className = 'fill exc only';
@@ -1247,10 +1307,10 @@ dialog .ack input { margin-top: 3px; }
       b.querySelector('.count').innerHTML = r.n + (hasInv ? '<small>/' + r.inv + '</small>' : '') + (done ? '<svg class="icon ok" aria-label="Đủ"><use href="#i-check"/></svg>' : '');
       li.__new = false;
     }
-    function list(units, el, totalEl) {
+    function list(units, el, totalEl, grp) {
       var rows = units.map(function (u) {
         var a = st && st.by[u];
-        return a ? { u: u, n: a.reg, inv: a.inv, exc: a.exc, miss: a.miss } : { u: u, n: counts[u] || 0, inv: 0, exc: 0, miss: 0 };
+        return a ? { u: u, g: grp, n: a.reg, inv: a.inv, exc: a.exc, miss: a.miss } : { u: u, g: grp, n: counts[u] || 0, inv: 0, exc: 0, miss: 0 };
       }).sort(function (a, b) {
         if (st && state.unitSort === 'behind') return (b.miss - a.miss) || (a.inv && b.inv ? a.n / a.inv - b.n / b.inv : 0) || a.u.localeCompare(b.u, 'vi');
         return st ? a.u.localeCompare(b.u, 'vi') : (b.n - a.n || a.u.localeCompare(b.u, 'vi'));
@@ -1259,10 +1319,10 @@ dialog .ack input { margin-top: 3px; }
       $(totalEl).textContent = st && inv ? total + ' / ' + inv + ' người' : total + ' người';
       syncList($(el), rows, make, update);
     }
-    list(d.companyUnits, 'companyBars', 'companyTotal');
-    list(d.branchUnits, 'branchBars', 'branchTotal');
+    list(d.companyUnits, 'companyBars', 'companyTotal', 'company');
+    list(d.branchUnits, 'branchBars', 'branchTotal', 'branch');
     $('otherWrap').hidden = !others.length;
-    if (others.length) list(others, 'otherBars', 'otherTotal');
+    if (others.length) list(others, 'otherBars', 'otherTotal', 'other');
   }
 
   document.addEventListener('click', function (ev) {
