@@ -229,7 +229,7 @@ body.idle-cursor .ctl { opacity: 0; }
 .portrait .scan { position: absolute; left: 0; right: 0; top: 0; height: 18%; background: linear-gradient(180deg, rgba(95,211,255,0), rgba(95,211,255,.28)); border-bottom: 2px solid rgba(95,211,255,.8); z-index: 1; pointer-events: none; animation: pscan 1.1s .1s cubic-bezier(.65,0,.2,1) both; }
 @keyframes pscan { 0% { transform: translateY(-100%); opacity: 1; } 100% { transform: translateY(560%); opacity: 0; } }
 .enter .portrait { animation: rise .7s cubic-bezier(.16,1,.3,1) both; }
-@media (max-width: 900px) { .gwrap { flex-direction: column; align-items: flex-start; } .portrait { height: 30vh; } }
+@media (max-width: 900px) { .gwrap { gap: 4vw; } .portrait { height: min(30vh, 38vw); } }
 @media (prefers-reduced-motion: reduce) { .portrait .scan { display: none; } .portrait img { transition: none; } }
 </style>
 </head>
@@ -248,7 +248,7 @@ body.idle-cursor .ctl { opacity: 0; }
     <div class="sys" aria-label="Trạng thái hệ thống">
       <span>Kết nối</span><b id="sysConn" class="ok">● đang tải</b>
       <span>Độ trễ</span><b id="sysLat">— ms</b>
-      <span>Làm mới</span><b id="sysPoll">3 s</b>
+      <span>Làm mới</span><b id="sysPoll">tức thì</b>
     </div>
     <div class="clock"><div class="t"><span id="hh">--</span><i>:</i><span id="mm">--</span></div><div class="d" id="date"></div></div>
   </header>
