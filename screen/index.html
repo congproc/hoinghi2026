@@ -790,7 +790,20 @@ body.idle-cursor .ctl { opacity: 0; }
   var FT = ['Trưởng phòng', 'Phó phòng', 'Giám đốc Chi nhánh', 'Phó Giám đốc', 'Chuyên viên', 'Trưởng bộ phận'];
   var FU = ['P. Tiếp Thị - Truyền Thông', 'Khối Du Lịch Nội Địa', 'P. Kế Toán', 'STD - Saigontourist Travel Đà Nẵng', 'STH - Saigontourist Travel Hà Nội', 'STN - Saigontourist Travel Nha Trang', 'P. Vé Máy Bay'];
   function r(a) { return a[Math.floor(Math.random() * a.length)]; }
-  function fakeArrival(at) { var u = r(FU); var g = Math.random() < 0.5 ? 'Nam' : 'Nữ'; return { at: at, gender: g, name: r(FH) + ' ' + r(FM) + ' ' + r(FN), title: r(FT), unit: u, group: /^ST/.test(u) ? 'branch' : 'company' }; }
+  // ?demo=1 sample data. Extra flags for layout testing: &photo=1 (portrait photos), &long=1 (worst-case long text)
+  var DEMO_PHOTO = /[?&]photo=1\b/.test(location.search), DEMO_LONG = /[?&]long=1\b/.test(location.search);
+  var LONG = [
+    { name: 'Nguyễn Hoàng Thiên Phương Anh Thư', title: 'Phó Tổng Giám đốc phụ trách Kinh doanh và Phát triển thị trường quốc tế', unit: 'STN - Saigontourist Travel Nha Trang' },
+    { name: 'Trần Thị Ngọc Quỳnh Như', title: 'Giám đốc Chi nhánh kiêm Trưởng Văn phòng đại diện khu vực miền Trung', unit: 'Khối Du Lịch Nội Địa và Đường Bộ Quốc Tế' },
+    { name: 'Đặng Nguyễn Phương Uyên Khánh Ngân Hà', title: 'Trưởng phòng Kế hoạch - Phát triển Kinh doanh', unit: 'P. Kế Hoạch - Phát Triển Kinh Doanh' }
+  ];
+  function fakeArrival(at) {
+    var u = r(FU), g = Math.random() < 0.5 ? 'Nam' : 'Nữ';
+    var a = { at: at, gender: g, name: r(FH) + ' ' + r(FM) + ' ' + r(FN), title: r(FT), unit: u, group: /^ST/.test(u) ? 'branch' : 'company' };
+    if (DEMO_LONG && Math.random() < 0.7) { var L = r(LONG); a.name = L.name; a.title = L.title; a.unit = L.unit; a.group = /^ST/.test(L.unit) ? 'branch' : 'company'; }
+    if (DEMO_PHOTO) a.photo = 'https://congproc.github.io/hoinghi2026/assets/guide.jpg';
+    return a;
+  }
 
   /* ---------- start ---------- */
   showIdle(); renderFeed(); setConn(true); $('sysConn').textContent = '● đang tải';
