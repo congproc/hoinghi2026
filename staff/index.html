@@ -869,7 +869,7 @@ dialog .ack input { margin-top: 3px; }
         var active = state.unit === r.u, hasInv = r.inv > 0;
         var width = hasInv ? (r.n / r.inv * 100) : (r.n / max * 100);
         var tip = esc(r.u) + ': ' + (hasInv ? r.n + ' / ' + r.inv + ' người được mời đã đăng ký' + (r.miss ? ', còn ' + r.miss + ' chưa đăng ký' : '') + (r.exc ? ', ' + r.exc + ' vắng dự kiến' : '') : r.n + ' người');
-        return '<li><button type="button" class="bar-row' + (r.n ? '' : ' zero') + (hasInv && r.miss ? ' behind' : '') + (active ? ' active' : '') + '" data-unit="' + esc(r.u) + '" aria-pressed="' + active + '" title="' + tip + '">' +
+        return '<li><button type="button" class="bar-row' + (r.n ? '' : ' zero') + (hasInv && r.miss && r.n / r.inv < 0.5 ? ' behind' : '') + (active ? ' active' : '') + '" data-unit="' + esc(r.u) + '" aria-pressed="' + active + '" title="' + tip + '">' +
           '<span class="name">' + esc(shortUnit(r.u)) + '</span>' +
           '<span class="track" aria-hidden="true"><span class="fill" style="width:' + Math.min(100, width).toFixed(1) + '%"></span></span>' +
           '<span class="count num">' + r.n + (hasInv ? '<small>/' + r.inv + '</small>' : '') + '</span></button></li>';
