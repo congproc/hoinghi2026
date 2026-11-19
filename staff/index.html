@@ -282,6 +282,22 @@ dialog .ack input { margin-top: 3px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* invited vs registered */
+.bar-row { grid-template-columns: minmax(0, 1fr) 96px 54px; }
+.bar-row .count small { color: var(--text-3); font-weight: 500; }
+.bar-row.behind .count { color: var(--danger, #c0392b); }
+.card-head .spacer { flex: 1; }
+.mcols { columns: 3 300px; column-gap: 28px; }
+.mgroup { break-inside: avoid; margin: 0 0 16px; }
+.mgroup h3 { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 600; margin: 0 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.mgroup ul { list-style: none; margin: 0; padding: 0; }
+.mgroup li { padding: 3px 0; font-size: 13px; line-height: 1.35; }
+.mgroup li .t { color: var(--text-3); }
+.mgroup li em { color: var(--text-3); font-style: normal; font-size: 12px; }
+.extra { margin-top: 8px; font-size: 13px; }
+.extra summary { cursor: pointer; color: var(--text-2); }
+.extra ul { margin: 8px 0 0; padding-left: 18px; }
 </style>
 </head>
 <body>
@@ -383,6 +399,12 @@ dialog .ack input { margin-top: 3px; }
             <div class="scroll"><table class="mini"><thead><tr><th>Tiết mục</th><th>Thể loại</th><th class="num">Số người</th><th>Người đăng ký</th></tr></thead><tbody id="galaList"></tbody></table></div>
           </div>
         </div>
+      </section>
+
+      <section class="card" id="missingCard" hidden>
+        <div class="card-head"><h2 id="missingTitle">Chưa đăng ký</h2><p class="hint" id="missingHint"></p><span class="spacer"></span><button class="btn ghost" id="missingCopy" type="button">Chép danh sách</button></div>
+        <div class="mcols" id="missingList"></div>
+        <details class="extra" id="extraBox" hidden><summary id="extraSum"></summary><ul id="extraList"></ul></details>
       </section>
 
       <section class="card" id="peopleCard">
@@ -736,6 +758,7 @@ dialog .ack input { margin-top: 3px; }
     renderWarnings(d);
     renderKpis(d);
     renderUnits(d);
+    renderMissing(d);
     renderDiet(d.people);
     renderGala(d.people);
     renderUnitFilter(d);
@@ -792,12 +815,21 @@ dialog .ack input { margin-top: 3px; }
     var fresh = Object.keys(state.newIds).length;
     var checked = p.filter(function (x) { return x.checkedInAt; }).length;
 
+    var st = inviteStats(d);
+    var expected = st ? st.total - st.excused : 0;
+    var regKpi = st
+      ? kpi('Đã đăng ký / được mời', st.matched + ' <small>/ ' + st.total + '</small>' + (fresh ? '<span class="delta" title="Mới kể từ khi mở trang">+' + fresh + ' mới</span>' : ''),
+          (expected ? Math.round(st.matched / expected * 100) : 0) + '% · +' + today + ' hôm nay' + (st.extra.length ? ' · ' + st.extra.length + ' ngoài danh sách mời' : '') + (st.excused ? ' · ' + st.excused + ' vắng dự kiến' : ''))
+      : kpi('Đã đăng ký', p.length + (fresh ? '<span class="delta" title="Mới kể từ khi mở trang">+' + fresh + ' mới</span>' : ''), '+' + today + ' hôm nay · ' + d.submissions + ' lượt gửi');
+    var unitsKpi = st
+      ? kpi('Chưa đăng ký', st.missing.length + ' <small>người</small>', empty + ' đơn vị chưa có ai đăng ký')
+      : kpi('Đơn vị chưa đăng ký', empty + ' <small>/ ' + allUnits.length + '</small>', 'chưa có ai đăng ký');
     $('kpis').innerHTML =
-      kpi('Đã đăng ký', p.length + (fresh ? '<span class="delta" title="Mới kể từ khi mở trang">+' + fresh + ' mới</span>' : ''), '+' + today + ' hôm nay · ' + d.submissions + ' lượt gửi') +
-      kpi('Công ty / Chi nhánh', company + ' <small>/ ' + branch + '</small>', 'người') +
+      regKpi +
+      kpi('Công ty / Chi nhánh', company + ' <small>/ ' + branch + '</small>', 'người đã đăng ký') +
       kpi('Ăn chay', veg, (dietOther ? dietOther + ' chế độ khác · ' : '') + unknown + ' chưa có thông tin') +
       kpi('Tiết mục Gala', gala.length, performers + ' người biểu diễn') +
-      kpi('Đơn vị chưa đăng ký', empty + ' <small>/ ' + allUnits.length + '</small>', 'chưa có ai đăng ký') +
+      unitsKpi +
       kpi('Đã check-in', checked + ' <small>/ ' + p.length + '</small>', p.length ? Math.round(checked / p.length * 100) + '% đã có mặt' : 'chưa có dữ liệu');
   }
 
@@ -807,21 +839,40 @@ dialog .ack input { margin-top: 3px; }
     return c;
   }
 
+  // Invited vs registered (needs the "Danh sách mời" tab; without it the view works as before).
+  function inviteStats(d) {
+    if (!d.invitees || !d.invitees.length) return null;
+    var by = {}, total = 0, matched = 0, excused = 0, missing = [];
+    d.invitees.forEach(function (v) {
+      var a = by[v.u] || (by[v.u] = { inv: 0, reg: 0, exc: 0, miss: 0 });
+      a.inv++; total++;
+      if (v.r) { a.reg++; matched++; }
+      else if (v.e) { a.exc++; excused++; }
+      else { a.miss++; missing.push(v); }
+    });
+    return { by: by, total: total, matched: matched, excused: excused, missing: missing, extra: d.extraPeople || [] };
+  }
+
   function renderUnits(d) {
+    var st = inviteStats(d);
     var counts = unitCounts(d.people);
     var others = Object.keys(counts).filter(function (u) { return d.companyUnits.indexOf(u) < 0 && d.branchUnits.indexOf(u) < 0; });
     var max = Math.max.apply(null, [1].concat(Object.keys(counts).map(function (k) { return counts[k]; })));
     function list(units, el, totalEl) {
-      var rows = units.map(function (u) { return { u: u, n: counts[u] || 0 }; })
-        .sort(function (a, b) { return b.n - a.n || a.u.localeCompare(b.u, 'vi'); });
-      var total = rows.reduce(function (s, r) { return s + r.n; }, 0);
-      $(totalEl).textContent = total + ' người';
+      var rows = units.map(function (u) {
+        var a = st && st.by[u];
+        return a ? { u: u, n: a.reg, inv: a.inv, exc: a.exc, miss: a.miss } : { u: u, n: counts[u] || 0, inv: 0, exc: 0, miss: 0 };
+      }).sort(function (a, b) { return st ? (b.miss - a.miss || a.u.localeCompare(b.u, 'vi')) : (b.n - a.n || a.u.localeCompare(b.u, 'vi')); });
+      var total = rows.reduce(function (s, r) { return s + r.n; }, 0), inv = rows.reduce(function (s, r) { return s + r.inv; }, 0);
+      $(totalEl).textContent = st && inv ? total + ' / ' + inv + ' người' : total + ' người';
       $(el).innerHTML = rows.map(function (r) {
-        var active = state.unit === r.u;
-        return '<li><button type="button" class="bar-row' + (r.n ? '' : ' zero') + (active ? ' active' : '') + '" data-unit="' + esc(r.u) + '" aria-pressed="' + active + '" title="' + esc(r.u) + ': ' + r.n + ' người">' +
+        var active = state.unit === r.u, hasInv = r.inv > 0;
+        var width = hasInv ? (r.n / r.inv * 100) : (r.n / max * 100);
+        var tip = esc(r.u) + ': ' + (hasInv ? r.n + ' / ' + r.inv + ' người được mời đã đăng ký' + (r.miss ? ', còn ' + r.miss + ' chưa đăng ký' : '') + (r.exc ? ', ' + r.exc + ' vắng dự kiến' : '') : r.n + ' người');
+        return '<li><button type="button" class="bar-row' + (r.n ? '' : ' zero') + (hasInv && r.miss ? ' behind' : '') + (active ? ' active' : '') + '" data-unit="' + esc(r.u) + '" aria-pressed="' + active + '" title="' + tip + '">' +
           '<span class="name">' + esc(shortUnit(r.u)) + '</span>' +
-          '<span class="track" aria-hidden="true"><span class="fill" style="width:' + (r.n / max * 100).toFixed(1) + '%"></span></span>' +
-          '<span class="count num">' + r.n + '</span></button></li>';
+          '<span class="track" aria-hidden="true"><span class="fill" style="width:' + Math.min(100, width).toFixed(1) + '%"></span></span>' +
+          '<span class="count num">' + r.n + (hasInv ? '<small>/' + r.inv + '</small>' : '') + '</span></button></li>';
       }).join('');
     }
     list(d.companyUnits, 'companyBars', 'companyTotal');
@@ -837,8 +888,40 @@ dialog .ack input { margin-top: 3px; }
     state.unit = state.unit === u ? '' : u;
     $('fUnit').value = state.unit;
     renderUnits(state.data);
+    renderMissing(state.data);
     renderTable();
     if (state.unit) $('peopleCard').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  });
+
+  function renderMissing(d) {
+    var st = inviteStats(d), card = $('missingCard');
+    if (!st) { card.hidden = true; return; }
+    card.hidden = false;
+    var unit = state.unit, byUnit = {}, order = [];
+    st.missing.forEach(function (v) { if (unit && v.u !== unit) return; if (!byUnit[v.u]) { byUnit[v.u] = []; order.push(v.u); } byUnit[v.u].push(v); });
+    var rank = d.companyUnits.concat(d.branchUnits);
+    order.sort(function (a, b) { var x = rank.indexOf(a), y = rank.indexOf(b); return (x < 0 ? 999 : x) - (y < 0 ? 999 : y); });
+    var shown = order.reduce(function (s, u) { return s + byUnit[u].length; }, 0);
+    $('missingTitle').textContent = 'Chưa đăng ký (' + shown + ')';
+    $('missingHint').textContent = unit ? 'Đang lọc: ' + shortUnit(unit) + ' · bấm lại đơn vị để bỏ lọc' : 'Theo đơn vị · bấm một đơn vị ở trên để chỉ xem đơn vị đó';
+    $('missingList').innerHTML = order.length ? order.map(function (u) {
+      return '<div class="mgroup"><h3><span>' + esc(shortUnit(u)) + '</span><span class="num">' + byUnit[u].length + '</span></h3><ul>' +
+        byUnit[u].map(function (v) {
+          var sub = [v.t, v.d].filter(Boolean).join(' · ');
+          return '<li><b>' + esc(v.n) + '</b>' + (sub ? ' <span class="t">— ' + esc(sub) + '</span>' : '') + (v.x ? ' <em>(' + esc(v.x) + ')</em>' : '') + '</li>';
+        }).join('') + '</ul></div>';
+    }).join('') : '<p class="hint">Tất cả người được mời trong phạm vi này đã đăng ký.</p>';
+    var ex = st.extra.filter(function (x) { return !unit || x.unit === unit; });
+    $('extraBox').hidden = !ex.length;
+    $('extraSum').textContent = 'Đăng ký ngoài danh sách mời (' + ex.length + ') — kiểm tra tên có đúng không';
+    $('extraList').innerHTML = ex.map(function (x) { return '<li>' + esc(x.name) + ' <span class="t">· ' + esc(shortUnit(x.unit || '')) + '</span></li>'; }).join('');
+    state.missingText = order.map(function (u) { return shortUnit(u) + ' (' + byUnit[u].length + ')\n' + byUnit[u].map(function (v) { return '- ' + v.n + (v.t ? ' (' + v.t + ')' : ''); }).join('\n'); }).join('\n\n');
+  }
+  $('missingCopy').addEventListener('click', function () {
+    var t = state.missingText || '';
+    if (!t) return;
+    var done = function () { toast('Đã chép danh sách chưa đăng ký'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () { toast('Không chép được'); }); else toast('Không chép được');
   });
 
   function renderDiet(people) {
@@ -1093,8 +1176,12 @@ dialog .ack input { margin-top: 3px; }
     var people = [], now = Date.now();
     for (var i = 0; i < 96; i++) addSamplePerson(people, now - Math.floor(rnd() * 6 * 86400000), i > 84);
     people.sort(function (a, b) { return b.submittedAt - a.submittedAt; });
+    var inv = [], extra = [];
+    people.forEach(function (p, i) { if (i % 25 === 7) extra.push({ id: p.id, name: p.name, unit: p.unit }); else inv.push({ n: p.name, t: p.title, u: p.unit, g: p.group, d: '', x: '', e: 0, r: p.id }); });
+    for (var q = 0; q < 44; q++) { var br = rnd() < 0.42; inv.push({ n: pick(['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Võ']) + ' ' + pick(['Văn', 'Thị', 'Minh', 'Ngọc']) + ' ' + pick(['An', 'Bình', 'Châu', 'Dũng', 'Hà', 'Lan', 'Mai']), t: pick(['Trưởng phòng', 'Phó phòng', 'Phó Giám đốc']), u: br ? pick(S_BRANCH.slice(0, 15)) : pick(S_COMPANY.slice(0, 14)), g: br ? 'branch' : 'company', d: '', x: '', e: 0, r: '' }); }
+    inv[inv.length - 1].e = 1; inv[inv.length - 1].x = 'Nghỉ thai sản';
     sampleCache = {
-      people: people, submissions: people.length + 4,
+      people: people, submissions: people.length + 4, invitees: inv, extraPeople: extra,
       companyUnits: S_COMPANY, branchUnits: S_BRANCH,
       warnings: { duplicatesRemoved: 4, sharedPhones: [{ phone: people[3].phone, names: [people[3].name, 'Trần Thu Hà'] }], missingProfile: 11, unknownUnits: [] }
     };
