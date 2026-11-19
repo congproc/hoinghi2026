@@ -560,6 +560,110 @@ body[data-mode="live"] #content > .stack { display: none !important; }
 .lv-chart .now-l { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 2 3; }
 .lv-units li { grid-template-columns: minmax(0, 15rem) 1fr auto; }
 @media (max-width: 900px) { .lv-units li.muted { display: block; } .lv-hero, .lv-grid, .lv-grid2 { grid-template-columns: 1fr; } .lv-big { font-size: 48px; } .lv-units li { grid-template-columns: 8rem 1fr auto; } }
+
+/* ================= responsive + polish pass (all sizes) ================= */
+/* header: one row on desktop; mode tabs + status move to a 2nd row on tablets/phones */
+.tb-row2 { display: flex; align-items: center; gap: 12px; }
+.tb-title { min-width: 0; }
+.topbar h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1180px) { #logoutBtn span { display: none; } #logoutBtn { width: 36px; padding: 0; } }
+@media (max-width: 900px) {
+  .tb-row2 { order: 10; flex: 1 1 100%; justify-content: space-between; }
+  .topbar-inner { row-gap: 10px; }
+}
+@media (max-width: 560px) {
+  .topbar { position: relative; }
+  .topbar .logo { width: 34px; height: 34px; }
+  .topbar h1 { font-size: 15.5px; }
+  .topbar-inner { gap: 8px; row-gap: 10px; }
+  .tb-row2 { gap: 8px; }
+  .modes { flex: 1; margin: 0; }
+  .modes button { flex: 1; padding: 8px 6px; }
+  .status { padding: 0 10px; }
+  .status .st-l { display: none; }
+}
+@media (max-width: 480px) { #sampleTag { display: none; } .overview .big small { font-size: 15px; } }
+@media (pointer: coarse) { #logoutBtn { width: 44px; } .modes button { min-height: 40px; } .seg2 button { min-height: 36px; } }
+
+/* card headings: on narrow cards the hint gets its own line, controls after it */
+@media (max-width: 640px) {
+  .card { padding: 16px; }
+  .card-head { flex-wrap: wrap; row-gap: 6px; }
+  .card-head .hint { flex: 1 1 100%; order: 2; }
+  .card-head .spacer { display: none; }
+  .card-head .seg2, .card-head .mini-search, .card-head > .btn, .card-head .chipx { order: 3; }
+  .card-head .seg2 { margin-left: 0; }
+}
+
+/* unit bars on phones: name + count on one line, the bar under them */
+@media (max-width: 560px) {
+  .bar-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n c" "b b"; row-gap: 5px; padding: 7px 6px; }
+  .bar-row .name { grid-area: n; white-space: normal; }
+  .bar-row .count { grid-area: c; }
+  .bar-row .track { grid-area: b; }
+  .lv-units li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n v" "t t"; row-gap: 5px; }
+  .lv-units .n { grid-area: n; white-space: normal; }
+  .lv-units .v { grid-area: v; }
+  .lv-units .tr { grid-area: t; }
+}
+
+/* people table: short columns never wrap, long ones get a sensible minimum, narrow screens scroll sideways */
+table.people { min-width: 1060px; }
+table.people td { vertical-align: middle; }
+table.people td:nth-child(3), table.people td:nth-child(9), table.people td:nth-child(10) { white-space: nowrap; }
+table.people td:nth-child(4) { min-width: 150px; }
+table.people td:nth-child(5) { min-width: 140px; }
+table.people td:nth-child(6) { min-width: 230px; }
+table.people td:nth-child(7) { min-width: 110px; }
+.table-wrap { -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.selbar { flex-wrap: nowrap; }
+.selbar > span, .selbar .btn { white-space: nowrap; }
+@media (max-width: 420px) { .selbar { gap: 6px; padding: 8px 10px; } .selbar .btn { padding: 0 10px; } }
+
+/* check-in day on phones */
+@media (max-width: 560px) {
+  .lv-big { font-size: 44px; }
+  .lv-stats > div { padding-left: 10px; }
+  .lv-stats dt { font-size: 12px; }
+  .lv-stats dd { font-size: 24px; }
+}
+.lv-feed time { min-width: 3.1em; }
+.lv-left li b { min-width: 0; }
+
+/* chart labels stay readable when they sit on bars or lines */
+.lv-chart .cum-lab, .burn .lab, .burn .lab2, .burn .dlab, .lv-chart .open-lab { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+
+/* ---- fixes from the code review (contrast, touch, Safari, wrapping) ---- */
+.deadline { max-width: 100%; white-space: normal; }
+.status { height: auto; min-height: 32px; max-width: 100%; padding-block: 5px; }
+.bar-row.behind .count { color: var(--bad); }
+html { scroll-padding-top: 88px; }
+@media (max-width: 900px) { html { scroll-padding-top: 128px; } }
+@media (max-width: 560px) { html { scroll-padding-top: 12px; } }
+/* dark theme: white text on the sky accent / light red was below 4.5:1 -> deeper fills */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { background: #0070b8; border-color: #0070b8; } :root:not([data-theme="light"]) .btn.primary:hover { background: #005a96; border-color: #005a96; } }
+:root[data-theme="dark"] .btn.primary { background: #0070b8; border-color: #0070b8; }
+:root[data-theme="dark"] .btn.primary:hover { background: #005a96; border-color: #005a96; }
+.btn.danger, .btn.danger:hover { background: #b52c2c; border-color: #b52c2c; }
+/* selection column stays visible when the table scrolls sideways */
+table.people td.sel { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+table.people th.sel { left: 0; z-index: 3; }
+/* touch screens: comfortable targets */
+@media (pointer: coarse) {
+  .pw-toggle { width: 44px; height: 44px; top: 0; right: 0; }
+  .pw-wrap input { padding-right: 52px; }
+  .bar-row { min-height: 44px; }
+  .mcopy { min-width: 36px; min-height: 36px; justify-content: center; align-items: center; }
+  .code-btn { min-height: 34px; }
+  input.chk { width: 22px; height: 22px; }
+  th.sel, td.sel { width: 44px; }
+}
+/* toasts never cover the selection bar; respect the iPhone home indicator */
+.toasts { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+.selbar { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 420px) { .toasts { left: 16px; right: 16px; } .toast { max-width: none; } }
+@media (max-width: 380px) { .lv-stats dd { font-size: 20px; } .lv-big { font-size: 40px; } }
 </style>
 </head>
 <body>
@@ -607,18 +711,20 @@ body[data-mode="live"] #content > .stack { display: none !important; }
   <header class="topbar">
     <div class="topbar-inner">
       <img class="logo" src="../assets/logo.png" alt="Saigontourist Travel" width="40" height="40">
-      <div>
+      <div class="tb-title">
         <h1>Theo dõi đăng ký</h1>
         <div class="sub">Hội nghị Tổng kết 2026 · 22/12/2026</div>
       </div>
       <span class="tag" id="sampleTag" hidden>Dữ liệu mẫu</span>
       <div class="spacer"></div>
+      <div class="tb-row2">
       <div class="seg2 modes" id="modeTabs" role="group" aria-label="Chế độ xem"><button type="button" data-mode="pre" aria-pressed="true">Trước sự kiện</button><button type="button" data-mode="live" aria-pressed="false">Ngày check-in</button></div>
       <div class="status" id="status" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="statusText">Đang tải…</span></div>
+      </div>
       <button class="btn icon-btn" id="refreshBtn" type="button" aria-label="Làm mới dữ liệu" title="Làm mới (R)">
         <svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>
       </button>
-      <button class="btn ghost" id="logoutBtn" type="button">
+      <button class="btn ghost" id="logoutBtn" type="button" title="Đăng xuất">
         <svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg><span>Đăng xuất</span>
       </button>
     </div>
@@ -916,7 +1022,7 @@ body[data-mode="live"] #content > .stack { display: none !important; }
     $('progress').classList.toggle('on', kind === 'loading');
     $('refreshBtn').querySelector('.icon').classList.toggle('spin', kind === 'loading');
     if (kind === 'loading') $('statusText').textContent = state.data ? 'Đang cập nhật…' : 'Đang tải…';
-    else if (kind === 'live') $('statusText').textContent = 'Cập nhật lúc ' + fmtClock(state.at);
+    else if (kind === 'live') $('statusText').innerHTML = '<span class="st-l">Cập nhật lúc </span>' + fmtClock(state.at);
     else if (kind === 'error') $('statusText').innerHTML = 'Mất kết nối · dữ liệu lúc ' + fmtClock(state.at) + ' · <button type="button" id="statusRetry">Thử lại</button>';
   }
 
@@ -1310,7 +1416,8 @@ body[data-mode="live"] #content > .stack { display: none !important; }
 
 
   /* ---------- motion helpers ---------- */
-  var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var motionQ = matchMedia('(prefers-reduced-motion: reduce)'), REDUCE = motionQ.matches;
+  (function (fn) { if (motionQ.addEventListener) motionQ.addEventListener('change', fn); else if (motionQ.addListener) motionQ.addListener(fn); })(function (e) { REDUCE = e.matches; });
   function tween(el, from, to, ms) {
     if (REDUCE || from === to) { el.textContent = to; return; }
     cancelAnimationFrame(el.__raf);
@@ -1350,15 +1457,15 @@ body[data-mode="live"] #content > .stack { display: none !important; }
     Object.keys(old).forEach(function (u) { old[u].remove(); });
     ul.appendChild(frag);
     if (REDUCE) return;
+    var moves = [];
     Array.prototype.forEach.call(ul.children, function (li) {
-      var u = li.getAttribute('data-u'), was = tops[u];
+      var was = tops[li.getAttribute('data-u')];
       if (was == null) return;
       var dy = was - li.getBoundingClientRect().top;
-      if (Math.abs(dy) > 1) {
-        li.style.transition = 'none'; li.style.transform = 'translateY(' + dy + 'px)';
-        requestAnimationFrame(function () { li.style.transition = 'transform .45s cubic-bezier(.2,.8,.2,1)'; li.style.transform = ''; });
-      }
+      if (Math.abs(dy) > 1) moves.push([li, dy]);
     });
+    moves.forEach(function (m) { m[0].style.transition = 'none'; m[0].style.transform = 'translateY(' + m[1] + 'px)'; });
+    if (moves.length) requestAnimationFrame(function () { moves.forEach(function (m) { m[0].style.transition = 'transform .45s cubic-bezier(.2,.8,.2,1)'; m[0].style.transform = ''; }); });
   }
 
   /* ---------- overview: progress, deadline, last 14 days ---------- */
@@ -1477,7 +1584,7 @@ body[data-mode="live"] #content > .stack { display: none !important; }
     var animate = chart.__key !== key && chart.__first !== false; chart.__key = key;
     var g = '';
     for (var v = 0; v <= ymax; v += nm.step) g += '<line class="grid-l" x1="' + M.l + '" x2="' + (M.l + pw) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '"/><text class="tick" x="' + (M.l - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end">' + v + '</text>';
-    var ticks = Math.min(6, b.n), xl = '';
+    var ticks = Math.min(W < 520 ? 3 : W < 760 ? 4 : 6, b.n), xl = '';
     for (var t2 = 0; t2 < ticks; t2++) { var ix = Math.round(t2 / (ticks - 1) * (b.n - 1)), dd = new Date(b.start.getTime() + ix * 86400000); xl += '<text class="tick" x="' + X(ix).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="' + (t2 === 0 ? 'start' : t2 === ticks - 1 ? 'end' : 'middle') + '">' + (ix === b.n - 1 ? 'Hạn ' : '') + fmtDM(dd) + '</text>'; }
     var pmax = 0; for (var q2 = 0; q2 <= b.ti; q2++) pmax = Math.max(pmax, b.per[q2]);
     var bwid = Math.max(3, Math.min(16, pw / Math.max(1, b.n - 1) * 0.55)), bh = ph * 0.22, dbars = '', peakI = -1;
@@ -1496,7 +1603,7 @@ body[data-mode="live"] #content > .stack { display: none !important; }
       '<line class="deadline-l" x1="' + xd.toFixed(1) + '" x2="' + xd.toFixed(1) + '" y1="' + M.t + '" y2="' + (M.t + ph) + '"/>' +
       (b.target ? '<line class="ln-target" x1="' + M.l + '" x2="' + (M.l + pw) + '" y1="' + Y(b.target).toFixed(1) + '" y2="' + Y(b.target).toFixed(1) + '"/><text class="lab2" x="' + (M.l + pw + 8) + '" y="' + (Y(b.target) + 4).toFixed(1) + '">Mục tiêu ' + b.target + '</text>' : '') +
       '<path class="area' + (animate ? ' fade-in' : '') + '" d="' + area + '"/>' + dbars +
-      (b.ti < b.n - 1 ? '<path class="ln-proj' + (animate ? ' fade-in' : '') + '" d="M' + xe.toFixed(1) + ',' + ye.toFixed(1) + 'L' + xd.toFixed(1) + ',' + yp.toFixed(1) + '"/><circle class="dot-proj' + (animate ? ' fade-in' : '') + '" cx="' + xd.toFixed(1) + '" cy="' + yp.toFixed(1) + '" r="5"/><text class="lab2' + (animate ? ' fade-in' : '') + '" x="' + (xd + 10).toFixed(1) + '" y="' + (yp + 4).toFixed(1) + '">dự báo ' + Math.min(ymax, Math.round(b.proj)) + '</text>' : '') +
+      (b.ti < b.n - 1 ? '<path class="ln-proj' + (animate ? ' fade-in' : '') + '" d="M' + xe.toFixed(1) + ',' + ye.toFixed(1) + 'L' + xd.toFixed(1) + ',' + yp.toFixed(1) + '"/><circle class="dot-proj' + (animate ? ' fade-in' : '') + '" cx="' + xd.toFixed(1) + '" cy="' + yp.toFixed(1) + '" r="5"/><text class="lab2' + (animate ? ' fade-in' : '') + '" x="' + (xd + 10).toFixed(1) + '" y="' + (yp + 4 + (b.target && Math.abs(yp - Y(b.target)) < 16 ? (yp >= Y(b.target) ? 16 : -16) + (Y(b.target) - yp) : 0)).toFixed(1) + '">dự báo ' + Math.min(ymax, Math.round(b.proj)) + '</text>' : '') +
       '<path class="ln-actual' + (animate ? ' draw' : '') + '" pathLength="1" d="' + line + '"/>' +
       '<circle class="dot" cx="' + xe.toFixed(1) + '" cy="' + ye.toFixed(1) + '" r="5"/><text class="lab" x="' + (xe + 10).toFixed(1) + '" y="' + (ye - 8).toFixed(1) + '">' + b.cur + '</text>' +
       '<line class="cross" id="burnCross" x1="0" x2="0" y1="' + M.t + '" y2="' + (M.t + ph) + '" visibility="hidden"/>' +
@@ -1507,7 +1614,9 @@ body[data-mode="live"] #content > .stack { display: none !important; }
     // hover / keyboard: the crosshair snaps to a day; one tooltip lists every series
     var svgEl = chart.firstChild, cross = svgEl.querySelector('#burnCross'), hit = svgEl.querySelector('#burnHit'), cur = b.ti;
     function show(i) {
-      i = Math.max(0, Math.min(b.n - 1, i)); cur = i;
+      i = Math.max(0, Math.min(b.n - 1, i));
+      if (i === cur && !tip.hidden) return;
+      cur = i;
       var xx = X(i); cross.setAttribute('x1', xx); cross.setAttribute('x2', xx); cross.setAttribute('visibility', 'visible');
       var day = new Date(b.start.getTime() + i * 86400000), future = i > b.ti;
       var val = future ? Math.min(ymax, Math.round(b.cur + b.pace * (i - b.ti))) : b.cum[i];
@@ -1737,6 +1846,7 @@ body[data-mode="live"] #content > .stack { display: none !important; }
     var k = b.getAttribute('data-sort');
     if (state.sort === k) state.dir = -state.dir; else { state.sort = k; state.dir = k === 'submittedAt' ? -1 : 1; }
     renderTable();
+    var nb = $('peopleHead').querySelector('button[data-sort="' + k + '"]'); if (nb) nb.focus({ preventScroll: true });
   });
 
   function renderTable() {
@@ -1810,6 +1920,7 @@ body[data-mode="live"] #content > .stack { display: none !important; }
   function syncSel() {
     var n = selIds().length;
     $('selBar').hidden = !n;
+    document.body.classList.toggle('has-sel', !!n);
     $('selCount').textContent = n;
     var all = $('selAll');
     if (all) {
@@ -1858,7 +1969,8 @@ body[data-mode="live"] #content > .stack { display: none !important; }
     if (people.length > 8) shown.push('<li class="muted">… và ' + (people.length - 8) + ' người khác</li>');
     $('delList').innerHTML = shown.join('');
     $('delAck').checked = false; $('delGo').disabled = true; $('delErr').textContent = '';
-    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+    if (typeof dlg.showModal !== 'function') { toast('Trình duyệt này quá cũ để xoá — hãy cập nhật hoặc dùng Chrome/Edge.'); return; }
+    dlg.showModal();
     $('delCancel').focus();
   });
   $('delAck').addEventListener('change', function () { $('delGo').disabled = !this.checked || delBusy; });
