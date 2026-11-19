@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-x16">
+<meta name="build" content="2026-11-19-c1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -446,8 +446,8 @@ body.idle-cursor .ctl { opacity: 0; }
   <header class="top">
     <img class="logo" src="../assets/logo.png" alt="Saigontourist Travel">
     <div>
-      <h1>Hội nghị Tổng kết Hoạt động Kinh doanh 2026</h1>
-      <div class="sub">&amp; Phương hướng 2027 · Gala Dinner · 22.12.2026</div>
+      <h1 id="hdTitle">Hội nghị Tổng kết Hoạt động Kinh doanh 2026</h1>
+      <div class="sub" id="hdSub">&amp; Phương hướng 2027 · Gala Dinner · 22.12.2026</div>
     </div>
     <div class="spacer"></div>
     <div class="clock"><div class="t"><span id="hh">--</span><i>:</i><span id="mm">--</span></div><div class="d" id="date"></div></div>
@@ -504,7 +504,7 @@ body.idle-cursor .ctl { opacity: 0; }
   </main>
 
   <footer class="bottom">
-    <span>▸ Quét mã QR tại sảnh để check-in</span>
+    <span id="ftText">▸ Quét mã QR tại sảnh để check-in</span>
     <span class="spacer"></span>
     <span class="sysline"><b id="sysConn" class="ok">● đang tải</b><span class="sep">·</span><b id="sysLat">— ms</b></span>
     <span id="conn" hidden>Đang kết nối…</span>
@@ -606,11 +606,69 @@ body.idle-cursor .ctl { opacity: 0; }
   // Which greeting details to show (URL: ?show=first,years,bday,act,word ; the guest's own word is OFF unless you add 'word').
   var SHOW = {}; (new URLSearchParams(location.search).get('show') || 'first,years,bday,act').split(',').forEach(function (k) { SHOW[k.trim()] = true; });
   if (DEMO) window.__hn = { get unitTotals() { return unitTotals; }, get unitArr() { return unitArr; }, get SHOW() { return SHOW; } }; // test hook (demo only)
+  /* ---------- remote control: Firebase /screen (written by the admin dashboard, firebase/admin.mjs) ----------
+     mode: live | idle | message · msg {kicker,title,sub} · show {first,years,bday,act,word} · showMs (s)
+     idle {kicker,name,sub,conf,gala,hint} · head {title,sub,foot} · hide {<code>:true} · spot {id,at} replay · reload (stamp) */
+  var URL_SHOW = SHOW, CFG = { mode: 'live', hide: {}, idle: {}, msg: {}, head: {} }, cfgFirst = true, cfgReload = 0, cfgSpot = 0, cfgEs = null;
+  var HEAD0 = { title: $('hdTitle').textContent, sub: $('hdSub').textContent, foot: $('ftText').textContent };
+  function vis(a) { return !CFG.hide[a.id]; }
+  function txt(v, d) { v = v == null ? '' : String(v).trim(); return v || d; }
+  function applyCfg(c) {
+    c = c && typeof c === 'object' ? c : {};
+    var old = JSON.stringify([CFG.mode, CFG.msg, CFG.idle]), oldHide = JSON.stringify(CFG.hide);
+    CFG = { mode: /^(idle|message)$/.test(c.mode) ? c.mode : 'live', msg: c.msg || {}, idle: c.idle || {}, head: c.head || {}, hide: c.hide || {} };
+    if (c.show && typeof c.show === 'object') { SHOW = {}; Object.keys(c.show).forEach(function (k) { if (c.show[k]) SHOW[k] = true; }); } else SHOW = URL_SHOW;
+    var ms = Number(c.showMs); SHOW_MS = ms >= 2 && ms <= 60 ? ms * 1000 : 6500; SHOW_MS_BUSY = Math.min(3400, SHOW_MS);
+    $('hdTitle').textContent = txt(CFG.head.title, HEAD0.title); $('hdSub').textContent = txt(CFG.head.sub, HEAD0.sub); $('ftText').textContent = txt(CFG.head.foot, HEAD0.foot);
+    var rl = Number(c.reload) || 0;
+    if (!cfgFirst && rl && rl !== cfgReload) { location.reload(); return; }
+    cfgReload = rl;
+    if (JSON.stringify(CFG.hide) !== oldHide && baselined) { state.queue = state.queue.filter(function (q) { return vis(q.a); }); rebuildFeed(); updateQueueNote(); }
+    var paused = CFG.mode !== 'live';
+    if (paused) { clearTimeout(spotTimer); clearTimeout(nextT); nextT = null; state.showing = false; pump(); }
+    if (JSON.stringify([CFG.mode, CFG.msg, CFG.idle]) !== old && !state.showing) showIdle();
+    var sp = c.spot && Number(c.spot.at) || 0;
+    if (!cfgFirst && sp && sp !== cfgSpot && !paused && chk[c.spot.id]) replay(c.spot.id);
+    cfgSpot = sp; cfgFirst = false;
+  }
+  function connectCfg() {
+    if (DEMO) return;
+    if (cfgEs) { try { cfgEs.close(); } catch (e) {} }
+    var cur = {};
+    cfgEs = new EventSource(DB_URL + '/screen.json');
+    var on = function (ev) {
+      var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+      if (!d) return;
+      var parts = (d.path || '/').split('/').filter(Boolean);
+      if (ev.type === 'put') {
+        if (!parts.length) cur = d.data || {};
+        else { var o = cur; for (var i = 0; i < parts.length - 1; i++) { if (!o[parts[i]] || typeof o[parts[i]] !== 'object') o[parts[i]] = {}; o = o[parts[i]]; } if (d.data == null) delete o[parts[parts.length - 1]]; else o[parts[parts.length - 1]] = d.data; }
+      } else if (ev.type === 'patch') {
+        var t = cur; parts.forEach(function (p) { if (!t[p] || typeof t[p] !== 'object') t[p] = {}; t = t[p]; });
+        Object.keys(d.data || {}).forEach(function (k) { if (d.data[k] == null) delete t[k]; else t[k] = d.data[k]; });
+      }
+      applyCfg(JSON.parse(JSON.stringify(cur)));
+    };
+    cfgEs.addEventListener('put', on); cfgEs.addEventListener('patch', on);
+  }
+  function toA(id) { var r = chk[id] || {}; return { id: id, at: r.t, name: r.name, title: r.title, gender: r.gender, unit: r.unit, group: r.group, photo: r.photo, first: r.first, since: r.since, bday: r.bday, act: r.act, word: r.word }; }
+  function sortedList() { return Object.keys(chk).map(toA).sort(function (x, y) { return x.at - y.at || (x.id < y.id ? -1 : 1); }); }
+  function rebuildFeed() {
+    state.feed = sortedList().map(function (a, i) { return { a: a, n: i + 1 }; }).filter(function (it) { return vis(it.a); }).reverse().slice(0, FEED_MAX);
+    renderFeed();
+  }
+  function replay(id) {
+    var list = sortedList(), n = 0;
+    list.forEach(function (a, i) { if (a.id === id) n = i + 1; });
+    var a = toA(id); preload(a.photo);
+    state.queue.unshift({ a: a, n: n, replay: true });
+    if (state.showing) { clearTimeout(nextT); nextT = null; advance(); } else pump();
+  }
+
   var evAt = 0, chk = {}, meta = { total: 0, company: 0, branch: 0 }, es = null, lastEvent = 0;
   var seen = {}, baselined = false;
   function pushUpdate() {
-    var list = Object.keys(chk).map(function (id) { var r = chk[id]; return { id: id, at: r.t, name: r.name, title: r.title, gender: r.gender, unit: r.unit, group: r.group, photo: r.photo, first: r.first, since: r.since, bday: r.bday, act: r.act, word: r.word }; })
-      .sort(function (x, y) { return x.at - y.at || (x.id < y.id ? -1 : 1); });
+    var list = sortedList();
     var n = list.length, cnt = function (g) { return list.filter(function (x) { return x.group === g; }).length; };
     var totals = { seq: n, registered: meta.total, registeredCompany: meta.company, registeredBranch: meta.branch, arrived: n, arrivedCompany: cnt('company'), arrivedBranch: cnt('branch'), at: Date.now() };
     var now = {}; unitArr = {}; list.forEach(function (a) { now[a.id] = true; if (a.unit) unitArr[a.unit] = (unitArr[a.unit] || 0) + 1; });
@@ -621,7 +679,7 @@ body.idle-cursor .ctl { opacity: 0; }
     if (!baselined) { // first snapshot: show who is already in, without spotlighting them
       baselined = true;
       list.forEach(function (a) { seen[a.id] = true; });
-      state.feed = list.map(function (a, i) { return { a: a, n: i + 1 }; }).reverse().slice(0, FEED_MAX);
+      state.feed = list.map(function (a, i) { return { a: a, n: i + 1 }; }).filter(function (it) { return vis(it.a); }).reverse().slice(0, FEED_MAX);
       state.shown = n; state.totals = totals;
       renderFeed(); renderStats(n); if (!state.showing) showIdle();
       state.failures = 0; setConn(true); return;
@@ -630,10 +688,10 @@ body.idle-cursor .ctl { opacity: 0; }
     state.totals = totals; state.failures = 0;
     if (removed) {
       state.queue = state.queue.filter(function (q) { return now[q.a.id]; });
-      state.feed = list.map(function (a, i) { return { a: a, n: i + 1 }; }).reverse().slice(0, FEED_MAX);
+      state.feed = list.map(function (a, i) { return { a: a, n: i + 1 }; }).filter(function (it) { return vis(it.a); }).reverse().slice(0, FEED_MAX);
       state.shown = Math.min(state.shown, n); renderFeed();
     }
-    fresh.forEach(function (a) { preload(a.photo); state.queue.push({ a: a, n: a.n }); });
+    fresh.forEach(function (a) { if (vis(a)) { preload(a.photo); state.queue.push({ a: a, n: a.n }); } else state.shown = Math.min(state.shown + 1, n); });
     if (fresh.length) pump(); else renderStats(state.shown);
     setConn(true); updateQueueNote();
   }
@@ -668,7 +726,7 @@ body.idle-cursor .ctl { opacity: 0; }
     es.onerror = function () { state.failures++; setConn(false); };
   }
   // safety nets: reconnect if the stream goes quiet, and re-read everything now and then
-  setInterval(function () { if (!DEMO && Date.now() - lastEvent > 70000) connect(); }, 15000);
+  setInterval(function () { if (!DEMO && Date.now() - lastEvent > 70000) { connect(); connectCfg(); } }, 15000);
   function reread() {
     if (DEMO) return;
     var t0 = performance.now(), started = Date.now();
@@ -677,6 +735,7 @@ body.idle-cursor .ctl { opacity: 0; }
       if (evAt > started) return; // the live stream delivered something newer while this was in flight
       chk = all || {}; pushUpdate();
     }).catch(function () { state.failures++; setConn(false); });
+    fetch(DB_URL + '/screen.json', { credentials: 'omit', cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : Promise.reject(); }).then(applyCfg).catch(function () {});
   }
   // The live stream already pushes every change. The full re-read is only a safety net: once a minute while the stream is healthy
   // (Firebase sends a keep-alive every ~30 s), every 4 s only if the stream has gone quiet. Keeps data use ~15x lower (free plan = 10 GB/month).
@@ -696,6 +755,7 @@ body.idle-cursor .ctl { opacity: 0; }
   setInterval(function () { selfUpdate(function () { return true; }); }, 60000);
   function startLive() {
     $('login').hidden = true;
+    connectCfg();
     loadMeta().then(connect);
   }
 
@@ -749,6 +809,10 @@ body.idle-cursor .ctl { opacity: 0; }
   var nextT = null, shownAt = 0, MIN_MS = 2600; // a new arrival replaces the current guest after at least MIN_MS
   function pump() {
     if (!state.queue.length) return;
+    if (CFG.mode !== 'live') { // idle / message mode: count arrivals and list them, no spotlight
+      while (state.queue.length) { var it = state.queue.shift(); if (it.replay) continue; state.feed.unshift(it); state.shown = Math.min(state.shown + 1, state.totals ? state.totals.arrived : state.shown + 1); }
+      state.feed = state.feed.slice(0, FEED_MAX); renderFeed(); renderStats(state.shown); updateQueueNote(); return;
+    }
     if (state.showing) {
       var wait = MIN_MS - (Date.now() - shownAt);
       if (wait > 0) { if (!nextT) nextT = setTimeout(function () { nextT = null; advance(); }, wait); return; }
@@ -761,8 +825,10 @@ body.idle-cursor .ctl { opacity: 0; }
     var item = state.queue.shift();
     state.showing = true; shownAt = Date.now();
     showGuest(item.a, item.n);
-    state.feed.unshift(item); state.feed = state.feed.slice(0, FEED_MAX);
-    state.shown = Math.min(state.shown + 1, state.totals ? state.totals.arrived : state.shown + 1);
+    if (!item.replay) {
+      state.feed.unshift(item); state.feed = state.feed.slice(0, FEED_MAX);
+      state.shown = Math.min(state.shown + 1, state.totals ? state.totals.arrived : state.shown + 1);
+    }
     renderFeed(); renderStats(state.shown);
     updateQueueNote();
     spotTimer = setTimeout(function () {
@@ -879,28 +945,44 @@ body.idle-cursor .ctl { opacity: 0; }
     burst();
   }
   function showIdle() {
-    swapSpot(buildIdle);
+    swapSpot(CFG.mode === 'message' ? buildMessage : buildIdle);
+  }
+  function buildMessage() {
+    var hero = $('heroInner'), el = $('spotInner'), m = CFG.msg || {};
+    enter(hero); enter(el);
+    hero.innerHTML =
+      '<div class="kicker">' + esc(txt(m.kicker, 'Thông báo')) + '</div>' +
+      '<div class="guest-name idle-name">' + esc(txt(m.title, 'Quý Anh Chị')) + '</div>';
+    el.innerHTML =
+      '<div class="gwrap idle"><div class="ginfo">' +
+        (txt(m.sub, '') ? '<p class="guest-title">' + esc(m.sub) + '</p>' : '') +
+      '</div></div>';
+    fitGuest(); fitInfo();
+    $('spotLabel').textContent = txt(m.kicker, 'Thông báo');
+    $('spotTag').textContent = 'thông báo';
+    $('spotFoot').textContent = '';
   }
   function buildIdle() {
     var hero = $('heroInner'), el = $('spotInner');
     enter(hero); enter(el);
+    var I = CFG.idle || {};
     hero.innerHTML =
-      '<div class="kicker">Chào mừng</div>' +
-      '<div class="guest-name idle-name">Quý Anh Chị</div>';
+      '<div class="kicker">' + esc(txt(I.kicker, 'Chào mừng')) + '</div>' +
+      '<div class="guest-name idle-name">' + esc(txt(I.name, 'Quý Anh Chị')) + '</div>';
     el.innerHTML =
       '<div class="gwrap idle">' +
         '<div class="ginfo">' +
-          '<p class="guest-title">đến với Hội nghị Tổng kết 2026</p>' +
+          '<p class="guest-title">' + esc(txt(I.sub, 'đến với Hội nghị Tổng kết 2026')) + '</p>' +
           '<div class="readout idle3">' +
-            '<div class="cell"><div class="k">Hội nghị</div><div class="v mono">13:00 – 17:30</div></div>' +
-            '<div class="cell branch"><div class="k">Gala Dinner</div><div class="v mono">18:30 – 21:00</div></div>' +
-            '<div class="cell"><div class="k">Trạng thái</div><div class="v mono">đang chờ check-in<span class="cursor"></span></div></div>' +
+            '<div class="cell"><div class="k">Hội nghị</div><div class="v mono">' + esc(txt(I.conf, '13:00 – 17:30')) + '</div></div>' +
+            '<div class="cell branch"><div class="k">Gala Dinner</div><div class="v mono">' + esc(txt(I.gala, '18:30 – 21:00')) + '</div></div>' +
+            '<div class="cell"><div class="k">Trạng thái</div><div class="v mono">' + (CFG.mode === 'idle' ? 'tạm dừng chào mừng' : 'đang chờ check-in') + '<span class="cursor"></span></div></div>' +
           '</div>' +
-          '<div class="idlehint">Quét mã QR tại sảnh · nhập số điện thoại đã đăng ký · bấm xác nhận.</div>' +
+          '<div class="idlehint">' + esc(txt(I.hint, 'Quét mã QR tại sảnh · nhập số điện thoại đã đăng ký · bấm xác nhận.')) + '</div>' +
         '</div>' +
       '</div>';
     fitGuest(); fitInfo();
-    $('spotLabel').textContent = 'Chào mừng Quý Anh Chị';
+    $('spotLabel').textContent = txt(I.kicker, 'Chào mừng') + ' ' + txt(I.name, 'Quý Anh Chị');
     $('spotTag').textContent = 'chế độ chờ';
     $('spotFoot').textContent = '';
   }
