@@ -517,6 +517,7 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
 .lv-feed li:last-child { border-bottom: 0; }
 .lv-feed time { font-variant-numeric: tabular-nums; color: var(--good); font-weight: 600; flex: none; }
 .lv-feed .u { color: var(--text-3); font-size: 12.5px; }
+.lv-units li.muted { display: block; }
 .lv-units li { display: grid; grid-template-columns: minmax(0, 11rem) 1fr auto; gap: 12px; align-items: center; padding: 6px 0; }
 .lv-units .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .lv-units .tr { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
@@ -526,7 +527,7 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
 .lv-left li { padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 12px; }
 .lv-left .u { color: var(--text-3); font-size: 12.5px; text-align: right; }
 .lv-left li:last-child { border-bottom: 0; }
-@media (max-width: 900px) { .lv-hero, .lv-grid, .lv-grid2 { grid-template-columns: 1fr; } .lv-big { font-size: 48px; } .lv-units li { grid-template-columns: 8rem 1fr auto; } }
+@media (max-width: 900px) { .lv-units li.muted { display: block; } .lv-hero, .lv-grid, .lv-grid2 { grid-template-columns: 1fr; } .lv-big { font-size: 48px; } .lv-units li { grid-template-columns: 8rem 1fr auto; } }
 </style>
 </head>
 <body>
@@ -1076,6 +1077,7 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
     if (!m) { var n = new Date(); m = (n.getFullYear() === 2026 && n.getMonth() === 11 && n.getDate() === 22) ? 'live' : 'pre'; }
     setMode(m === 'live' ? 'live' : 'pre', false);
   })();
+  setInterval(function () { if (mode === 'live' && state.data) renderLiveView(state.data); }, 30000);
   var lvQ = '';
   $('lvQ').addEventListener('input', function () { lvQ = this.value; if (state.data) renderLiveView(state.data); });
   function renderLiveView(d) {
@@ -1092,14 +1094,17 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
     $('lvLast').textContent = n ? fmtTime(arr[n - 1].checkedInAt).slice(-5) : '—';
     // arrivals per 10 minutes
     var B = 600000, evt = new Date(2026, 11, 22, 13, 0).getTime();
-    var onDay = Math.abs(now - evt) < 864e5 || (n && Math.abs(arr[n - 1].checkedInAt - evt) < 864e5);
+    var evDay = new Date(2026, 11, 22), isEv = function (ms) { return sameDay(new Date(ms), evDay); };
+    var onDay = sameDay(new Date(now), evDay) || arr.some(function (x) { return isEv(x.checkedInAt); });
+    var carr = onDay ? arr.filter(function (x) { return isEv(x.checkedInAt); }) : arr, cn = carr.length;
     var t0, t1;
-    if (onDay) { t0 = n ? Math.min(arr[0].checkedInAt, evt - 3600000) : evt - 3600000; t1 = Math.max(evt + 1800000, n ? arr[n - 1].checkedInAt : 0, Math.abs(now - evt) < 864e5 ? now : 0); }
-    else { t0 = n ? arr[0].checkedInAt : now - 3600000; t1 = Math.max(t0 + 3600000, n ? arr[n - 1].checkedInAt + 600000 : 0); }
+    if (onDay) { t0 = cn ? Math.min(carr[0].checkedInAt, evt - 3600000) : evt - 3600000; t1 = Math.max(evt + 1800000, cn ? carr[cn - 1].checkedInAt + B : 0, sameDay(new Date(now), evDay) ? now : 0); }
+    else { t0 = cn ? carr[0].checkedInAt : now - 3600000; t1 = Math.max(t0 + 3600000, cn ? carr[cn - 1].checkedInAt + B : 0); }
+    if (t1 - t0 > 59 * B) t0 = t1 - 59 * B;
     t0 = Math.floor(t0 / B) * B;
     var nb = Math.min(60, Math.ceil((t1 - t0) / B) + 1), bins = [], mx = 1, i;
     for (i = 0; i < nb; i++) bins.push(0);
-    arr.forEach(function (x) { var k = Math.floor((x.checkedInAt - t0) / B); if (k >= 0 && k < nb) bins[k]++; });
+    carr.forEach(function (x) { var k = Math.floor((x.checkedInAt - t0) / B); if (k >= 0 && k < nb) bins[k]++; });
     bins.forEach(function (v) { if (v > mx) mx = v; });
     var W = 720, H = 290, M = { l: 34, r: 10, t: 12, b: 28 }, pw = W - M.l - M.r, ph = H - M.t - M.b, bw = pw / nb;
     var top = mx <= 5 ? 5 : Math.ceil(mx / 5) * 5, g = '';
