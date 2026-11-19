@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-x1">
+<meta name="build" content="2026-11-19-x2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -488,7 +488,7 @@ body.idle-cursor .ctl { opacity: 0; }
   var DB_URL = 'https://hoinghi2026-5a68e-default-rtdb.asia-southeast1.firebasedatabase.app';
   var unitArr = {}, unitTotals = {};
   // Which greeting details to show (URL: ?show=first,years,bday,act,word ; the guest's own word is OFF unless you add 'word').
-  var SHOW = {}; ((/[?&]show=([\w,]+)/.exec(location.search) || [0, 'first,years,bday,act'])[1]).split(',').forEach(function (k) { SHOW[k] = true; });
+  var SHOW = {}; (new URLSearchParams(location.search).get('show') || 'first,years,bday,act').split(',').forEach(function (k) { SHOW[k.trim()] = true; });
   var evAt = 0, chk = {}, meta = { total: 0, company: 0, branch: 0 }, es = null, lastEvent = 0;
   var seen = {}, baselined = false;
   function pushUpdate() {
@@ -935,7 +935,7 @@ body.idle-cursor .ctl { opacity: 0; }
         var n = demo.list.length, s = Number(b.since);
         if (!(s >= 0) || s > n) s = Math.max(0, n - 12);
         var c = function (g) { return demo.list.filter(function (x) { return x.group === g; }).length; };
-        var ua = {}, ut = {}; FU.forEach(function (u) { ut[u] = 9; }); demo.list.forEach(function (x) { ua[x.unit] = (ua[x.unit] || 0) + 1; });
+        var ua = {}, ut = {}; FU.forEach(function (u) { ut[u] = 9; }); LONG.forEach(function (x) { ut[x.unit] = 9; }); demo.list.forEach(function (x) { ua[x.unit] = (ua[x.unit] || 0) + 1; });
         resolve({ seq: n, registered: demo.reg, registeredCompany: demo.regC, registeredBranch: demo.regB, arrived: n, arrivedCompany: c('company'), arrivedBranch: c('branch'), arrivals: demo.list.slice(s), from: s, at: Date.now(), unitArr: ua, unitTotals: ut });
       }, 300);
     });
@@ -960,7 +960,8 @@ body.idle-cursor .ctl { opacity: 0; }
     if (only && LONG[Number(only[1])]) { var O = LONG[Number(only[1])]; a.name = O.name; a.title = O.title; a.unit = O.unit; a.group = /^ST/.test(O.unit) ? 'branch' : 'company'; }
     if (DEMO_LONG && Math.random() < 0.7) { var L = r(LONG); a.name = L.name; a.title = L.title; a.unit = L.unit; a.group = /^ST/.test(L.unit) ? 'branch' : 'company'; }
     if (DEMO_PHOTO) a.photo = 'https://congproc.github.io/hoinghi2026/assets/guide.jpg';
-    if (/[?&]extras=1\b/.test(location.search)) { if (Math.random() < .5) a.first = 1; if (Math.random() < .8) a.since = 1990 + Math.floor(Math.random() * 35); if (Math.random() < .25) a.bday = 1; if (Math.random() < .4) a.act = r(['Tình ca du lịch (Hát)', 'Sắc màu Việt Nam (Múa)', 'Hành trình mới (Nhạc cụ)']); if (Math.random() < .7) a.word = r(['Bứt phá', 'Đoàn kết', 'Bền bỉ', 'Tăng trưởng', 'Cố gắng hết mình']); }
+    var ex = /[?&]extras=(\d)/.exec(location.search); // extras=1 random, extras=2 everything (worst-case layout)
+    if (ex) { var all = ex[1] === '2'; if (all || Math.random() < .6) a.first = 1; a.since = 1990 + Math.floor(Math.random() * 35); if (all || Math.random() < .3) a.bday = 1; if (all || Math.random() < .5) a.act = r(['Tình ca du lịch (Hát)', 'Sắc màu Việt Nam (Múa)', 'Hành trình mới (Nhạc cụ)']); a.word = r(['Bứt phá', 'Đoàn kết', 'Bền bỉ', 'Tăng trưởng', 'Cố gắng hết mình']); }
     return a;
   }
 
