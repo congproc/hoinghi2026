@@ -18,7 +18,7 @@
   /* control panel */
   #panel { position: fixed; left: 10px; bottom: 10px; z-index: 5; width: min(330px, calc(100vw - 20px)); background: rgba(4,18,32,.92); border: 1px solid #27445e; border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); transition: opacity .35s; }
   #panel.off { opacity: 0; pointer-events: none; }
-  #panel h1 { margin: 0 0 4px; font: 700 10px/1.2 inherit; letter-spacing: .08em; text-transform: uppercase; color: #5fd3ff; }
+  #panel h1 { margin: 0 0 4px; font-family: inherit; font-weight: 700; font-size: 10px; line-height: 1.2; letter-spacing: .08em; text-transform: uppercase; color: #5fd3ff; }
   .row { display: flex; gap: 8px; align-items: center; margin: 5px 0; flex-wrap: wrap; }
   .row label { color: #8fb0c8; min-width: 62px; }
   select, button { font: inherit; color: #e6f2fb; background: #0b2540; border: 1px solid #2c4d6a; border-radius: 6px; padding: 3px 8px; cursor: pointer; }
@@ -30,6 +30,12 @@
   #tab { position: fixed; left: 8px; bottom: 8px; z-index: 4; display: none; opacity: .55; font-size: 11px; }
 #tab:hover { opacity: 1; }
   body.nopanel #tab { display: block; }
+  /* sample test run */
+  #bTest { border-color: #3d6a8c; }
+  #bTest.on { background: #b8860b; border-color: #fff200; color: #fff; }
+  #testNote { color: #8fb0c8; }
+  #testBadge { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 6; display: none; padding: 3px 10px; border-radius: 999px; background: rgba(255,242,0,.92); color: #00264a; font-weight: 700; letter-spacing: .08em; font-size: 11px; pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+  body.testing #testBadge { display: block; }
 </style>
 </head>
 <body>
@@ -39,6 +45,7 @@
   <div id="grid"></div>
 </div>
 
+<div id="testBadge" aria-live="polite">CHẠY THỬ · DỮ LIỆU MẪU</div>
 <button id="tab" type="button" title="Hiện bảng điều khiển (H)">⚙ Điều khiển</button>
 <div id="panel" role="group" aria-label="Điều khiển xem trước">
   <h1>Xem trước màn hình LED 5,10 m × 2,56 m</h1>
@@ -62,8 +69,11 @@
   <div class="row"><label>Lớp phủ</label>
     <button type="button" id="bSafe">Vùng an toàn 5%</button>
     <button type="button" id="bGrid">Lưới 1 m</button></div>
+  <div class="row"><label>Chạy thử</label>
+    <button type="button" id="bTest" title="Khách mẫu check-in liên tục để kiểm tra màn hình (không ghi dữ liệu thật) · phím T">▶ Chạy thử dữ liệu mẫu</button>
+    <span id="testNote"></span></div>
   <div id="info"></div>
-  <div id="hintKeys">F toàn màn hình · H ẩn/hiện bảng · S vùng an toàn · G lưới · 1 / 0 = 100% / vừa · mũi tên cuộn khi 100%</div>
+  <div id="hintKeys">F toàn màn hình · T chạy thử · H ẩn/hiện bảng · S vùng an toàn · G lưới · 1 / 0 = 100% / vừa · mũi tên cuộn khi 100%</div>
 </div>
 
 <script>
@@ -87,8 +97,27 @@
   }
 
   var stage = $('stage'), f = $('f'), pan = { x: 0, y: 0 };
-  var inner = new URLSearchParams(location.search); OWN.forEach(function (k) { inner.delete(k); });
-  f.src = './' + (inner.toString() ? '?' + inner.toString() : '');
+  // sample test run = the screen's own ?demo=1 mode: fake guests generated in the browser, nothing is read from or written to the real data
+  var DEMO_KEYS = ['demo', 'photo', 'extras', 'show', 'only', 'long'];
+  var DEMO_SET = { demo: '1', photo: '1', extras: '1', show: 'first,years,bday,act,word' };
+  function loadScreen() {
+    var inner = new URLSearchParams(location.search); OWN.forEach(function (k) { inner.delete(k); });
+    f.src = './' + (inner.toString() ? '?' + inner.toString() : '');
+    var on = inner.get('demo') === '1';
+    document.body.classList.toggle('testing', on);
+    $('bTest').classList.toggle('on', on);
+    $('bTest').textContent = on ? '■ Dừng thử · về dữ liệu thật' : '▶ Chạy thử dữ liệu mẫu';
+    $('bTest').setAttribute('aria-pressed', String(on));
+    $('testNote').textContent = on ? 'khách mẫu, không ghi dữ liệu' : '';
+  }
+  function setTest(on) {
+    var p = new URLSearchParams(location.search);
+    DEMO_KEYS.forEach(function (k) { p.delete(k); });
+    if (on) Object.keys(DEMO_SET).forEach(function (k) { p.set(k, DEMO_SET[k]); });
+    if (history.replaceState) history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p.toString() : ''));
+    loadScreen();
+  }
+  loadScreen();
 
   function save() {
     var p = new URLSearchParams(location.search); OWN.forEach(function (k) { p.delete(k); });
@@ -148,6 +177,7 @@
   $('dist').addEventListener('change', function () { st.d = Number(this.value); layout(); });
   $('bSafe').addEventListener('click', function () { st.safe = !st.safe; layout(); });
   $('bGrid').addEventListener('click', function () { st.grid = !st.grid; layout(); });
+  $('bTest').addEventListener('click', function () { setTest(!document.body.classList.contains('testing')); });
   $('tab').addEventListener('click', function () { document.body.classList.remove('nopanel'); $('panel').classList.remove('off'); });
   if (document.querySelector('#dist option[value="' + st.d + '"]')) $('dist').value = String(st.d);
 
@@ -159,12 +189,13 @@
     else if (k === 'h') togglePanel();
     else if (k === 's') { st.safe = !st.safe; layout(); }
     else if (k === 'g') { st.grid = !st.grid; layout(); }
+    else if (k === 't') setTest(!document.body.classList.contains('testing'));
     else if (k === '1') { st.view = '1'; layout(); }
     else if (k === '0') { st.view = 'fit'; layout(); }
     else if (st.view === '1' && /^arrow/.test(k)) { var st2 = 120; if (k === 'arrowleft') pan.x += st2; if (k === 'arrowright') pan.x -= st2; if (k === 'arrowup') pan.y += st2; if (k === 'arrowdown') pan.y -= st2; layout(); e.preventDefault(); }
   }
   addEventListener('keydown', key);
-  f.addEventListener('load', function () { try { f.contentWindow.addEventListener('keydown', function (e) { if (['h', 's', 'g', '1', '0'].indexOf(e.key.toLowerCase()) >= 0) key(e); }); } catch (e) {} });
+  f.addEventListener('load', function () { try { f.contentWindow.addEventListener('keydown', function (e) { if (['h', 's', 'g', 't', '1', '0'].indexOf(e.key.toLowerCase()) >= 0) key(e); }); } catch (e) {} });
   addEventListener('resize', layout);
   // drag to pan at 100%
   var drag = null;
