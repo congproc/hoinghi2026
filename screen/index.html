@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-v3c">
+<meta name="build" content="2026-11-19-x1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -295,6 +295,30 @@ body.idle-cursor .ctl { opacity: 0; }
 .ginfo .cell .v { font-size: clamp(15px, 1.9vw, 44px); }
 .portrait.idle img { opacity: 1; transform: none; object-position: 72% 50%; }
 @media (max-width: 1000px) { .main { grid-template-columns: 1fr; grid-template-rows: auto; } .hero .guest-name { font-size: var(--nm, min(9vh, 9vw)); } .portrait { height: min(30vh, 38vw); } .gwrap { height: auto; } }
+
+/* ---------- more from the form: unit progress, greeting chips, one-word quote ---------- */
+.ginfo .guest-title { font-size: calc(clamp(18px, 2.7vw, 62px) * var(--is, 1)); }
+.ginfo .cell .v { font-size: calc(clamp(15px, 1.9vw, 44px) * var(--is, 1)); }
+.ginfo .readout { margin-top: 1.6vh; gap: 1.6vw; }
+.ginfo .unitcell { margin-top: 2vh; }
+.uprog { margin-top: 1.6vh; border-left: 2px solid var(--sky); padding: .2vh 0 .2vh .9vw; min-width: 0; }
+.uprog.branch { border-left-color: var(--yellow); }
+.uprog .k { font-family: var(--mono); font-size: clamp(11px, 1vw, 26px); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.uprog .row2 { display: flex; align-items: center; gap: 1.2vw; margin-top: .6vh; }
+.uprog .bar { flex: 1; min-width: 0; display: grid; gap: 3px; height: clamp(10px, 1.6vh, 26px); }
+.uprog .bar i { background: rgba(120,200,245,.16); }
+.uprog.company .bar i.on { background: var(--sky); box-shadow: 0 0 8px rgba(41,165,221,.7); }
+.uprog.branch .bar i.on { background: var(--yellow); box-shadow: 0 0 8px rgba(255,242,0,.55); }
+.uprog .n { font-family: var(--mono); font-size: calc(clamp(15px, 1.9vw, 44px) * var(--is, 1)); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.uprog .n b { color: var(--yellow); font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: .6vh .9vw; margin-top: 1.8vh; }
+.chip { display: inline-flex; align-items: center; gap: .5vw; padding: .5vh .9vw; border: 1px solid rgba(95,211,255,.45); background: rgba(0,60,110,.55); border-radius: 999px; font-weight: 600; font-size: calc(clamp(13px, 1.3vw, 32px) * var(--is, 1)); line-height: 1.25; max-width: 100%; }
+.chip::before { content: ""; width: .7em; height: .7em; border-radius: 50%; background: var(--cyan); flex: none; box-shadow: 0 0 8px var(--cyan); }
+.chip.bday { border-color: var(--yellow); background: rgba(255,242,0,.16); color: var(--yellow); }
+.chip.bday::before, .chip.first::before { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+.chip.act::before { background: #ff9ad1; box-shadow: 0 0 8px #ff9ad1; }
+.word { margin-top: 1.8vh; font-size: calc(clamp(14px, 1.6vw, 38px) * var(--is, 1)); color: var(--ink-2); line-height: 1.3; }
+.word b { color: var(--ink); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -462,14 +486,17 @@ body.idle-cursor .ctl { opacity: 0; }
 
   /* ---------- live stream (Firebase) ---------- */
   var DB_URL = 'https://hoinghi2026-5a68e-default-rtdb.asia-southeast1.firebasedatabase.app';
+  var unitArr = {}, unitTotals = {};
+  // Which greeting details to show (URL: ?show=first,years,bday,act,word ; the guest's own word is OFF unless you add 'word').
+  var SHOW = {}; ((/[?&]show=([\w,]+)/.exec(location.search) || [0, 'first,years,bday,act'])[1]).split(',').forEach(function (k) { SHOW[k] = true; });
   var evAt = 0, chk = {}, meta = { total: 0, company: 0, branch: 0 }, es = null, lastEvent = 0;
   var seen = {}, baselined = false;
   function pushUpdate() {
-    var list = Object.keys(chk).map(function (id) { var r = chk[id]; return { id: id, at: r.t, name: r.name, title: r.title, gender: r.gender, unit: r.unit, group: r.group, photo: r.photo }; })
+    var list = Object.keys(chk).map(function (id) { var r = chk[id]; return { id: id, at: r.t, name: r.name, title: r.title, gender: r.gender, unit: r.unit, group: r.group, photo: r.photo, first: r.first, since: r.since, bday: r.bday, act: r.act, word: r.word }; })
       .sort(function (x, y) { return x.at - y.at || (x.id < y.id ? -1 : 1); });
     var n = list.length, cnt = function (g) { return list.filter(function (x) { return x.group === g; }).length; };
     var totals = { seq: n, registered: meta.total, registeredCompany: meta.company, registeredBranch: meta.branch, arrived: n, arrivedCompany: cnt('company'), arrivedBranch: cnt('branch'), at: Date.now() };
-    var now = {}; list.forEach(function (a) { now[a.id] = true; });
+    var now = {}; unitArr = {}; list.forEach(function (a) { now[a.id] = true; if (a.unit) unitArr[a.unit] = (unitArr[a.unit] || 0) + 1; });
     // people deleted from the database disappear from the feed and queue
     var removed = Object.keys(seen).some(function (id) { return !now[id]; });
     if (removed) Object.keys(seen).forEach(function (id) { if (!now[id]) delete seen[id]; });
@@ -495,7 +522,10 @@ body.idle-cursor .ctl { opacity: 0; }
   }
   function loadMeta() {
     return fetch(DB_URL + '/meta.json', { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (m) {
-      if (m) { meta = { total: m.total || 0, company: m.company || 0, branch: m.branch || 0 }; }
+      if (m) {
+        meta = { total: m.total || 0, company: m.company || 0, branch: m.branch || 0 };
+        unitTotals = {}; (m.unitList || []).forEach(function (x) { if (x && x.u) unitTotals[x.u] = x.n; });
+      }
     }).catch(function () {});
   }
   function connect() {
@@ -571,6 +601,8 @@ body.idle-cursor .ctl { opacity: 0; }
 
   function apply(res) {
     state.totals = res;
+    if (res.unitArr) unitArr = res.unitArr;
+    if (res.unitTotals) unitTotals = res.unitTotals;
     var fresh = res.arrivals || [];
     if (state.first || res.from < state.seq) {
       // First load (or the sheet was reset): fill the feed without spotlighting old arrivals.
@@ -668,13 +700,36 @@ body.idle-cursor .ctl { opacity: 0; }
       while (size > floor * 0.7 && (hero.scrollHeight > maxH || nm.scrollWidth > nm.clientWidth + 1) && guard++ < 30) { size *= 0.94; nm.style.setProperty('--nm', size.toFixed(1) + 'px'); }
     }
   }
-  addEventListener('resize', function () { if (state.showing) fitGuest(); });
+  function fitInfo() {
+    var el = $('spotInner'), gw = el.querySelector('.gwrap'); if (!gw) return;
+    var sc = 1, g = 0; el.style.setProperty('--is', 1);
+    while (gw.offsetHeight > el.clientHeight + 1 && sc > 0.55 && g++ < 12) { sc *= 0.93; el.style.setProperty('--is', sc.toFixed(3)); }
+  }
+  addEventListener('resize', function () { if (state.showing) { fitGuest(); fitInfo(); } });
   if (document.fonts) {
     if (document.fonts.ready) document.fonts.ready.then(function () { if (state.showing) fitGuest(); });
     if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', function () { if (state.showing) fitGuest(); }); // a face that loads late changes the text width
   }
   var photoCache = {};
   function preload(url) { if (!url || photoCache[url]) return; var im = new Image(); im.src = url; photoCache[url] = im; }
+  function uprogHtml(a) {
+    var tot = unitTotals[a.unit], arr = unitArr[a.unit] || 0;
+    if (!tot || !a.unit) return '';
+    var seg = Math.min(tot, 24), on = Math.max(1, Math.round(Math.min(arr, tot) / tot * seg)), cells = '';
+    for (var i = 0; i < seg; i++) cells += '<i' + (i < on ? ' class="on"' : '') + '></i>';
+    return '<div class="uprog ' + esc(a.group) + '"><div class="k">Đơn vị đã có mặt</div><div class="row2"><div class="bar" style="grid-template-columns:repeat(' + seg + ',1fr)">' + cells + '</div><div class="n"><b>' + arr + '</b> / ' + tot + '</div></div></div>';
+  }
+  function chipsHtml(a) {
+    var t = [];
+    if (SHOW.bday && a.bday) t.push(['bday', 'Chúc mừng sinh nhật!']);
+    if (SHOW.first && a.first) t.push(['first', 'Lần đầu tham dự Hội nghị']);
+    if (SHOW.years && a.since) { var y = 2026 - Number(a.since); t.push(['years', y > 0 ? 'Gắn bó ' + y + ' năm' : 'Năm đầu cùng Saigontourist']); }
+    if (SHOW.act && a.act) t.push(['act', 'Tiết mục Gala: ' + a.act]);
+    return t.length ? '<div class="chips">' + t.map(function (c) { return '<span class="chip ' + c[0] + '">' + esc(c[1]) + '</span>'; }).join('') + '</div>' : '';
+  }
+  function wordHtml(a) {
+    return SHOW.word && a.word ? '<div class="word">Một từ cho năm 2026 của ' + esc(addr(a.gender)) + ': <b>“' + esc(a.word) + '”</b></div>' : '';
+  }
   function buildGuest(a, n) {
     var hero = $('heroInner'), el = $('spotInner');
     enter(hero); enter(el);
@@ -687,14 +742,16 @@ body.idle-cursor .ctl { opacity: 0; }
           (a.photo ? '<img alt="" referrerpolicy="no-referrer">' : '') + '<div class="scan"></div></div>' +
         '<div class="ginfo">' +
           (a.title ? '<p class="guest-title">' + esc(a.title) + '</p>' : '') +
+          (a.unit ? '<div class="cell unitcell ' + esc(a.group) + '"><div class="k">Đơn vị</div><div class="v">' + esc(unitLabel(a.unit)) + '</div></div>' : '') +
+          uprogHtml(a) + chipsHtml(a) +
           '<div class="readout">' +
-            (a.unit ? '<div class="cell ' + esc(a.group) + '"><div class="k">Đơn vị</div><div class="v">' + esc(unitLabel(a.unit)) + '</div></div>' : '') +
             '<div class="cell ' + esc(a.group) + '"><div class="k">Giờ vào</div><div class="v mono">' + hhmmss(a.at) + '</div></div>' +
             '<div class="cell ' + esc(a.group) + '"><div class="k">Thứ tự</div><div class="v mono">#' + pad(n, 3) + '</div></div>' +
           '</div>' +
+          wordHtml(a) +
         '</div>' +
       '</div>';
-    fitGuest();
+    fitGuest(); fitInfo();
     var img = el.querySelector('.portrait img');
     if (img) {
       img.onload = function () { img.classList.add('ready'); };
@@ -878,7 +935,8 @@ body.idle-cursor .ctl { opacity: 0; }
         var n = demo.list.length, s = Number(b.since);
         if (!(s >= 0) || s > n) s = Math.max(0, n - 12);
         var c = function (g) { return demo.list.filter(function (x) { return x.group === g; }).length; };
-        resolve({ seq: n, registered: demo.reg, registeredCompany: demo.regC, registeredBranch: demo.regB, arrived: n, arrivedCompany: c('company'), arrivedBranch: c('branch'), arrivals: demo.list.slice(s), from: s, at: Date.now() });
+        var ua = {}, ut = {}; FU.forEach(function (u) { ut[u] = 9; }); demo.list.forEach(function (x) { ua[x.unit] = (ua[x.unit] || 0) + 1; });
+        resolve({ seq: n, registered: demo.reg, registeredCompany: demo.regC, registeredBranch: demo.regB, arrived: n, arrivedCompany: c('company'), arrivedBranch: c('branch'), arrivals: demo.list.slice(s), from: s, at: Date.now(), unitArr: ua, unitTotals: ut });
       }, 300);
     });
   }
@@ -902,6 +960,7 @@ body.idle-cursor .ctl { opacity: 0; }
     if (only && LONG[Number(only[1])]) { var O = LONG[Number(only[1])]; a.name = O.name; a.title = O.title; a.unit = O.unit; a.group = /^ST/.test(O.unit) ? 'branch' : 'company'; }
     if (DEMO_LONG && Math.random() < 0.7) { var L = r(LONG); a.name = L.name; a.title = L.title; a.unit = L.unit; a.group = /^ST/.test(L.unit) ? 'branch' : 'company'; }
     if (DEMO_PHOTO) a.photo = 'https://congproc.github.io/hoinghi2026/assets/guide.jpg';
+    if (/[?&]extras=1\b/.test(location.search)) { if (Math.random() < .5) a.first = 1; if (Math.random() < .8) a.since = 1990 + Math.floor(Math.random() * 35); if (Math.random() < .25) a.bday = 1; if (Math.random() < .4) a.act = r(['Tình ca du lịch (Hát)', 'Sắc màu Việt Nam (Múa)', 'Hành trình mới (Nhạc cụ)']); if (Math.random() < .7) a.word = r(['Bứt phá', 'Đoàn kết', 'Bền bỉ', 'Tăng trưởng', 'Cố gắng hết mình']); }
     return a;
   }
 

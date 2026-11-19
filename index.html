@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-ui3">
+<meta name="build" content="2026-11-19-x1">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0070b8">
@@ -356,7 +356,10 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
     });
   }
   function toPerson(id, v) {
-    return { ref: id, name: v.name, title: v.title || '', gender: v.gender || '', unit: v.unit || '', group: v.group || 'other', photo: v.photo || '' };
+    var o = { ref: id, name: v.name, title: v.title || '', gender: v.gender || '', unit: v.unit || '', group: v.group || 'other', photo: v.photo || '' };
+    ['first', 'since', 'bday'].forEach(function (k) { if (v[k]) o[k] = Number(v[k]); });
+    ['act', 'word'].forEach(function (k) { if (v[k]) o[k] = String(v[k]); });
+    return o;
   }
   function getCheckin(id) {
     return fb('GET', '/checkins/' + id).then(function (r) { return r.data && r.data.t ? r.data.t : null; });
@@ -385,6 +388,7 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
     if (act === 'checkin') {
       var p = body.person, id = body.id;
       var rec = { t: { '.sv': 'timestamp' }, name: p.name, title: p.title || '', unit: p.unit || '', group: p.group || 'other', gender: p.gender || '', photo: p.photo || '', via: body.via };
+      ['first', 'since', 'bday', 'act', 'word'].forEach(function (k) { if (p[k]) rec[k] = p[k]; }); // greeting details shown on the welcome screen
       return fb('PUT', '/checkins/' + id, rec).then(function (r) {
         if (r.status === 200 && r.data && r.data.t) return { already: false, at: r.data.t, person: p };
         // refused: the database only accepts the first check-in, so this person is already in
