@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-x11">
+<meta name="build" content="2026-11-19-x12">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -352,6 +352,11 @@ body.idle-cursor .ctl { opacity: 0; }
 .readout.idle3 .cell:last-child { grid-column: 1 / -1; }
 .readout.idle3 .cell .v { white-space: nowrap; }
 .idlehint { margin-top: 2.6vh; max-width: 100%; color: var(--ink-3); font-size: calc(clamp(13px, 1.35vw, 32px) * var(--is, 1)); line-height: 1.4; }
+
+/* clearance between the kicker and the tallest capital accents (measured on real glyph outlines) */
+.hero { height: calc(min(9.8vh, 5.8vw) * 1.62 + 1.5vw * 1.45 + 1vh); }
+.hero .kicker { font-size: clamp(13px, 1.5vw, 36px); }
+.hero .guest-name { margin-top: -.02em; }
 </style>
 </head>
 <body>
