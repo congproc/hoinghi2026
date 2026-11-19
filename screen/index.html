@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-ui9">
+<meta name="build" content="2026-11-19-ui10">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -272,6 +272,8 @@ body.idle-cursor .ctl { opacity: 0; }
 .portrait { height: min(50vh, 28vw); }
 .main { grid-template-columns: minmax(0, 1fr) clamp(280px, 22.5vw, 600px); }
 .guest-name { font-weight: 800; letter-spacing: -0.03em; }
+.ring-card .tag .r { display: none; }
+.grp-head > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 </style>
 </head>
 <body>
@@ -319,7 +321,7 @@ body.idle-cursor .ctl { opacity: 0; }
         </div>
         <div class="groups">
         <div>
-          <div class="grp-head"><span>Khối / Phòng Công ty</span><span id="gCompany">0 / 0</span></div>
+          <div class="grp-head"><span>Công ty</span><span id="gCompany">0 / 0</span></div>
           <div class="seg company" id="sCompany" aria-hidden="true"></div>
         </div>
         <div>
@@ -632,7 +634,7 @@ body.idle-cursor .ctl { opacity: 0; }
     if (!nm || !gw) return;
     nm.classList.remove('wrap'); nm.style.removeProperty('--nm');
     var size = parseFloat(getComputedStyle(nm).fontSize), room = info.clientWidth;
-    var floor = Math.max(28, innerWidth * 0.024);
+    var floor = Math.max(26, innerWidth * 0.019);
     if (nm.scrollWidth > room + 1) {
       size = Math.floor(size * room / nm.scrollWidth * 0.985);
       if (size >= floor) { nm.style.setProperty('--nm', size + 'px'); }
