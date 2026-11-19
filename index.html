@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
+<meta name="build" content="2026-11-19-live3">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0070b8">
@@ -618,6 +619,17 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
       }, 500);
     });
   }
+
+
+  // Pick up a newer deployment by itself, but only while the guest is on the first screen with nothing typed.
+  setInterval(function () {
+    if (DEMO) return;
+    fetch(location.pathname + '?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+      var m = /<meta name="build" content="([^"]+)"/.exec(t), cur = document.querySelector('meta[name=build]');
+      var idle = (!$('vPhone').hidden && !$('phone').value) || (!$('vCode').hidden && !$('code').value);
+      if (m && cur && m[1] !== cur.content && idle) location.reload();
+    }).catch(function () {});
+  }, 60000);
 
   /* ---------- start ---------- */
   setMode(state.mode);

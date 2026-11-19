@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
+<meta name="build" content="2026-11-19-live3">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -400,20 +401,36 @@ body.idle-cursor .ctl { opacity: 0; }
 
   /* ---------- live stream (Firebase) ---------- */
   var DB_URL = 'https://hoinghi2026-5a68e-default-rtdb.asia-southeast1.firebasedatabase.app';
-  var chk = {}, meta = { total: 0, company: 0, branch: 0 }, es = null, lastEvent = 0;
-  function snapshot() {
+  var evAt = 0, chk = {}, meta = { total: 0, company: 0, branch: 0 }, es = null, lastEvent = 0;
+  var seen = {}, baselined = false;
+  function pushUpdate() {
     var list = Object.keys(chk).map(function (id) { var r = chk[id]; return { id: id, at: r.t, name: r.name, title: r.title, gender: r.gender, unit: r.unit, group: r.group, photo: r.photo }; })
       .sort(function (x, y) { return x.at - y.at || (x.id < y.id ? -1 : 1); });
     var n = list.length, cnt = function (g) { return list.filter(function (x) { return x.group === g; }).length; };
-    var from = state.first || n < state.seq ? Math.max(0, n - 12) : state.seq;
-    var res = { seq: n, registered: meta.total, registeredCompany: meta.company, registeredBranch: meta.branch, arrived: n, arrivedCompany: cnt('company'), arrivedBranch: cnt('branch'), arrivals: list.slice(from), from: from, at: Date.now() };
-    if (n < state.seq) { state.first = true; state.queue = []; }
-    return res;
-  }
-  function pushUpdate() {
-    var res = snapshot();
-    res.arrivals.forEach(function (a) { preload(a.photo); });
-    state.failures = 0; apply(res);
+    var totals = { seq: n, registered: meta.total, registeredCompany: meta.company, registeredBranch: meta.branch, arrived: n, arrivedCompany: cnt('company'), arrivedBranch: cnt('branch'), at: Date.now() };
+    var now = {}; list.forEach(function (a) { now[a.id] = true; });
+    // people deleted from the database disappear from the feed and queue
+    var removed = Object.keys(seen).some(function (id) { return !now[id]; });
+    if (removed) Object.keys(seen).forEach(function (id) { if (!now[id]) delete seen[id]; });
+    var fresh = [];
+    if (!baselined) { // first snapshot: show who is already in, without spotlighting them
+      baselined = true;
+      list.forEach(function (a) { seen[a.id] = true; });
+      state.feed = list.map(function (a, i) { return { a: a, n: i + 1 }; }).reverse().slice(0, FEED_MAX);
+      state.shown = n; state.totals = totals;
+      renderFeed(); renderStats(n); if (!state.showing) showIdle();
+      state.failures = 0; setConn(true); return;
+    }
+    list.forEach(function (a, i) { if (!seen[a.id]) { seen[a.id] = true; a.n = i + 1; fresh.push(a); } });
+    state.totals = totals; state.failures = 0;
+    if (removed) {
+      state.queue = state.queue.filter(function (q) { return now[q.a.id]; });
+      state.feed = list.map(function (a, i) { return { a: a, n: i + 1 }; }).reverse().slice(0, FEED_MAX);
+      state.shown = Math.min(state.shown, n); renderFeed();
+    }
+    fresh.forEach(function (a) { preload(a.photo); state.queue.push({ a: a, n: a.n }); });
+    if (fresh.length) pump(); else renderStats(state.shown);
+    setConn(true); updateQueueNote();
   }
   function loadMeta() {
     return fetch(DB_URL + '/meta.json', { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (m) {
@@ -424,7 +441,7 @@ body.idle-cursor .ctl { opacity: 0; }
     if (es) { try { es.close(); } catch (e) {} }
     es = new EventSource(DB_URL + '/checkins.json');
     var onData = function (ev) {
-      lastEvent = Date.now();
+      lastEvent = Date.now(); evAt = lastEvent;
       var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d) return;
       var path = d.path || '/';
@@ -444,14 +461,28 @@ body.idle-cursor .ctl { opacity: 0; }
   }
   // safety nets: reconnect if the stream goes quiet, and re-read everything now and then
   setInterval(function () { if (!DEMO && Date.now() - lastEvent > 70000) connect(); }, 15000);
-  setInterval(function () {
+  function reread() {
     if (DEMO) return;
-    var t0 = performance.now();
-    fetch(DB_URL + '/checkins.json', { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (all) {
+    var t0 = performance.now(), started = Date.now();
+    fetch(DB_URL + '/checkins.json', { credentials: 'omit', cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (all) {
       state.latency = Math.round(performance.now() - t0);
-      chk = all || {}; loadMeta().then(pushUpdate);
+      if (evAt > started) return; // the live stream delivered something newer while this was in flight
+      chk = all || {}; pushUpdate();
     }).catch(function () { state.failures++; setConn(false); });
-  }, 30000);
+  }
+  setInterval(reread, 4000);
+  setInterval(function () { if (!DEMO) loadMeta(); }, 60000);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { reread(); if (!DEMO && Date.now() - lastEvent > 40000) connect(); } });
+
+  // Pick up a newer deployment of this page by itself (an open tab never reloads on its own).
+  function selfUpdate(canReload) {
+    if (DEMO) return;
+    fetch(location.pathname + '?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+      var m = /<meta name="build" content="([^"]+)"/.exec(t), cur = document.querySelector('meta[name=build]');
+      if (m && cur && m[1] !== cur.content && canReload()) location.reload();
+    }).catch(function () {});
+  }
+  setInterval(function () { selfUpdate(function () { return true; }); }, 60000);
   function startLive() {
     $('login').hidden = true;
     loadMeta().then(connect);
@@ -501,20 +532,29 @@ body.idle-cursor .ctl { opacity: 0; }
 
   /* ---------- spotlight queue ---------- */
   var spotTimer = null;
+  var nextT = null, shownAt = 0, MIN_MS = 2600; // a new arrival replaces the current guest after at least MIN_MS
   function pump() {
-    if (state.showing || !state.queue.length) return;
+    if (!state.queue.length) return;
+    if (state.showing) {
+      var wait = MIN_MS - (Date.now() - shownAt);
+      if (wait > 0) { if (!nextT) nextT = setTimeout(function () { nextT = null; advance(); }, wait); return; }
+    }
+    advance();
+  }
+  function advance() {
+    if (!state.queue.length) return;
+    clearTimeout(spotTimer); clearTimeout(nextT); nextT = null;
     var item = state.queue.shift();
-    state.showing = true;
+    state.showing = true; shownAt = Date.now();
     showGuest(item.a, item.n);
     state.feed.unshift(item); state.feed = state.feed.slice(0, FEED_MAX);
     state.shown = Math.min(state.shown + 1, state.totals ? state.totals.arrived : state.shown + 1);
     renderFeed(); renderStats(state.shown);
     updateQueueNote();
-    clearTimeout(spotTimer);
     spotTimer = setTimeout(function () {
       state.showing = false;
       if (state.queue.length) pump(); else spotTimer = setTimeout(function () { if (!state.showing) showIdle(); }, 9000);
-    }, state.queue.length > 2 ? SHOW_MS_BUSY : SHOW_MS);
+    }, state.queue.length > 0 ? SHOW_MS_BUSY : SHOW_MS);
   }
   function updateQueueNote() {
     var n = state.queue.length;
@@ -529,7 +569,7 @@ body.idle-cursor .ctl { opacity: 0; }
     var go = function () { if (token !== swapToken) return; build(el); };
     if (reduceMotion || !el.firstChild) { go(); return; }
     el.className = 'spot-body leave';
-    setTimeout(go, 300);
+    setTimeout(go, 120);
   }
   function enter(el) { el.className = 'spot-body'; void el.offsetWidth; el.className = 'spot-body enter'; }
   function hit() {
