@@ -75,6 +75,30 @@ body.idle-cursor { cursor: none; }
 .tag::before { content: ""; width: .5vw; min-width: 6px; aspect-ratio: 1; background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
 .tag .r { margin-left: auto; color: var(--ink-3); letter-spacing: .08em; }
 
+/* ---------- Motion ---------- */
+.top, .panel, .bottom { animation: boot .8s cubic-bezier(.16, 1, .3, 1) both; }
+.top { animation-delay: .05s; }
+.spot { animation-delay: .2s; }
+.ring-card { animation-delay: .32s; }
+.groups { animation-delay: .44s; }
+.feed { animation-delay: .56s; }
+.bottom { animation-delay: .7s; }
+@keyframes boot { from { opacity: 0; transform: translateY(2vh); } to { opacity: 1; transform: none; } }
+.logo { animation: logo-pulse 4s ease-in-out infinite; }
+@keyframes logo-pulse { 50% { box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 38px rgba(255,242,0,.55); } }
+.panel.hit { animation: hit .9s ease-out; }
+.panel.hit::before, .panel.hit::after, .panel.hit > .cb::before, .panel.hit > .cb::after { animation: corner-hit .9s ease-out; }
+@keyframes hit { 0% { box-shadow: 0 0 0 0 rgba(255,242,0,.55), inset 0 0 0 0 rgba(255,242,0,.18); border-color: var(--yellow); } 100% { box-shadow: 0 0 0 1.4vw rgba(255,242,0,0), inset 0 0 6vw 0 rgba(255,242,0,0); } }
+@keyframes corner-hit { 0% { width: 34px; height: 34px; border-color: #fff; } 100% { width: 14px; height: 14px; } }
+.ripple { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--yellow); opacity: 0; pointer-events: none; }
+.ripple.go { animation: ripple 1.2s ease-out; }
+@keyframes ripple { from { transform: scale(.72); opacity: .9; } to { transform: scale(1.4); opacity: 0; } }
+.pop { animation: pop .5s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes pop { 0% { transform: scale(1); } 35% { transform: scale(1.14); color: var(--yellow); } 100% { transform: scale(1); } }
+.seg i.new { animation: segflash 1s ease-out; }
+@keyframes segflash { 0% { background: #fff; box-shadow: 0 0 20px 4px #fff; transform: scaleY(1.9); } 100% { transform: none; } }
+.seg i { transform-origin: bottom; }
+
 /* ---------- Spotlight ---------- */
 .spot { overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; padding: 2.2vh 2.2vw; }
 .spot::before { z-index: 3; }
@@ -94,14 +118,22 @@ body.idle-cursor { cursor: none; }
 .spot-foot { display: flex; align-items: center; gap: 1vw; font-family: var(--mono); font-size: clamp(10px, .8vw, 15px); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); min-height: 1.4em; }
 .spot-foot .q { margin-left: auto; color: var(--yellow); }
 .cursor { display: inline-block; width: .55em; height: 1.05em; background: var(--cyan); vertical-align: -.15em; margin-left: .3em; animation: blink 1s steps(2, start) infinite; }
-.enter .kicker { animation: kick-in .6s cubic-bezier(.16, 1, .3, 1) both; white-space: nowrap; }
-.enter .guest-name { animation: name-in .9s .05s cubic-bezier(.16, 1, .3, 1) both; }
+.enter .kicker { animation: kick-in .6s cubic-bezier(.16, 1, .3, 1) both, glow 3.2s 1s ease-in-out infinite; white-space: nowrap; }
+.guest-name { position: relative; }
+.enter .guest-name { animation: name-wipe 1s .05s cubic-bezier(.65, 0, .2, 1) both; }
+.enter .guest-name::after { content: ""; position: absolute; top: 8%; bottom: 14%; left: 0; width: 3px; background: var(--yellow); box-shadow: 0 0 16px 3px rgba(255,242,0,.75); animation: bar-run 1s .05s cubic-bezier(.65, 0, .2, 1) both; pointer-events: none; }
+.enter .idle-name { animation: name-wipe 1s .05s cubic-bezier(.65, 0, .2, 1) both, breathe 6s 1.4s ease-in-out infinite; }
+.leave { animation: leave .32s cubic-bezier(.4, 0, 1, 1) both; }
 .enter .guest-title { animation: rise .7s .22s cubic-bezier(.16, 1, .3, 1) both; }
 .enter .readout .cell { animation: rise .7s .34s cubic-bezier(.16, 1, .3, 1) both; }
 .enter .readout .cell:nth-child(2) { animation-delay: .42s; }
 .enter .readout .cell:nth-child(3) { animation-delay: .5s; }
+@keyframes glow { 50% { text-shadow: 0 0 30px rgba(255,242,0,.8); } }
 @keyframes kick-in { from { opacity: 0; transform: translateX(-2vw); letter-spacing: .6em; } to { opacity: 1; transform: none; } }
-@keyframes name-in { from { opacity: 0; transform: translateY(3vh); filter: blur(10px) drop-shadow(0 0 28px rgba(95,211,255,.4)); } to { opacity: 1; transform: none; } }
+@keyframes name-wipe { from { clip-path: inset(-.5em 100% -.5em -.5em); transform: translateY(1.2vh); } to { clip-path: inset(-.5em -.5em -.5em -.5em); transform: none; } }
+@keyframes bar-run { 0% { left: 0; opacity: 1; } 88% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+@keyframes breathe { 50% { filter: drop-shadow(0 0 46px rgba(95,211,255,.7)); } }
+@keyframes leave { to { opacity: 0; transform: translateY(-1.4vh); filter: blur(5px); } }
 @keyframes rise { from { opacity: 0; transform: translateY(1.6vh); } to { opacity: 1; transform: none; } }
 .idle-name { font-size: clamp(34px, 4.6vw, 100px); }
 
@@ -117,11 +149,11 @@ body.idle-cursor { cursor: none; }
 .ring .sweep { transform-origin: 60px 60px; animation: spin 6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .ring .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
-.ring .big { font-family: var(--mono); font-size: clamp(30px, 3.9vw, 82px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
+.ring .big { display: inline-block; font-family: var(--mono); font-size: clamp(30px, 3.9vw, 82px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
 .ring .of { font-family: var(--mono); font-size: clamp(10px, .85vw, 17px); color: var(--ink-3); margin-top: .6vh; letter-spacing: .06em; }
 .stats { display: grid; gap: 1vh; min-width: 0; flex: 1; }
 .stat .k { font-family: var(--mono); font-size: clamp(9px, .72vw, 14px); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
-.stat .v { font-family: var(--mono); font-size: clamp(22px, 2.6vw, 56px); font-weight: 700; line-height: 1.1; color: var(--yellow); font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(255,242,0,.35); }
+.stat .v { display: inline-block; font-family: var(--mono); font-size: clamp(22px, 2.6vw, 56px); font-weight: 700; line-height: 1.1; color: var(--yellow); font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(255,242,0,.35); }
 .stat .v.sm { font-size: clamp(16px, 1.7vw, 36px); color: var(--ink); text-shadow: none; }
 
 .groups { padding: 1.3vh 1.6vw 1.5vh; display: grid; gap: 1.1vh; }
@@ -217,6 +249,7 @@ body.idle-cursor .ctl { opacity: 0; }
         <div class="tag"><span>Tình hình tham dự</span><span class="r">trực tiếp</span></div>
         <div class="ring-row">
           <div class="ring">
+            <span class="ripple" id="ripple" aria-hidden="true"></span>
             <svg viewBox="0 0 120 120" aria-hidden="true">
               <circle class="ticks" cx="60" cy="60" r="56"/>
               <circle class="track" cx="60" cy="60" r="48"/>
@@ -411,11 +444,30 @@ body.idle-cursor .ctl { opacity: 0; }
     $('queueNote').textContent = n ? '+' + n + ' đang chờ' : '';
   }
 
+  // Outgoing content fades up and away, then the new content is built and animates in.
+  var swapToken = 0;
+  function swapSpot(build) {
+    var el = $('spotInner'), token = ++swapToken;
+    var go = function () { if (token !== swapToken) return; build(el); };
+    if (reduceMotion || !el.firstChild) { go(); return; }
+    el.className = 'spot-body leave';
+    setTimeout(go, 300);
+  }
+  function enter(el) { el.className = 'spot-body'; void el.offsetWidth; el.className = 'spot-body enter'; }
+  function hit() {
+    if (reduceMotion) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.spot, .ring-card'), function (p) {
+      p.classList.remove('hit'); void p.offsetWidth; p.classList.add('hit');
+    });
+    var r = $('ripple'); r.classList.remove('go'); void r.offsetWidth; r.classList.add('go');
+  }
+
   function showGuest(a, n) {
-    var el = $('spotInner');
-    el.className = 'spot-body';
-    void el.offsetWidth;
-    el.className = 'spot-body enter';
+    swapSpot(function (el) { buildGuest(el, a, n); });
+    hit();
+  }
+  function buildGuest(el, a, n) {
+    enter(el);
     el.innerHTML =
       '<div class="kicker">Chào mừng</div>' +
       '<div class="guest-name">' + esc(a.name) + '</div>' +
@@ -430,8 +482,10 @@ body.idle-cursor .ctl { opacity: 0; }
     burst();
   }
   function showIdle() {
-    var el = $('spotInner');
-    el.className = 'spot-body enter';
+    swapSpot(buildIdle);
+  }
+  function buildIdle(el) {
+    enter(el);
     el.innerHTML =
       '<div class="kicker">Chào mừng</div>' +
       '<div class="guest-name idle-name">Quý đại biểu</div>' +
@@ -452,8 +506,16 @@ body.idle-cursor .ctl { opacity: 0; }
   buildSegs('sCompany'); buildSegs('sBranch');
   function setSegs(id, ratio) {
     var on = Math.round(Math.max(0, Math.min(1, ratio)) * SEGMENTS), kids = $(id).children;
-    for (var i = 0; i < kids.length; i++) kids[i].classList.toggle('on', i < on);
+    for (var i = 0; i < kids.length; i++) {
+      var k = kids[i], want = i < on;
+      if (want && !k.classList.contains('on')) {
+        k.classList.add('on');
+        if (!reduceMotion && segsReady) { k.classList.remove('new'); void k.offsetWidth; k.classList.add('new'); (function (e) { setTimeout(function () { e.classList.remove('new'); }, 1100); })(k); }
+      } else if (!want) k.classList.remove('on');
+    }
   }
+  var segsReady = false;
+  setTimeout(function () { segsReady = true; }, 2500); // no flash while the first data fills in
   function renderStats(arrived) {
     var t = state.totals;
     if (!t) return;
@@ -464,7 +526,9 @@ body.idle-cursor .ctl { opacity: 0; }
     $('ofTotal').textContent = '/ ' + t.registered;
     $('pct').textContent = Math.round(p * 100) + '%';
     var remain = Math.max(t.registered - arrived, 0);
-    $('remain').textContent = remain ? remain + ' đại biểu' : 'Đã đủ';
+    var rtxt = remain ? remain + ' đại biểu' : 'Đã đủ';
+    if ($('remain').textContent !== rtxt && !reduceMotion && $('remain').textContent !== '—') { var rm = $('remain'); rm.classList.remove('pop'); void rm.offsetWidth; rm.classList.add('pop'); }
+    $('remain').textContent = rtxt;
     $('gCompany').textContent = t.arrivedCompany + ' / ' + t.registeredCompany;
     $('gBranch').textContent = t.arrivedBranch + ' / ' + t.registeredBranch;
     setSegs('sCompany', t.registeredCompany ? t.arrivedCompany / t.registeredCompany : 0);
@@ -474,6 +538,7 @@ body.idle-cursor .ctl { opacity: 0; }
     var from = Number(el.getAttribute('data-v') || 0);
     el.setAttribute('data-v', target);
     if (reduceMotion || from === target) { el.textContent = target; return; }
+    if (from) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
     var start = performance.now(), dur = 900;
     (function step(now) {
       var k = Math.min((now - start) / dur, 1), e = 1 - Math.pow(1 - k, 3);
@@ -485,21 +550,34 @@ body.idle-cursor .ctl { opacity: 0; }
   /* ---------- feed (only rows that fully fit are kept) ---------- */
   function renderFeed() {
     var ul = $('feed');
+    // remember where each existing row is, so rows glide to their new place instead of jumping
+    var before = {};
+    Array.prototype.forEach.call(ul.children, function (li) { if (li.dataset.n) before[li.dataset.n] = li.getBoundingClientRect().top; });
+    var firstRender = !Object.keys(before).length;
     if (!state.feed.length) { ul.innerHTML = '<li class="none" style="display:block">chưa có đại biểu check-in</li>'; $('feedCount').textContent = ''; return; }
     ul.innerHTML = state.feed.map(function (it, i) {
-      var a = it.a;
-      return '<li' + (i === 0 ? ' class="first"' : '') + (i ? ' style="animation:none"' : '') + '><span class="idx">#' + pad(it.n, 3) + '</span>' +
+      var a = it.a, isNew = !firstRender && !(String(it.n) in before);
+      var anim = firstRender ? 'animation-delay:' + (.55 + i * .07) + 's' : (isNew ? '' : 'animation:none');
+      return '<li data-n="' + it.n + '"' + (i === 0 ? ' class="first"' : '') + ' style="' + anim + '"><span class="idx">#' + pad(it.n, 3) + '</span>' +
         '<span><div class="n">' + esc(a.name) + '</div><div class="t">' + esc([a.title, unitLabel(a.unit)].filter(Boolean).join(' · ')) + '</div></span>' +
         '<time>' + hhmm(a.at) + '</time></li>';
     }).join('');
     fitFeed();
     $('feedCount').textContent = ul.children.length + ' gần nhất';
+    if (!firstRender && !reduceMotion && ul.animate) {
+      Array.prototype.forEach.call(ul.children, function (li) {
+        var was = before[li.dataset.n];
+        if (was == null) return;
+        var dy = was - li.getBoundingClientRect().top;
+        if (Math.abs(dy) > 1) li.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.16, 1, .3, 1)' });
+      });
+    }
   }
   function fitFeed() {
     var ul = $('feed');
     while (ul.children.length > 1 && ul.scrollHeight > ul.clientHeight + 1) ul.removeChild(ul.lastElementChild);
   }
-  addEventListener('resize', function () { renderFeed(); });
+  addEventListener('resize', function () { fitFeed(); });
 
   /* ---------- particles ---------- */
   var cv = $('fx'), ctx = cv.getContext('2d'), parts = [], running = false;
