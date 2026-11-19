@@ -692,7 +692,7 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
         </div>
         <div class="lv-grid">
           <div class="card">
-            <div class="card-head"><h2>Lượng người đến</h2><p class="hint">Mỗi cột = 10 phút · vạch = giờ khai mạc 13:00</p></div>
+            <div class="card-head"><h2>Lượng người đến</h2><p class="hint">Mỗi cột = 10 phút · vạch nét đứt = 13:00 khai mạc</p></div>
             <div class="lv-chart" id="lvChart"></div>
           </div>
           <div class="card">
@@ -1092,9 +1092,11 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
     $('lvLast').textContent = n ? fmtTime(arr[n - 1].checkedInAt).slice(-5) : '—';
     // arrivals per 10 minutes
     var B = 600000, evt = new Date(2026, 11, 22, 13, 0).getTime();
-    var t0 = n ? Math.min(arr[0].checkedInAt, evt - 3600000) : evt - 3600000;
+    var onDay = Math.abs(now - evt) < 864e5 || (n && Math.abs(arr[n - 1].checkedInAt - evt) < 864e5);
+    var t0, t1;
+    if (onDay) { t0 = n ? Math.min(arr[0].checkedInAt, evt - 3600000) : evt - 3600000; t1 = Math.max(evt + 1800000, n ? arr[n - 1].checkedInAt : 0, Math.abs(now - evt) < 864e5 ? now : 0); }
+    else { t0 = n ? arr[0].checkedInAt : now - 3600000; t1 = Math.max(t0 + 3600000, n ? arr[n - 1].checkedInAt + 600000 : 0); }
     t0 = Math.floor(t0 / B) * B;
-    var t1 = Math.max(evt + 1800000, n ? arr[n - 1].checkedInAt : 0, mode === 'live' && Math.abs(now - evt) < 864e5 ? now : 0);
     var nb = Math.min(60, Math.ceil((t1 - t0) / B) + 1), bins = [], mx = 1, i;
     for (i = 0; i < nb; i++) bins.push(0);
     arr.forEach(function (x) { var k = Math.floor((x.checkedInAt - t0) / B); if (k >= 0 && k < nb) bins[k]++; });
@@ -1106,7 +1108,7 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
     var step = Math.ceil(nb / 8);
     for (i = 0; i < nb; i += step) { var tm2 = new Date(t0 + i * B); g += '<text class="ax" x="' + (M.l + i * bw + bw / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + pad(tm2.getHours()) + ':' + pad(tm2.getMinutes()) + '</text>'; }
     var ek = (evt - t0) / B;
-    if (ek >= 0 && ek <= nb) g += '<line class="open" x1="' + (M.l + ek * bw) + '" x2="' + (M.l + ek * bw) + '" y1="' + M.t + '" y2="' + (M.t + ph) + '"/>';
+    if (onDay && ek >= 0 && ek <= nb) g += '<line class="open" x1="' + (M.l + ek * bw) + '" x2="' + (M.l + ek * bw) + '" y1="' + M.t + '" y2="' + (M.t + ph) + '"/>';
     $('lvChart').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Số người check-in theo từng 10 phút">' + g + '</svg>';
     // latest arrivals
     $('lvFeed').innerHTML = n ? arr.slice(-8).reverse().map(function (x) { return '<li><time>' + fmtTime(x.checkedInAt).slice(-5) + '</time><span><b>' + esc(x.name) + '</b><br><span class="u">' + esc(unitCompact(x.unit)) + '</span></span></li>'; }).join('') : '<li class="muted">Chưa có ai check-in.</li>';
