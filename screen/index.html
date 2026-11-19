@@ -866,6 +866,8 @@ body.idle-cursor .ctl { opacity: 0; }
   function fakeArrival(at) {
     var u = r(FU), g = Math.random() < 0.5 ? 'Nam' : 'Nữ';
     var a = { at: at, gender: g, name: r(FH) + ' ' + r(FM) + ' ' + r(FN), title: r(FT), unit: u, group: /^ST/.test(u) ? 'branch' : 'company' };
+    var only = /[?&]only=(\d)/.exec(location.search);
+    if (only && LONG[Number(only[1])]) { var O = LONG[Number(only[1])]; a.name = O.name; a.title = O.title; a.unit = O.unit; a.group = /^ST/.test(O.unit) ? 'branch' : 'company'; }
     if (DEMO_LONG && Math.random() < 0.7) { var L = r(LONG); a.name = L.name; a.title = L.title; a.unit = L.unit; a.group = /^ST/.test(L.unit) ? 'branch' : 'company'; }
     if (DEMO_PHOTO) a.photo = 'https://congproc.github.io/hoinghi2026/assets/guide.jpg';
     return a;
