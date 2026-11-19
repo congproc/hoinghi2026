@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-x6">
+<meta name="build" content="2026-11-19-x7">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -331,6 +331,17 @@ body.idle-cursor .ctl { opacity: 0; }
 .ginfo .guest-title { line-height: 1.32; }
 .cell .v { line-height: 1.3; }
 .feed .n { line-height: 1.3; }
+
+/* ---------- more room for the recent-arrivals list under the taller name band ---------- */
+.hero { height: calc(min(9.8vh, 5.8vw) * 1.5 + 1.7vw * 1.45 + 1vh); }
+.hero .guest-name { font-size: var(--nm, min(9.8vh, 5.8vw)); }
+.ring { width: clamp(84px, min(7.6vw, 12.5vh), 190px); }
+.ring-card { padding: 1.2vh 1.4vw 1.2vh; }
+.ring-row { margin-top: .6vh; }
+.groups { margin-top: 1vh; padding-top: 1vh; gap: .8vh; }
+.feed { padding-top: 1vh; padding-bottom: 1vh; }
+.feed ul { margin-top: .7vh; gap: .7vh; }
+.feed li { padding: .5vh .8vw; }
 </style>
 </head>
 <body>
