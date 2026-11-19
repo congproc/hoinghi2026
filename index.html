@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-live3">
+<meta name="build" content="2026-11-19-ui2">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0070b8">
@@ -72,6 +72,11 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .hero h1 { font-size: 30px; line-height: 1.15; margin: 14px 0 6px; font-weight: 800; letter-spacing: -0.02em; }
 .hero h1 .grad { background: linear-gradient(90deg, #fff200, #ffe14d); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero p { margin: 0; color: rgba(255,255,255,.82); font-size: 14px; }
+/* after the first step the header shrinks so the confirm button stays on screen on small phones */
+body.compact .hero { padding-bottom: 14px; }
+body.compact .hero .eyebrow, body.compact .hero p { display: none; }
+body.compact .hero h1 { font-size: 22px; margin: 10px 0 0; }
+body.compact .brand-row img { width: 40px; height: 40px; }
 
 .card { width: 100%; max-width: 440px; background: var(--card); border-radius: 24px; padding: 24px 20px 22px; box-shadow: 0 24px 60px rgba(0, 50, 100, .28); position: relative; overflow: hidden; }
 .view { animation: view-in .28s ease-out; }
@@ -310,6 +315,8 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
 
   function show(id) {
     VIEWS.forEach(function (v) { $(v).hidden = v !== id; });
+    document.body.classList.toggle('compact', id !== 'vPhone' && id !== 'vCode');
+    window.scrollTo(0, 0);
     var el = $(id);
     el.classList.remove('view'); void el.offsetWidth; el.classList.add('view'); // replay entrance
     var focusEl = el.querySelector('input, .choice, #confirmBtn, #againBtn, [data-back]');
