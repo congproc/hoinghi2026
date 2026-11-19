@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-x7">
+<meta name="build" content="2026-11-19-x8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -342,6 +342,13 @@ body.idle-cursor .ctl { opacity: 0; }
 .feed { padding-top: 1vh; padding-bottom: 1vh; }
 .feed ul { margin-top: .7vh; gap: .7vh; }
 .feed li { padding: .5vh .8vw; }
+
+/* idle screen: no photo frame, the schedule uses the whole panel */
+.gwrap.idle { gap: 0; }
+.gwrap.idle .ginfo { flex: 1; align-self: center; }
+.gwrap.idle .guest-title { font-size: calc(clamp(20px, 3vw, 70px) * var(--is, 1)); max-width: 90%; }
+.readout.idle3 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 3.4vh; max-width: 100%; }
+.idlehint { margin-top: 3.4vh; max-width: 80%; color: var(--ink-3); font-size: calc(clamp(13px, 1.35vw, 32px) * var(--is, 1)); line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -792,12 +799,15 @@ body.idle-cursor .ctl { opacity: 0; }
       '<div class="kicker">Chào mừng</div>' +
       '<div class="guest-name idle-name">Quý Anh Chị</div>';
     el.innerHTML =
-      '<div class="gwrap">' +
-        '<div class="portrait idle" aria-hidden="true"><img alt="" src="../assets/cover.jpg"><div class="scan"></div></div>' +
+      '<div class="gwrap idle">' +
         '<div class="ginfo">' +
-          '<p class="guest-title">đến với Hội nghị Tổng kết 2026</p>' +
-          '<div class="readout"><div class="cell"><div class="k">Thời gian</div><div class="v mono">13:00 · 22/12/2026</div></div>' +
-          '<div class="cell branch"><div class="k">Trạng thái</div><div class="v mono">đang chờ check-in<span class="cursor"></span></div></div></div>' +
+          '<p class="guest-title">đến với Hội nghị Tổng kết Hoạt động Kinh doanh 2026</p>' +
+          '<div class="readout idle3">' +
+            '<div class="cell"><div class="k">Hội nghị</div><div class="v mono">13:00 – 17:30</div></div>' +
+            '<div class="cell branch"><div class="k">Gala Dinner</div><div class="v mono">18:30 – 21:00</div></div>' +
+            '<div class="cell"><div class="k">Trạng thái</div><div class="v mono">đang chờ check-in<span class="cursor"></span></div></div>' +
+          '</div>' +
+          '<div class="idlehint">Quét mã QR tại sảnh, nhập số điện thoại đã đăng ký và bấm xác nhận để check-in.</div>' +
         '</div>' +
       '</div>';
     fitGuest();
