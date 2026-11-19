@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-x3">
+<meta name="build" content="2026-11-19-x4">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -702,9 +702,9 @@ body.idle-cursor .ctl { opacity: 0; }
     }
   }
   function fitInfo() {
-    var el = $('spotInner'), gw = el.querySelector('.gwrap'); if (!gw) return;
+    var el = $('spotInner'), info = el.querySelector('.ginfo'); if (!info) return;
     var sc = 1, g = 0; el.style.setProperty('--is', 1);
-    while (gw.offsetHeight > el.clientHeight + 1 && sc > 0.55 && g++ < 12) { sc *= 0.93; el.style.setProperty('--is', sc.toFixed(3)); }
+    while (info.offsetHeight > el.clientHeight - 2 && sc > 0.5 && g++ < 14) { sc *= 0.94; el.style.setProperty('--is', sc.toFixed(3)); }
   }
   addEventListener('resize', function () { if (state.showing) { fitGuest(); fitInfo(); } });
   if (document.fonts) {
@@ -714,7 +714,7 @@ body.idle-cursor .ctl { opacity: 0; }
   var photoCache = {};
   function preload(url) { if (!url || photoCache[url]) return; var im = new Image(); im.src = url; photoCache[url] = im; }
   function uprogHtml(a) {
-    var tot = unitTotals[a.unit], arr = unitArr[a.unit] || 0;
+    var tot = unitTotals[a.unit], arr = Math.min(unitArr[a.unit] || 0, unitTotals[a.unit] || 0);
     if (!tot || !a.unit) return '';
     var seg = Math.min(tot, 24), on = Math.max(1, Math.round(Math.min(arr, tot) / tot * seg)), cells = '';
     for (var i = 0; i < seg; i++) cells += '<i' + (i < on ? ' class="on"' : '') + '></i>';
@@ -744,12 +744,7 @@ body.idle-cursor .ctl { opacity: 0; }
         '<div class="ginfo">' +
           (a.title ? '<p class="guest-title">' + esc(a.title) + '</p>' : '') +
           (a.unit ? '<div class="cell unitcell ' + esc(a.group) + '"><div class="k">Đơn vị</div><div class="v">' + esc(unitLabel(a.unit)) + '</div></div>' : '') +
-          uprogHtml(a) + chipsHtml(a) +
-          '<div class="readout">' +
-            '<div class="cell ' + esc(a.group) + '"><div class="k">Giờ vào</div><div class="v mono">' + hhmmss(a.at) + '</div></div>' +
-            '<div class="cell ' + esc(a.group) + '"><div class="k">Thứ tự</div><div class="v mono">#' + pad(n, 3) + '</div></div>' +
-          '</div>' +
-          wordHtml(a) +
+          uprogHtml(a) + chipsHtml(a) + wordHtml(a) +
         '</div>' +
       '</div>';
     fitGuest(); fitInfo();
@@ -760,7 +755,7 @@ body.idle-cursor .ctl { opacity: 0; }
       img.src = a.photo;
     }
     $('spotLabel').textContent = 'Vừa check-in';
-    $('spotTag').textContent = 'check-in #' + pad(n, 3);
+    $('spotTag').textContent = 'check-in #' + pad(n, 3) + ' · ' + hhmmss(a.at);
     $('spotFoot').textContent = 'Nhận diện: ' + (a.group === 'branch' ? 'chi nhánh' : 'công ty');
     burst();
   }
