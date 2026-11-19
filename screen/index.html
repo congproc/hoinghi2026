@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-ui7">
+<meta name="build" content="2026-11-19-ui8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -650,7 +650,10 @@ body.idle-cursor .ctl { opacity: 0; }
     }
   }
   addEventListener('resize', function () { if (state.showing) fitGuest(); });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (state.showing) fitGuest(); });
+  if (document.fonts) {
+    if (document.fonts.ready) document.fonts.ready.then(function () { if (state.showing) fitGuest(); });
+    if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', function () { if (state.showing) fitGuest(); }); // a face that loads late changes the text width
+  }
   var photoCache = {};
   function preload(url) { if (!url || photoCache[url]) return; var im = new Image(); im.src = url; photoCache[url] = im; }
   function buildGuest(el, a, n) {
