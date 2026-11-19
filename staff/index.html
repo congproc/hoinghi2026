@@ -464,7 +464,9 @@ dialog .ack input { margin-top: 3px; }
 .grid { align-items: stretch; }
 .grid > .card { display: flex; flex-direction: column; }
 .grid > .card .unit-cols { flex: 1; align-content: start; }
-.stack { grid-template-rows: 1fr 1fr; align-content: stretch; min-height: 0; }
+/* the unit card sets the row height; the right column fills it and its lists scroll inside */
+.stack { grid-template-rows: 1fr 1fr; align-content: stretch; height: 0; min-height: 100%; }
+@media (max-width: 1000px) { .stack { height: auto; min-height: 0; grid-template-rows: auto; } .stack .scroll { max-height: 320px; } }
 .stack > .card { display: flex; flex-direction: column; min-height: 0; }
 .stack .scroll { flex: 1; min-height: 150px; max-height: none; }
 .card-head { min-height: 28px; align-items: center; }
