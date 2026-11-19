@@ -633,6 +633,13 @@ body.idle-cursor .ctl { opacity: 0; }
     setTimeout(go, 120);
   }
   function enter(el) { var base = el.getAttribute('data-base') || 'spot-body'; el.className = base; void el.offsetWidth; el.className = base + ' enter'; }
+  function hit() {
+    if (reduceMotion) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.spot, .ring-card'), function (p) {
+      p.classList.remove('hit'); void p.offsetWidth; p.classList.add('hit');
+    });
+    var r = $('ripple'); r.classList.remove('go'); void r.offsetWidth; r.classList.add('go');
+  }
   function showGuest(a, n) {
     swapSpot(function () { buildGuest(a, n); });
     hit();
