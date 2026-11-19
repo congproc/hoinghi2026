@@ -555,6 +555,7 @@ body.idle-cursor .ctl { opacity: 0; }
       state.failures = 0; apply(res);
     }).catch(function (e) {
       if (e.server && /mật khẩu/i.test(e.message)) { store(PW_KEY, null); $('login').hidden = false; $('loginErr').textContent = e.message; return; }
+      console.error('screen poll failed:', e && (e.stack || e.message || e));
       state.failures++;
       setConn(false);
     }).then(function () { if ($('login').hidden) schedule(); });
