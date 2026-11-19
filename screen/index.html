@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-x9">
+<meta name="build" content="2026-11-19-x10">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -348,6 +348,7 @@ body.idle-cursor .ctl { opacity: 0; }
 .gwrap.idle .ginfo { flex: 1; align-self: center; }
 .gwrap.idle .guest-title { font-size: calc(clamp(18px, 2.5vw, 60px) * var(--is, 1)); max-width: 92%; }
 .readout.idle3 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 2.4vh; gap: 2vh 1.6vw; max-width: 100%; }
+.readout.idle3 .cell:first-child:nth-last-child(3) { grid-column: auto; }
 .readout.idle3 .cell:last-child { grid-column: 1 / -1; }
 .readout.idle3 .cell .v { white-space: nowrap; }
 .idlehint { margin-top: 2.2vh; max-width: 80%; color: var(--ink-3); font-size: calc(clamp(13px, 1.35vw, 32px) * var(--is, 1)); line-height: 1.4; }
