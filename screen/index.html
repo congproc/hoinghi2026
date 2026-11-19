@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-x12">
+<meta name="build" content="2026-11-19-x13">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -600,7 +600,10 @@ body.idle-cursor .ctl { opacity: 0; }
       chk = all || {}; pushUpdate();
     }).catch(function () { state.failures++; setConn(false); });
   }
-  setInterval(reread, 4000);
+  // The live stream already pushes every change. The full re-read is only a safety net: once a minute while the stream is healthy
+  // (Firebase sends a keep-alive every ~30 s), every 4 s only if the stream has gone quiet. Keeps data use ~15x lower (free plan = 10 GB/month).
+  var rereadAt = 0;
+  setInterval(function () { var quiet = Date.now() - lastEvent > 45000; if (quiet || Date.now() - rereadAt > 60000) { rereadAt = Date.now(); reread(); } }, 4000);
   setInterval(function () { if (!DEMO) loadMeta(); }, 60000);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { reread(); if (!DEMO && Date.now() - lastEvent > 40000) connect(); } });
 
