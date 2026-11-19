@@ -664,6 +664,40 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 .selbar { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
 @media (max-width: 420px) { .toasts { left: 16px; right: 16px; } .toast { max-width: none; } }
 @media (max-width: 380px) { .lv-stats dd { font-size: 20px; } .lv-big { font-size: 40px; } }
+
+/* ---- check-in day chart v2 (one axis, same language as the burn-up) + themed form controls ---- */
+.lv-chart { overflow: hidden; }
+.lv-chart svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+.burn-chart svg { max-width: 100%; height: auto; }
+.lv-chart .cum { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.lv-chart .cum-area { fill: var(--accent); fill-opacity: .1; }
+.lv-chart .cum-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.lv-chart .bar { fill: var(--accent); fill-opacity: .3; }
+.lv-chart .bar.now { fill-opacity: .55; }
+.lv-chart .blab { fill: var(--text-3); font-size: 10.5px; font-family: var(--font); font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.lv-chart .reg-l { stroke: var(--text-3); stroke-width: 1.5; }
+.lv-chart .reg-lab { fill: var(--text-2); font-size: 11.5px; font-family: var(--font); }
+.lv-chart .gl { stroke: var(--border); }
+.lv-chart .hit { fill: transparent; }
+.lv-chart .hit:hover { fill: var(--text); fill-opacity: .05; }
+/* selects: no native (macOS/Safari) gradient + ⇕ arrows; same field style as the search box */
+:root { --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235f7488' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386a1b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); } }
+:root[data-theme="dark"] { --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386a1b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+.toolbar select {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  background: var(--bg) var(--chev) no-repeat right 11px center / 12px 12px;
+  border: 1px solid var(--border); border-radius: 8px; padding: 0 32px 0 12px; color: var(--text);
+  box-shadow: none; transition: border-color .15s, box-shadow .15s;
+}
+.toolbar select:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.toolbar select:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.toolbar select option { background: var(--surface); color: var(--text); }
+.search input { -webkit-appearance: none; appearance: none; }
+/* secondary buttons share the field look (dark fill + border), accent on hover */
+.toolbar .btn:not(.primary):not(.ghost), .card-head > .btn:not(.ghost) { background: var(--bg); }
+.btn:not(.primary):not(.ghost):not(.danger):hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--surface-2); }
+.btn:focus-visible, .seg2 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -834,7 +868,7 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
           <div class="card">
             <div class="card-head"><h2>Lượng người đến</h2><p class="hint" id="lvChartHint">Theo từng 10 phút</p></div>
             <div class="lv-chart" id="lvChart"></div>
-            <ul class="legend line-legend" id="lvLegend"><li><i class="lk-bar"></i><span>Số người đến trong 10 phút</span></li><li><i class="lk good"></i><span>Tổng đã đến (% người đã đăng ký, trục phải)</span></li></ul>
+            <ul class="legend line-legend" id="lvLegend"><li><i class="lk"></i><span>Tổng đã đến</span></li><li><i class="lk-bar"></i><span>Đến trong 10 phút</span></li><li><i class="lk target"></i><span>Số người đã đăng ký</span></li></ul>
           </div>
           <div class="card">
             <div class="card-head"><h2>Mới check-in</h2></div>
@@ -1253,6 +1287,8 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   }
 
   // Arrivals per 10 minutes (bars, left axis) + everyone arrived so far (line, right axis = % of registrants).
+  // Check-in day chart, built like the registration burn-up: one people axis.
+  // Line = total arrived so far (vs the number registered); faint bars along the bottom = arrivals per 10 minutes.
   function renderLvChart(arr, tot, now) {
     var chart = $('lvChart'), cw = chart.clientWidth;
     if (!cw) return;
@@ -1270,42 +1306,50 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
     for (i = 0; i < nb; i++) bins.push(0);
     carr.forEach(function (x) { var k = Math.floor((x.checkedInAt - t0) / B); if (k < 0) before++; else if (k < nb) bins[k]++; });
     bins.forEach(function (v) { if (v > mx) mx = v; });
-    // the line ends at "now" (or at the last arrival when looking at another day)
     var endT = (onDay && !today) ? (cn ? carr[cn - 1].checkedInAt + 1 : t0) : now;
     var endK = Math.min(nb, Math.max(0, Math.ceil((endT - t0) / B)));
-    var W = Math.max(240, cw), H = 270, M = { l: 32, r: 44, t: 22, b: 28 }, pw = W - M.l - M.r, ph = H - M.t - M.b, bw = pw / nb;
-    var top = mx <= 5 ? 5 : Math.ceil(mx / 5) * 5, g = '';
-    var Y = function (v) { return M.t + ph - ph * v / top; }, Y2 = function (v) { return M.t + ph - ph * (tot ? v / tot : 0); };
-    [0, .5, 1].forEach(function (f) {
-      var y = M.t + ph - ph * f;
-      g += '<line class="gl" x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + y + '" y2="' + y + '"/>' +
-        '<text class="ax" x="' + (M.l - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + Math.round(top * f) + '</text>' +
-        '<text class="ax2" x="' + (W - M.r + 6) + '" y="' + (y + 4) + '">' + Math.round(f * 100) + '%</text>';
-    });
-    var nowK = Math.floor((now - t0) / B);
-    bins.forEach(function (v, k) {
-      if (!v) return;
-      var h = ph * v / top, tm = new Date(t0 + k * B), te = new Date(t0 + (k + 1) * B);
-      g += '<rect class="bar' + (k === nowK ? ' now' : '') + '" x="' + (M.l + k * bw + 1).toFixed(1) + '" y="' + (M.t + ph - h).toFixed(1) + '" width="' + Math.max(1, bw - 2).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2"><title>' + pad(tm.getHours()) + ':' + pad(tm.getMinutes()) + '–' + pad(te.getHours()) + ':' + pad(te.getMinutes()) + ' · ' + v + ' người</title></rect>';
-    });
-    var step = Math.max(1, Math.ceil(nb / Math.max(3, Math.floor(pw / 70))));
-    for (i = 0; i <= nb; i += step) { var tm2 = new Date(t0 + i * B); g += '<text class="ax" x="' + (M.l + i * bw).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle">' + pad(tm2.getHours()) + ':' + pad(tm2.getMinutes()) + '</text>'; }
+    var W = Math.max(240, cw), H = 270, M = { l: 40, r: W < 520 ? 16 : 96, t: 22, b: 28 }, pw = W - M.l - M.r, ph = H - M.t - M.b, bw = pw / nb;
+    var nm = niceMax(Math.max(tot, before + cn, 1) * 1.08), ymax = nm.max;
+    var X = function (k) { return M.l + k * bw; }, Y = function (v) { return M.t + ph - ph * v / ymax; };
+    var g = '';
+    for (var v = 0; v <= ymax; v += nm.step) g += '<line class="gl" x1="' + M.l + '" x2="' + (M.l + pw) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '"/><text class="ax" x="' + (M.l - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end">' + v + '</text>';
+    var step = Math.max(1, Math.ceil(nb / Math.max(2, Math.floor(pw / 72))));
+    for (i = 0; i <= nb; i += step) { var tm = new Date(t0 + i * B); g += '<text class="ax" x="' + X(i).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="' + (i === 0 ? 'start' : 'middle') + '">' + pad(tm.getHours()) + ':' + pad(tm.getMinutes()) + '</text>'; }
     var ek = (evt - t0) / B;
-    if (onDay && ek >= 0 && ek <= nb) {
-      var xo = M.l + ek * bw;
-      g += '<line class="open" x1="' + xo + '" x2="' + xo + '" y1="' + (M.t - 6) + '" y2="' + (M.t + ph) + '"/><text class="open-lab" x="' + (xo + 5) + '" y="' + (M.t - 8) + '">Khai mạc 13:00</text>';
-    }
-    // cumulative line, stepped at each 10-minute boundary
-    var c = before, pts = [(M.l).toFixed(1) + ',' + Y2(c).toFixed(1)];
-    for (i = 0; i < endK; i++) { c += bins[i]; pts.push((M.l + (i + 1) * bw).toFixed(1) + ',' + Y2(c).toFixed(1)); }
+    if (onDay && ek >= 0 && ek <= nb) g += '<line class="open" x1="' + X(ek).toFixed(1) + '" x2="' + X(ek).toFixed(1) + '" y1="' + (M.t - 6) + '" y2="' + (M.t + ph) + '"/><text class="open-lab" x="' + (X(ek) + 5).toFixed(1) + '" y="' + (M.t - 8) + '">Khai mạc 13:00</text>';
+    // registered = the ceiling the line climbs towards
+    var yr = Y(tot);
+    if (tot) g += '<line class="reg-l" x1="' + M.l + '" x2="' + (M.l + pw) + '" y1="' + yr.toFixed(1) + '" y2="' + yr.toFixed(1) + '"/>' +
+      (M.r > 40 ? '<text class="reg-lab" x="' + (M.l + pw + 8) + '" y="' + (yr + 4).toFixed(1) + '">Đã đăng ký ' + tot + '</text>' : '');
+    // arrivals per 10 minutes: own scale, bottom quarter of the plot; peak + latest labelled
+    var bh = ph * 0.24, peakK = -1, lastK = -1, nowK = Math.floor((now - t0) / B);
+    bins.forEach(function (n, k) { if (n === mx && mx) peakK = k; if (n) lastK = k; });
+    bins.forEach(function (n, k) {
+      if (!n) return;
+      var h = Math.max(2, n / mx * bh), w = Math.max(2, Math.min(18, bw - 2)), x = X(k) + (bw - w) / 2;
+      g += '<rect class="bar' + (k === nowK ? ' now' : '') + '" x="' + x.toFixed(1) + '" y="' + (M.t + ph - h).toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1.5"/>';
+      if ((k === peakK || k === lastK) && mx > 1) g += '<text class="blab" x="' + (X(k) + bw / 2).toFixed(1) + '" y="' + (M.t + ph - h - 4).toFixed(1) + '" text-anchor="middle">+' + n + '</text>';
+    });
+    // cumulative stepped line + faint area
+    var c = before, pts = [X(0).toFixed(1) + ',' + Y(c).toFixed(1)];
+    for (i = 0; i < endK; i++) { c += bins[i]; pts.push(X(i + 1).toFixed(1) + ',' + Y(c).toFixed(1)); }
     if (cn) {
-      var xe = M.l + endK * bw, ye = Y2(c), lab = c + ' · ' + (tot ? Math.round(c / tot * 100) : 0) + '%';
-      var right = xe + 8 + lab.length * 7 > W - M.r;
-      g += '<path class="cum" d="M' + pts.join('L') + '"/><circle class="cum-dot" cx="' + xe.toFixed(1) + '" cy="' + ye.toFixed(1) + '" r="4.5"/>' +
-        '<text class="cum-lab" x="' + (right ? xe - 8 : xe + 8).toFixed(1) + '" y="' + (ye - 8).toFixed(1) + '" text-anchor="' + (right ? 'end' : 'start') + '">' + lab + '</text>';
+      var xe = X(endK), ye = Y(c), line = 'M' + pts.join('L');
+      g += '<path class="cum-area" d="' + line + 'L' + xe.toFixed(1) + ',' + Y(0).toFixed(1) + 'L' + X(0).toFixed(1) + ',' + Y(0).toFixed(1) + 'Z"/>' +
+        '<path class="cum" d="' + line + '"/><circle class="cum-dot" cx="' + xe.toFixed(1) + '" cy="' + ye.toFixed(1) + '" r="4.5"/>';
+      var lab = c + ' đã đến' + (tot ? ' · ' + Math.round(c / tot * 100) + '%' : ''), lw = lab.length * 6.6;
+      var below = ye - M.t < 22 || (tot && Math.abs(ye - yr) < 16), right = xe + 8 + lw > M.l + pw;
+      g += '<text class="cum-lab" x="' + (right ? xe - 8 : xe + 8).toFixed(1) + '" y="' + (below ? ye + 18 : ye - 9).toFixed(1) + '" text-anchor="' + (right ? 'end' : 'start') + '">' + lab + '</text>';
     }
-    chart.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Số người check-in theo từng 10 phút; tổng đã đến ' + c + ' trên ' + tot + ' người.">' + g + '</svg>';
-    $('lvChartHint').textContent = cn ? 'Đông nhất ' + mx + ' người / 10 phút' : 'Chưa có ai check-in';
+    // one invisible hover strip per 10 minutes with a native tooltip
+    var run = before;
+    bins.forEach(function (n, k) {
+      run += n; if (k >= endK && !n) return;
+      var a = new Date(t0 + k * B), z = new Date(t0 + (k + 1) * B);
+      g += '<rect class="hit" x="' + X(k).toFixed(1) + '" y="' + M.t + '" width="' + bw.toFixed(1) + '" height="' + ph + '"><title>' + pad(a.getHours()) + ':' + pad(a.getMinutes()) + '–' + pad(z.getHours()) + ':' + pad(z.getMinutes()) + ': ' + n + ' người đến · tổng ' + run + (tot ? '/' + tot : '') + '</title></rect>';
+    });
+    chart.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Tổng số người đã check-in theo thời gian: ' + c + ' trên ' + tot + ' người đã đăng ký.">' + g + '</svg>';
+    $('lvChartHint').textContent = cn ? (mx > 1 ? 'Đông nhất ' + mx + ' người / 10 phút' : 'Mỗi cột = 10 phút') : 'Chưa có ai check-in';
   }
 
   /* ---------- render ---------- */
@@ -1561,7 +1605,7 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   }
 
   var burnView = 'chart';
-  function niceMax(v) { var steps = [5, 10, 20, 25, 50, 100, 200, 250, 500]; for (var i = 0; i < steps.length; i++) { var s2 = steps[i]; if (Math.ceil(v / s2) <= 5 || i === steps.length - 1) return { step: s2, max: Math.max(s2, Math.ceil(v / s2) * s2) }; } }
+  function niceMax(v) { var steps = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500]; for (var i = 0; i < steps.length; i++) { var s2 = steps[i]; if (Math.ceil(v / s2) <= 5 || i === steps.length - 1) return { step: s2, max: Math.max(s2, Math.ceil(v / s2) * s2) }; } }
   function renderBurn(d) {
     var card = $('burnCard'), b = burnData(d);
     card.hidden = false;
