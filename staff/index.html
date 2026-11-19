@@ -155,7 +155,7 @@ button { touch-action: manipulation; }
 .warnings li + li { margin-top: 4px; }
 
 /* KPIs */
-.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
 .kpi { padding: 16px 18px; }
 .kpi .label { color: var(--text-2); font-size: 13px; font-weight: 500; }
 .kpi .value { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 6px 0 4px; }
@@ -217,6 +217,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
 .code-btn .icon { width: 12px; height: 12px; color: var(--text-3); }
 .new-badge { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--good-soft); color: var(--good); margin-left: 6px; animation: fade-in .4s ease-out; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.in-badge { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; background: var(--good-soft); color: var(--good); font-weight: 600; font-size: 12px; }
 .empty { padding: 36px 16px; text-align: center; color: var(--text-3); }
 
 /* Skeleton + error states */
@@ -234,8 +235,10 @@ table.people tbody tr:hover td { background: var(--surface-2); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(4px); } }
 
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
   .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 1100px) {
   .grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
@@ -413,7 +416,8 @@ table.people tbody tr:hover td { background: var(--surface-2); }
     { key: 'phone', label: 'SĐT' },
     { key: 'diet', label: 'Chế độ ăn' },
     { key: 'gala', label: 'Gala' },
-    { key: 'submittedAt', label: 'Đăng ký lúc' }
+    { key: 'submittedAt', label: 'Đăng ký lúc' },
+    { key: 'checkedInAt', label: 'Check-in' }
   ];
 
   var state = {
@@ -613,7 +617,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
 
   function renderSkeleton() {
     var tile = '<div class="card kpi"><span class="sk" style="width:60%;height:12px"></span><span class="sk" style="width:40%;height:30px;margin:12px 0 8px"></span><span class="sk" style="width:70%;height:10px"></span></div>';
-    $('kpis').innerHTML = tile + tile + tile + tile + tile;
+    $('kpis').innerHTML = tile + tile + tile + tile + tile + tile;
     var rows = '';
     for (var i = 0; i < 8; i++) rows += '<li style="display:grid;grid-template-columns:1fr 96px 28px;gap:10px;align-items:center;min-height:30px"><span class="sk" style="height:10px;width:' + (55 + (i * 17) % 35) + '%"></span><span class="sk" style="height:8px"></span><span class="sk" style="height:10px"></span></li>';
     $('companyBars').innerHTML = rows; $('branchBars').innerHTML = rows;
@@ -659,13 +663,15 @@ table.people tbody tr:hover td { background: var(--surface-2); }
     var allUnits = d.companyUnits.concat(d.branchUnits);
     var empty = allUnits.filter(function (u) { return !counts[u]; }).length;
     var fresh = Object.keys(state.newIds).length;
+    var checked = p.filter(function (x) { return x.checkedInAt; }).length;
 
     $('kpis').innerHTML =
       kpi('Đã đăng ký', p.length + (fresh ? '<span class="delta" title="Mới kể từ khi mở trang">+' + fresh + ' mới</span>' : ''), '+' + today + ' hôm nay · ' + d.submissions + ' lượt gửi') +
       kpi('Công ty / Chi nhánh', company + ' <small>/ ' + branch + '</small>', 'người') +
       kpi('Ăn chay', veg, (dietOther ? dietOther + ' chế độ khác · ' : '') + unknown + ' chưa có thông tin') +
       kpi('Tiết mục Gala', gala.length, performers + ' người biểu diễn') +
-      kpi('Đơn vị chưa đăng ký', empty + ' <small>/ ' + allUnits.length + '</small>', 'chưa có ai đăng ký');
+      kpi('Đơn vị chưa đăng ký', empty + ' <small>/ ' + allUnits.length + '</small>', 'chưa có ai đăng ký') +
+      kpi('Đã check-in', checked + ' <small>/ ' + p.length + '</small>', p.length ? Math.round(checked / p.length * 100) + '% đã có mặt' : 'chưa có dữ liệu');
   }
 
   function unitCounts(people) {
@@ -820,6 +826,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
         '<td>' + diet + '</td>' +
         '<td>' + gala + '</td>' +
         '<td class="num muted" style="white-space:nowrap">' + fmtTime(p.submittedAt) + '</td>' +
+        '<td class="num" style="white-space:nowrap">' + (p.checkedInAt ? '<span class="in-badge">✓ ' + fmtTime(p.checkedInAt).slice(-5) + '</span>' : '<span class="muted">—</span>') + '</td>' +
         '</tr>';
     }).join('') : '<tr><td colspan="' + COLUMNS.length + '" class="empty">Không có người nào khớp bộ lọc.</td></tr>';
   }
@@ -896,7 +903,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
       diet: diet, dietOther: diet === 'other' ? pick(['Không ăn hải sản', 'Chay ngày rằm', 'Dị ứng đậu phộng']) : '',
       gala: gala, galaTitle: gala === 'yes' ? pick(['Việt Nam ơi', 'Hành trình mới', 'Sắc màu Saigontourist', 'Tình ca du lịch']) : '',
       galaType: gala === 'yes' ? pick(['Hát', 'Hát', 'Múa', 'Nhạc cụ', 'Kịch/Tiểu phẩm']) : '', galaPerformers: gala === 'yes' ? 1 + Math.floor(rnd() * 8) : null,
-      submittedAt: ts, submissions: rnd() < 0.05 ? 2 : 1
+      submittedAt: ts, submissions: rnd() < 0.05 ? 2 : 1, checkedInAt: rnd() < 0.4 ? Date.now() - Math.floor(rnd() * 3600000) : null
     });
   }
 

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Màn hình chào mừng</title>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0a0820;
+  --text: #ffffff; --text-2: rgba(255,255,255,.78); --text-3: rgba(255,255,255,.56);
+  --glass: rgba(255,255,255,.07); --glass-border: rgba(255,255,255,.14);
+  --violet: #8b5cf6; --pink: #ec4899; --amber: #f59e0b; --cyan: #22d3ee; --emerald: #34d399;
+  --font: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--text); font: 16px/1.45 var(--font); overflow: hidden; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+[hidden] { display: none !important; }
+body.idle-cursor { cursor: none; }
+
+/* Background */
+.bg { position: fixed; inset: 0; overflow: hidden; z-index: 0; background: radial-gradient(ellipse at 50% 120%, #2a0f4d 0%, var(--bg) 60%); }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); will-change: transform; }
+.orb.o1 { width: 55vw; height: 55vw; left: -15vw; top: -20vw; background: radial-gradient(circle, rgba(139,92,246,.55), transparent 65%); animation: f1 24s ease-in-out infinite alternate; }
+.orb.o2 { width: 50vw; height: 50vw; right: -15vw; bottom: -25vw; background: radial-gradient(circle, rgba(236,72,153,.5), transparent 65%); animation: f2 28s ease-in-out infinite alternate; }
+.orb.o3 { width: 35vw; height: 35vw; right: 20vw; top: -10vw; background: radial-gradient(circle, rgba(34,211,238,.28), transparent 65%); animation: f3 32s ease-in-out infinite alternate; }
+.orb.o4 { width: 30vw; height: 30vw; left: 25vw; bottom: -12vw; background: radial-gradient(circle, rgba(245,158,11,.25), transparent 65%); animation: f1 30s ease-in-out infinite alternate-reverse; }
+@keyframes f1 { to { transform: translate(8vw, 6vw) scale(1.12); } }
+@keyframes f2 { to { transform: translate(-10vw, -5vw) scale(1.1); } }
+@keyframes f3 { to { transform: translate(-12vw, 8vw); } }
+.grain { position: absolute; inset: 0; opacity: .05; background-image: radial-gradient(rgba(255,255,255,.8) 1px, transparent 1px); background-size: 3px 3px; }
+#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+
+/* Layout */
+.stage { position: relative; z-index: 2; height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; padding: 2.4vh 3vw; gap: 2vh; }
+.top { display: flex; align-items: center; gap: 1.2vw; }
+.logo { width: 3.4vw; min-width: 40px; aspect-ratio: 1; border-radius: 1vw; display: grid; place-items: center; font-weight: 900; font-size: clamp(12px, 1vw, 20px); background: linear-gradient(135deg, var(--violet), var(--pink)); box-shadow: 0 0 30px rgba(236,72,153,.4); }
+.top h1 { margin: 0; font-size: clamp(14px, 1.35vw, 28px); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.top .sub { color: var(--text-3); font-size: clamp(12px, .95vw, 18px); }
+.top .spacer { flex: 1; }
+.clock { font-size: clamp(20px, 2.2vw, 44px); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.clock small { display: block; text-align: right; font-size: clamp(11px, .8vw, 16px); color: var(--text-3); font-weight: 500; letter-spacing: .04em; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 2.2vw; min-height: 0; }
+.glass { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 2vw; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+
+/* Spotlight */
+.spot { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 4vh 4vw; }
+.spot::before { content: ""; position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent 0 60%, rgba(236,72,153,.18) 70%, rgba(139,92,246,.22) 80%, transparent 90%); animation: rotate 14s linear infinite; }
+.spot::after { content: ""; position: absolute; inset: 1px; border-radius: inherit; background: linear-gradient(160deg, rgba(20,12,50,.92), rgba(30,10,45,.88)); }
+@keyframes rotate { to { transform: rotate(360deg); } }
+.spot > * { position: relative; z-index: 1; }
+.kicker { display: inline-flex; align-items: center; gap: .8vw; font-size: clamp(14px, 1.6vw, 34px); font-weight: 800; letter-spacing: .35em; text-transform: uppercase;
+  background: linear-gradient(90deg, var(--amber), var(--pink), var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.kicker::before { content: ""; width: 3vw; height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--amber), var(--pink)); }
+.guest-name { font-size: clamp(40px, 6.2vw, 132px); line-height: 1.04; font-weight: 900; letter-spacing: -0.025em; margin: 2.4vh 0 1.8vh; text-wrap: balance;
+  background: linear-gradient(180deg, #ffffff 30%, #e9d5ff); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 30px rgba(236,72,153,.25)); }
+.guest-title { font-size: clamp(18px, 2.2vw, 46px); font-weight: 600; color: var(--text); margin: 0; }
+.guest-unit { display: inline-flex; align-self: flex-start; align-items: center; gap: .6vw; margin-top: 2.2vh; font-size: clamp(14px, 1.45vw, 30px); font-weight: 600; padding: .9vh 1.4vw; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); }
+.guest-unit .dot { width: .8vw; height: .8vw; min-width: 8px; min-height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+.guest-unit.branch .dot { background: var(--amber); box-shadow: 0 0 12px var(--amber); }
+.guest-time { margin-top: 3vh; color: var(--text-3); font-size: clamp(12px, 1.05vw, 22px); }
+.queue-note { position: absolute; right: 2.4vw; bottom: 2.4vh; z-index: 1; font-size: clamp(12px, .95vw, 18px); color: var(--text-3); }
+.enter { animation: enter .9s cubic-bezier(.16, 1, .3, 1) both; }
+.enter .guest-name { animation: name-in 1s .08s cubic-bezier(.16, 1, .3, 1) both; }
+.enter .guest-title { animation: rise .8s .25s cubic-bezier(.16, 1, .3, 1) both; }
+.enter .guest-unit { animation: rise .8s .38s cubic-bezier(.16, 1, .3, 1) both; }
+.enter .guest-time { animation: rise .8s .5s cubic-bezier(.16, 1, .3, 1) both; }
+.leave { animation: leave .45s ease-in both; }
+@keyframes enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes name-in { from { opacity: 0; transform: translateY(4vh) scale(.96); filter: blur(10px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes rise { from { opacity: 0; transform: translateY(2vh); } to { opacity: 1; transform: none; } }
+@keyframes leave { to { opacity: 0; transform: translateY(-2vh); } }
+.idle-msg .guest-name { font-size: clamp(36px, 5vw, 110px); }
+
+/* Stats */
+.side { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 2vh; min-height: 0; }
+.ring-card { display: flex; align-items: center; gap: 2vw; padding: 3vh 2vw; }
+.ring { position: relative; width: 15vw; min-width: 150px; aspect-ratio: 1; flex: none; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .track { fill: none; stroke: rgba(255,255,255,.1); stroke-width: 12; }
+.ring .bar { fill: none; stroke: url(#ringGrad); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(.16, 1, .3, 1); filter: drop-shadow(0 0 8px rgba(236,72,153,.6)); }
+.ring .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring .big { font-size: clamp(36px, 4.6vw, 96px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+.ring .of { font-size: clamp(12px, 1.05vw, 22px); color: var(--text-2); margin-top: .6vh; }
+.ring-info h2 { margin: 0; font-size: clamp(14px, 1.2vw, 26px); font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .1em; }
+.ring-info .pct { font-size: clamp(28px, 3.4vw, 72px); font-weight: 900; line-height: 1.05; margin: .8vh 0; font-variant-numeric: tabular-nums;
+  background: linear-gradient(90deg, var(--amber), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ring-info p { margin: 0; color: var(--text-3); font-size: clamp(12px, .95vw, 20px); }
+
+.groups { padding: 2.4vh 2vw; display: grid; gap: 1.8vh; }
+.grp-head { display: flex; justify-content: space-between; align-items: baseline; font-size: clamp(13px, 1.1vw, 24px); font-weight: 600; margin-bottom: .8vh; }
+.grp-head span:last-child { font-variant-numeric: tabular-nums; color: var(--text-2); font-weight: 700; }
+.grp-track { height: 1.1vh; min-height: 8px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; }
+.grp-fill { height: 100%; width: 100%; border-radius: 999px; transform-origin: left; transform: scaleX(0); transition: transform 1.2s cubic-bezier(.16, 1, .3, 1); }
+.grp-fill.company { background: linear-gradient(90deg, #0ea5e9, var(--cyan)); box-shadow: 0 0 14px rgba(34,211,238,.5); }
+.grp-fill.branch { background: linear-gradient(90deg, #f97316, var(--amber)); box-shadow: 0 0 14px rgba(245,158,11,.5); }
+
+.feed { padding: 2.4vh 2vw; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.feed h2 { margin: 0 0 1.4vh; font-size: clamp(13px, 1.05vw, 22px); text-transform: uppercase; letter-spacing: .12em; color: var(--text-3); font-weight: 700; display: flex; align-items: center; gap: .6vw; }
+.live { width: .7vw; height: .7vw; min-width: 8px; min-height: 8px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 10px var(--emerald); animation: blink 1.6s ease-in-out infinite; }
+.live.off { background: #f87171; box-shadow: 0 0 10px #f87171; animation: none; }
+@keyframes blink { 50% { opacity: .35; } }
+.feed ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1vh; overflow: hidden; }
+.feed li { display: flex; align-items: center; gap: 1vw; padding: 1.1vh 1vw; border-radius: 1vw; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); animation: slide .6s cubic-bezier(.16, 1, .3, 1) both; }
+.feed li:first-child { background: linear-gradient(90deg, rgba(236,72,153,.18), rgba(139,92,246,.12)); border-color: rgba(236,72,153,.35); }
+@keyframes slide { from { opacity: 0; transform: translateX(3vw); } to { opacity: 1; transform: none; } }
+.av { width: 2.8vw; min-width: 34px; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: clamp(11px, .95vw, 20px); flex: none; background: linear-gradient(135deg, var(--violet), var(--pink)); }
+.av.branch { background: linear-gradient(135deg, #f97316, var(--amber)); }
+.av.company { background: linear-gradient(135deg, #0ea5e9, var(--violet)); }
+.feed .who { min-width: 0; flex: 1; }
+.feed .n { font-weight: 700; font-size: clamp(13px, 1.1vw, 24px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed .t { color: var(--text-3); font-size: clamp(11px, .85vw, 18px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed time { color: var(--text-2); font-variant-numeric: tabular-nums; font-size: clamp(12px, .95vw, 20px); font-weight: 600; }
+.feed .empty { color: var(--text-3); font-size: clamp(13px, 1vw, 20px); padding: 1vh 0; }
+
+.bottom { display: flex; align-items: center; gap: 1.5vw; color: var(--text-3); font-size: clamp(11px, .85vw, 17px); }
+.bottom .spacer { flex: 1; }
+.ctl { border: 1px solid var(--glass-border); background: var(--glass); border-radius: 999px; padding: .6vh 1.1vw; cursor: pointer; color: var(--text-2); transition: opacity .3s; }
+body.idle-cursor .ctl { opacity: 0; }
+
+/* Login */
+.login { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px; background: rgba(10,8,32,.65); backdrop-filter: blur(6px); }
+.login form { width: 100%; max-width: 400px; padding: 32px 28px; border-radius: 22px; background: #16112f; border: 1px solid var(--glass-border); box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+.login h2 { margin: 0 0 4px; font-size: 22px; }
+.login p { margin: 0 0 20px; color: var(--text-2); font-size: 14px; }
+.login label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+.login input { width: 100%; height: 48px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,.06); padding: 0 14px; font-size: 16px; }
+.login input:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 3px rgba(236,72,153,.25); }
+.login button { width: 100%; height: 50px; margin-top: 16px; border: 0; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; color: #fff; background: linear-gradient(95deg, var(--violet), var(--pink)); }
+.login button:disabled { opacity: .6; cursor: default; }
+.login .err { color: #fca5a5; font-size: 14px; margin-top: 10px; min-height: 20px; }
+
+@media (max-width: 900px) {
+  body { overflow: auto; }
+  .stage { height: auto; min-height: 100vh; }
+  .main { grid-template-columns: 1fr; }
+  .spot { min-height: 50vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="orb o4"></div><div class="grain"></div></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div class="stage">
+  <header class="top">
+    <div class="logo" aria-hidden="true">2026</div>
+    <div>
+      <h1>Hội nghị Tổng kết Hoạt động Kinh doanh 2026</h1>
+      <div class="sub">&amp; Phương hướng Kinh doanh 2027 · Gala Dinner</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="clock"><span id="clock">--:--</span><small id="date"></small></div>
+  </header>
+
+  <main class="main">
+    <section class="spot glass" aria-live="polite" aria-atomic="true">
+      <div id="spotInner"></div>
+      <div class="queue-note" id="queueNote" hidden></div>
+    </section>
+
+    <aside class="side">
+      <div class="ring-card glass">
+        <div class="ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f59e0b"/><stop offset="50%" stop-color="#ec4899"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>
+            <circle class="track" cx="60" cy="60" r="52"/>
+            <circle class="bar" id="ringBar" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+          </svg>
+          <div class="center"><div class="big" id="arrived">0</div><div class="of" id="ofTotal">/ 0 đại biểu</div></div>
+        </div>
+        <div class="ring-info">
+          <h2>Đã có mặt</h2>
+          <div class="pct" id="pct">0%</div>
+          <p id="remain">Đang tải…</p>
+        </div>
+      </div>
+
+      <div class="groups glass">
+        <div><div class="grp-head"><span>Khối / Phòng Công ty</span><span id="gCompany">0 / 0</span></div><div class="grp-track"><div class="grp-fill company" id="fCompany"></div></div></div>
+        <div><div class="grp-head"><span>Chi nhánh</span><span id="gBranch">0 / 0</span></div><div class="grp-track"><div class="grp-fill branch" id="fBranch"></div></div></div>
+      </div>
+
+      <div class="feed glass">
+        <h2><span class="live" id="liveDot" aria-hidden="true"></span>Vừa đến</h2>
+        <ul id="feed"><li class="empty" style="background:none;border:0">Chưa có đại biểu check-in.</li></ul>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="bottom">
+    <span>Quét mã QR tại sảnh để check-in</span>
+    <span class="spacer"></span>
+    <span id="conn">Đang kết nối…</span>
+    <button class="ctl" type="button" id="fsBtn">Toàn màn hình (F)</button>
+  </footer>
+</div>
+
+<div class="login" id="login" hidden>
+  <form id="loginForm" novalidate>
+    <h2>Màn hình chào mừng</h2>
+    <p>Nhập mật khẩu Ban Tổ chức để bắt đầu trình chiếu.</p>
+    <input type="text" name="username" autocomplete="username" value="Ban Tổ chức" hidden>
+    <label for="pw">Mật khẩu</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button type="submit" id="loginBtn">Bắt đầu</button>
+    <div class="err" id="loginErr" role="alert"></div>
+  </form>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var API_URL = 'https://script.google.com/macros/s/AKfycbwi_22ZS7ztl0mTWlh-YoMJduxDmmlqsA6WaztHylVHC8VdLdLyAFl8i9jntCa32UXg/exec';
+  var DEMO = /[?&]demo=1\b/.test(location.search);
+  var PW_KEY = 'hn2026_screen_pw';
+  var POLL_MS = 3000;
+  var SHOW_MS = 6000, SHOW_MS_BUSY = 3200;
+  var FEED_MAX = 7;
+  var $ = function (id) { return document.getElementById(id); };
+  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var state = { pw: null, seq: -1, queue: [], feed: [], showing: false, first: true, failures: 0, totals: null, displayedArrived: 0 };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function hhmm(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function initials(name) {
+    var p = String(name || '').trim().split(/\s+/);
+    return (((p.length > 1 ? p[0].charAt(0) : '') + (p[p.length - 1] || '').charAt(0)) || '?').toUpperCase();
+  }
+  function unitLabel(u) {
+    var m = /^(ST\w+) - Saigontourist Travel (.+)$/.exec(u || '');
+    return m ? 'Chi nhánh ' + m[2] : (u || '');
+  }
+  function store(k, v) {
+    try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { /* blocked */ }
+    return null;
+  }
+
+  /* ---------- clock ---------- */
+  var DAYS = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+  function tick() {
+    var d = new Date();
+    $('clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    $('date').textContent = DAYS[d.getDay()] + ', ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
+  }
+  tick(); setInterval(tick, 10000);
+
+  /* ---------- transport ---------- */
+  function call(body) {
+    if (DEMO) return demoApi(body);
+    return new Promise(function (resolve, reject) {
+      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 20000);
+      fetch(API_URL, { method: 'POST', body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined, credentials: 'omit' })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (j) { if (j.ok) resolve(j.data); else reject(Object.assign(new Error(j.error), { server: true })); })
+        .catch(reject)
+        .then(function () { clearTimeout(timer); });
+    });
+  }
+
+  /* ---------- login ---------- */
+  $('loginForm').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var pw = $('pw').value;
+    if (!pw) return;
+    $('loginBtn').disabled = true; $('loginBtn').textContent = 'Đang kết nối…'; $('loginErr').textContent = '';
+    call({ action: 'screen', password: pw, since: -1 }).then(function (res) {
+      state.pw = pw; store(PW_KEY, pw);
+      $('login').hidden = true;
+      apply(res);
+      schedule();
+    }).catch(function (e) {
+      $('loginErr').textContent = e.server ? String(e.message) : 'Không kết nối được máy chủ. Thử lại.';
+    }).then(function () { $('loginBtn').disabled = false; $('loginBtn').textContent = 'Bắt đầu'; });
+  });
+
+  /* ---------- polling ---------- */
+  var pollTimer = null;
+  function schedule() { clearTimeout(pollTimer); pollTimer = setTimeout(poll, POLL_MS); }
+  function poll() {
+    call({ action: 'screen', password: state.pw, since: state.seq }).then(function (res) {
+      state.failures = 0; apply(res);
+    }).catch(function (e) {
+      if (e.server && /mật khẩu/i.test(e.message)) { store(PW_KEY, null); $('login').hidden = false; $('loginErr').textContent = e.message; return; }
+      state.failures++;
+      setConn(false);
+    }).then(function () { if ($('login').hidden) schedule(); });
+  }
+  function setConn(ok) {
+    $('liveDot').classList.toggle('off', !ok);
+    $('conn').textContent = ok ? 'Trực tiếp · cập nhật mỗi ' + (POLL_MS / 1000) + ' giây' : 'Mất kết nối, đang thử lại…';
+  }
+
+  function apply(res) {
+    setConn(true);
+    state.totals = res;
+    var fresh = res.arrivals || [];
+    if (state.first || res.from < state.seq) {
+      // First load (or the sheet was reset): fill the feed without spotlighting old arrivals.
+      state.feed = fresh.slice().reverse().slice(0, FEED_MAX);
+      state.first = false;
+      state.displayedArrived = res.arrived;
+      renderFeed(); renderStats(res.arrived);
+      if (!state.showing) showIdle();
+    } else if (fresh.length) {
+      fresh.forEach(function (a) { state.queue.push(a); });
+      pump();
+    } else {
+      renderStats(state.displayedArrived + 0);
+    }
+    state.seq = res.seq;
+    updateQueueNote();
+  }
+
+  /* ---------- spotlight queue ---------- */
+  var spotTimer = null;
+  function pump() {
+    if (state.showing || !state.queue.length) return;
+    var a = state.queue.shift();
+    state.showing = true;
+    showGuest(a);
+    state.feed.unshift(a); state.feed = state.feed.slice(0, FEED_MAX);
+    state.displayedArrived = Math.min(state.displayedArrived + 1, state.totals ? state.totals.arrived : state.displayedArrived + 1);
+    renderFeed(); renderStats(state.displayedArrived);
+    updateQueueNote();
+    clearTimeout(spotTimer);
+    spotTimer = setTimeout(function () {
+      state.showing = false;
+      if (state.queue.length) pump(); else spotTimer = setTimeout(function () { if (!state.showing) showIdle(); }, 9000);
+    }, state.queue.length > 2 ? SHOW_MS_BUSY : SHOW_MS);
+  }
+  function updateQueueNote() {
+    var n = state.queue.length;
+    $('queueNote').hidden = !n;
+    $('queueNote').textContent = n ? '+' + n + ' đại biểu đang chờ chào mừng' : '';
+  }
+
+  function showGuest(a) {
+    var el = $('spotInner');
+    el.className = '';
+    void el.offsetWidth;
+    el.className = 'enter';
+    el.innerHTML =
+      '<div class="kicker">Chào mừng</div>' +
+      '<div class="guest-name">' + esc(a.name) + '</div>' +
+      (a.title ? '<p class="guest-title">' + esc(a.title) + '</p>' : '') +
+      (a.unit ? '<span class="guest-unit ' + esc(a.group) + '"><span class="dot"></span>' + esc(unitLabel(a.unit)) + '</span>' : '') +
+      '<div class="guest-time">Check-in lúc ' + hhmm(a.at) + '</div>';
+    burst();
+  }
+  function showIdle() {
+    var el = $('spotInner');
+    el.className = 'enter idle-msg';
+    el.innerHTML =
+      '<div class="kicker">Chào mừng</div>' +
+      '<div class="guest-name">Quý đại biểu</div>' +
+      '<p class="guest-title">đến với Hội nghị Tổng kết 2026</p>' +
+      '<span class="guest-unit"><span class="dot"></span>Thứ Ba, 22/12/2026 · 13:00</span>';
+  }
+
+  /* ---------- stats ---------- */
+  var C = 2 * Math.PI * 52;
+  function renderStats(arrived) {
+    var t = state.totals;
+    if (!t) return;
+    var total = Math.max(t.registered, arrived, 1);
+    var p = arrived / total;
+    $('ringBar').style.strokeDashoffset = String(C * (1 - p));
+    countTo($('arrived'), arrived);
+    $('ofTotal').textContent = '/ ' + t.registered + ' đại biểu';
+    $('pct').textContent = Math.round(p * 100) + '%';
+    var remain = Math.max(t.registered - arrived, 0);
+    $('remain').textContent = remain ? 'Còn ' + remain + ' đại biểu chưa check-in' : 'Tất cả đại biểu đã có mặt!';
+    // Group bars follow the server totals (they may run a few seconds ahead of the spotlight queue).
+    $('gCompany').textContent = t.arrivedCompany + ' / ' + t.registeredCompany;
+    $('gBranch').textContent = t.arrivedBranch + ' / ' + t.registeredBranch;
+    $('fCompany').style.transform = 'scaleX(' + (t.registeredCompany ? Math.min(t.arrivedCompany / t.registeredCompany, 1) : 0) + ')';
+    $('fBranch').style.transform = 'scaleX(' + (t.registeredBranch ? Math.min(t.arrivedBranch / t.registeredBranch, 1) : 0) + ')';
+  }
+  function countTo(el, target) {
+    var from = Number(el.getAttribute('data-v') || 0);
+    el.setAttribute('data-v', target);
+    if (reduceMotion || from === target) { el.textContent = target; return; }
+    var start = performance.now(), dur = 900;
+    (function step(now) {
+      var k = Math.min((now - start) / dur, 1), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = Math.round(from + (target - from) * e);
+      if (k < 1) requestAnimationFrame(step);
+    })(start);
+  }
+
+  function renderFeed() {
+    if (!state.feed.length) { $('feed').innerHTML = '<li class="empty" style="background:none;border:0">Chưa có đại biểu check-in.</li>'; return; }
+    $('feed').innerHTML = state.feed.map(function (a, i) {
+      return '<li' + (i ? ' style="animation:none"' : '') + '><span class="av ' + esc(a.group) + '" aria-hidden="true">' + esc(initials(a.name)) + '</span>' +
+        '<span class="who"><div class="n">' + esc(a.name) + '</div><div class="t">' + esc([a.title, unitLabel(a.unit)].filter(Boolean).join(' · ')) + '</div></span>' +
+        '<time>' + hhmm(a.at) + '</time></li>';
+    }).join('');
+  }
+
+  /* ---------- particles ---------- */
+  var cv = $('fx'), ctx = cv.getContext('2d'), parts = [], running = false;
+  function resize() { var dpr = Math.min(devicePixelRatio || 1, 2); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cv._dpr = dpr; }
+  resize(); addEventListener('resize', resize);
+  function burst() {
+    if (reduceMotion) return;
+    var dpr = cv._dpr, spot = document.querySelector('.spot').getBoundingClientRect();
+    var cx = (spot.left + spot.width * 0.3) * dpr, cy = (spot.top + spot.height * 0.45) * dpr;
+    var colors = ['#f59e0b', '#ec4899', '#8b5cf6', '#22d3ee', '#34d399', '#fde68a'];
+    for (var i = 0; i < 140; i++) {
+      var ang = Math.random() * Math.PI * 2, sp = (3 + Math.random() * 9) * dpr;
+      parts.push({ x: cx, y: cy, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 3 * dpr, life: 0, max: 70 + Math.random() * 50, r: (1.5 + Math.random() * 3.5) * dpr, c: colors[i % colors.length] });
+    }
+    if (!running) { running = true; requestAnimationFrame(loop); }
+  }
+  function loop() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.globalCompositeOperation = 'lighter';
+    parts = parts.filter(function (p) {
+      p.life++; p.vx *= 0.97; p.vy = p.vy * 0.97 + 0.12 * cv._dpr; p.x += p.vx; p.y += p.vy;
+      var a = 1 - p.life / p.max;
+      if (a <= 0) return false;
+      ctx.globalAlpha = a; ctx.fillStyle = p.c;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      return true;
+    });
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    if (parts.length) requestAnimationFrame(loop); else { running = false; ctx.clearRect(0, 0, cv.width, cv.height); }
+  }
+
+  /* ---------- fullscreen + cursor ---------- */
+  function toggleFs() {
+    if (!document.fullscreenElement) { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {}); }
+    else if (document.exitFullscreen) document.exitFullscreen();
+  }
+  $('fsBtn').addEventListener('click', toggleFs);
+  document.addEventListener('keydown', function (e) {
+    if (!$('login').hidden) return;
+    if (e.key === 'f' || e.key === 'F') toggleFs();
+  });
+  var idleT = null;
+  function wake() { document.body.classList.remove('idle-cursor'); clearTimeout(idleT); idleT = setTimeout(function () { document.body.classList.add('idle-cursor'); }, 3000); }
+  addEventListener('mousemove', wake); wake();
+  if (navigator.wakeLock && navigator.wakeLock.request) {
+    var lockScreen = function () { navigator.wakeLock.request('screen').catch(function () {}); };
+    lockScreen();
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') lockScreen(); });
+  }
+
+  /* ---------- demo (?demo=1) ---------- */
+  var demo = null;
+  function demoApi(b) {
+    if (!demo) {
+      demo = { list: [], reg: 132, regC: 73, regB: 59 };
+      for (var i = 0; i < 38; i++) demo.list.push(fakeArrival(Date.now() - (40 - i) * 60000));
+      setInterval(function () { if (demo.list.length < demo.reg) demo.list.push(fakeArrival(Date.now())); if (Math.random() < 0.3) demo.list.push(fakeArrival(Date.now())); }, 4000);
+    }
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        var n = demo.list.length, s = Number(b.since);
+        if (!(s >= 0) || s > n) s = Math.max(0, n - 12);
+        var c = function (g) { return demo.list.filter(function (x) { return x.group === g; }).length; };
+        resolve({ seq: n, registered: demo.reg, registeredCompany: demo.regC, registeredBranch: demo.regB, arrived: n, arrivedCompany: c('company'), arrivedBranch: c('branch'), arrivals: demo.list.slice(s), from: s, at: Date.now() });
+      }, 300);
+    });
+  }
+  var FH = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Huỳnh'], FM = ['Văn', 'Thị', 'Minh', 'Thanh', 'Ngọc', 'Hữu', 'Quốc', 'Thu'], FN = ['An', 'Bình', 'Châu', 'Dũng', 'Hà', 'Hải', 'Hương', 'Khoa', 'Lan', 'Long', 'Mai', 'Nam', 'Phúc', 'Quân', 'Tâm', 'Trang', 'Tuấn', 'Vy'];
+  var FT = ['Trưởng phòng', 'Phó phòng', 'Giám đốc Chi nhánh', 'Phó Giám đốc', 'Chuyên viên', 'Trưởng bộ phận'];
+  var FU = ['P. Tiếp Thị - Truyền Thông', 'Khối Du Lịch Nội Địa', 'P. Kế Toán', 'STD - Saigontourist Travel Đà Nẵng', 'STH - Saigontourist Travel Hà Nội', 'STN - Saigontourist Travel Nha Trang', 'P. Vé Máy Bay'];
+  function r(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function fakeArrival(at) { var u = r(FU); return { at: at, name: r(FH) + ' ' + r(FM) + ' ' + r(FN), title: r(FT), unit: u, group: /^ST/.test(u) ? 'branch' : 'company' }; }
+
+  /* ---------- start ---------- */
+  showIdle();
+  var saved = DEMO ? 'demo' : store(PW_KEY);
+  if (saved) {
+    state.pw = saved;
+    call({ action: 'screen', password: saved, since: -1 }).then(function (res) { apply(res); schedule(); })
+      .catch(function () { store(PW_KEY, null); $('login').hidden = false; });
+  } else {
+    $('login').hidden = false;
+    $('pw').focus();
+    call({ action: 'ping' }).catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
