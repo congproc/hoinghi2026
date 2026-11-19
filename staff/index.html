@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Theo dõi đăng ký</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f4f2;
+  --surface: #fcfcfb;
+  --surface-2: #efeeea;
+  --border: #e2e1dc;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --text-3: #7a7974;
+  --accent: #2a78d6;
+  --accent-soft: #e3eefb;
+  --track: #ecebe7;
+  --warn-bg: #fff6e0;
+  --warn-border: #f0d48a;
+  --warn-text: #6b4b00;
+  --bad: #c03a39;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211;
+    --surface: #1a1a19;
+    --surface-2: #232321;
+    --border: #2e2e2b;
+    --text: #f0efec;
+    --text-2: #c3c2b7;
+    --text-3: #8f8e86;
+    --accent: #3987e5;
+    --accent-soft: #1d2b3d;
+    --track: #262624;
+    --warn-bg: #2d2412;
+    --warn-border: #5c4718;
+    --warn-text: #f1d38c;
+    --bad: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211; --surface: #1a1a19; --surface-2: #232321; --border: #2e2e2b;
+  --text: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e86; --accent: #3987e5;
+  --accent-soft: #1d2b3d; --track: #262624; --warn-bg: #2d2412; --warn-border: #5c4718;
+  --warn-text: #f1d38c; --bad: #e66767;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+.num { font-variant-numeric: tabular-nums; }
+[hidden] { display: none !important; }
+
+/* Login */
+.login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.login-card { width: 100%; max-width: 360px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 24px; }
+.login-card h1 { font-size: 18px; margin: 0 0 4px; }
+.login-card p { margin: 0 0 20px; color: var(--text-2); }
+.login-card label { display: block; font-weight: 600; margin-bottom: 6px; }
+.login-card input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+.login-card .btn { width: 100%; margin-top: 14px; justify-content: center; padding: 10px; }
+.error { color: var(--bad); margin-top: 10px; min-height: 1.4em; }
+
+/* Layout */
+.wrap { max-width: 1440px; margin: 0 auto; padding: 20px 24px 48px; }
+header.top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+header.top h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+header.top .sub { color: var(--text-2); font-size: 13px; }
+header.top .spacer { flex: 1; }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { filter: brightness(1.05); }
+.btn:disabled { opacity: .6; cursor: default; }
+.tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; min-width: 0; }
+.card h2 { font-size: 15px; margin: 0 0 2px; }
+.card .hint { color: var(--text-3); font-size: 12.5px; margin: 0 0 12px; }
+
+.warnings { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; }
+.warnings summary { cursor: pointer; font-weight: 600; }
+.warnings ul { margin: 8px 0 2px; padding-left: 20px; }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi .label { color: var(--text-2); font-size: 13px; }
+.kpi .value { font-size: 32px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.15; margin: 4px 0 2px; }
+.kpi .value small { font-size: 16px; color: var(--text-3); font-weight: 500; }
+.kpi .note { color: var(--text-3); font-size: 12.5px; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; align-items: start; }
+.stack { display: grid; gap: 16px; }
+.unit-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.unit-cols h3 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-2); margin: 0 0 8px; display: flex; justify-content: space-between; }
+
+/* Bar list (single series) */
+.bars { list-style: none; margin: 0; padding: 0; }
+.bar-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 28px; align-items: center; gap: 8px; width: 100%; padding: 4px 6px; margin: 0 -6px; border: 0; background: none; border-radius: 6px; cursor: pointer; text-align: left; }
+.bar-row:hover, .bar-row:focus-visible { background: var(--surface-2); outline: none; }
+.bar-row.active { background: var(--accent-soft); }
+.bar-row .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+.bar-row.zero .name, .bar-row.zero .count { color: var(--text-3); }
+.track { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; }
+.fill { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 0; }
+.bar-row .count { text-align: right; font-weight: 600; font-size: 13px; }
+
+/* Diet + Gala */
+.stat-line { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 12px; }
+.stat-line div { min-width: 70px; }
+.stat-line b { display: block; font-size: 22px; letter-spacing: -0.01em; }
+.stat-line span { color: var(--text-2); font-size: 12.5px; }
+.mini { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mini th { text-align: left; font-weight: 600; color: var(--text-2); font-size: 12px; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border); }
+.mini td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.mini tr:last-child td { border-bottom: 0; }
+.scroll { max-height: 260px; overflow: auto; }
+.muted { color: var(--text-3); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.chip { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+.chip b { margin-left: 4px; }
+.flag { color: var(--warn-text); background: var(--warn-bg); border-radius: 4px; padding: 0 4px; }
+
+/* People table */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.toolbar input[type=search] { flex: 1 1 240px; min-width: 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+.toolbar select { padding: 7px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); max-width: 220px; }
+.toolbar .count { color: var(--text-2); margin-left: auto; }
+.table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; max-height: 70vh; }
+table.people { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.people th { position: sticky; top: 0; background: var(--surface-2); text-align: left; font-weight: 600; padding: 8px 10px; white-space: nowrap; border-bottom: 1px solid var(--border); z-index: 1; }
+table.people th button { all: unset; cursor: pointer; }
+table.people th button:focus-visible { outline: 2px solid var(--accent); border-radius: 2px; }
+table.people td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.people tbody tr:hover { background: var(--surface-2); }
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: .04em; }
+.empty { padding: 28px; text-align: center; color: var(--text-3); }
+
+@media (max-width: 1100px) {
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .wrap { padding: 16px 16px 40px; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .unit-cols { grid-template-columns: 1fr; }
+  .kpi .value { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<section class="login" id="login">
+  <form class="login-card" id="loginForm" autocomplete="off">
+    <h1>Theo dõi đăng ký</h1>
+    <p>Hội nghị Tổng kết 2026 · Dành cho Ban Tổ chức</p>
+    <label for="pw">Mật khẩu</label>
+    <input id="pw" type="password" required autofocus>
+    <button class="btn primary" type="submit" id="loginBtn">Đăng nhập</button>
+    <div class="error" id="loginError" role="alert"></div>
+  </form>
+</section>
+
+<main class="wrap" id="app" hidden>
+  <header class="top">
+    <div>
+      <h1>Theo dõi đăng ký — Hội nghị Tổng kết 2026</h1>
+      <div class="sub"><span id="updated">Đang tải…</span> <span class="tag" id="sampleTag" hidden>Dữ liệu mẫu</span></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="refreshBtn" type="button">↻ Làm mới</button>
+    <button class="btn" id="logoutBtn" type="button">Đăng xuất</button>
+  </header>
+
+  <details class="warnings" id="warnings" hidden>
+    <summary id="warnSummary"></summary>
+    <ul id="warnList"></ul>
+  </details>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>Đăng ký theo đơn vị</h2>
+      <p class="hint">Bấm vào một đơn vị để lọc danh sách bên dưới.</p>
+      <div class="unit-cols">
+        <div><h3><span>Khối / Phòng Công ty</span><span id="companyTotal" class="num"></span></h3><ul class="bars" id="companyBars"></ul></div>
+        <div><h3><span>Chi nhánh</span><span id="branchTotal" class="num"></span></h3><ul class="bars" id="branchBars"></ul>
+          <div id="otherWrap" hidden><h3 style="margin-top:14px"><span>Đơn vị khác</span><span id="otherTotal" class="num"></span></h3><ul class="bars" id="otherBars"></ul></div>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h2>Chế độ ăn</h2>
+        <p class="hint">Danh sách gửi bộ phận ẩm thực.</p>
+        <div class="stat-line" id="dietStats"></div>
+        <div class="scroll"><table class="mini"><thead><tr><th>Họ và tên</th><th>Đơn vị</th><th>Chế độ ăn</th></tr></thead><tbody id="dietList"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h2>Tiết mục văn nghệ Gala</h2>
+        <p class="hint">Đăng ký biểu diễn tại Gala Dinner.</p>
+        <div class="stat-line" id="galaStats"></div>
+        <div class="chips" id="galaTypes"></div>
+        <div class="scroll"><table class="mini"><thead><tr><th>Tiết mục</th><th>Thể loại</th><th class="num">Số người</th><th>Người đăng ký</th></tr></thead><tbody id="galaList"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="peopleCard">
+    <h2>Danh sách đăng ký</h2>
+    <p class="hint">Mỗi người một dòng (đã gộp các lần gửi trùng, giữ lần gửi mới nhất). Mã check-in dùng tại bàn lễ tân.</p>
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Tìm tên, chức danh, SĐT, mã…" aria-label="Tìm kiếm">
+      <select id="fGroup" aria-label="Nhóm"><option value="">Tất cả nhóm</option><option value="company">Công ty</option><option value="branch">Chi nhánh</option><option value="other">Đơn vị khác</option></select>
+      <select id="fUnit" aria-label="Đơn vị"><option value="">Tất cả đơn vị</option></select>
+      <select id="fDiet" aria-label="Chế độ ăn"><option value="">Mọi chế độ ăn</option><option value="vegetarian">Ăn chay</option><option value="normal">Bình thường</option><option value="other">Khác</option><option value="blank">Không trả lời</option><option value="unknown">Chưa có thông tin</option></select>
+      <select id="fGala" aria-label="Gala"><option value="">Gala: tất cả</option><option value="yes">Có tiết mục</option><option value="no">Không</option><option value="unknown">Chưa có thông tin</option></select>
+      <button class="btn" id="clearBtn" type="button">Xoá lọc</button>
+      <span class="count num" id="rowCount"></span>
+    </div>
+    <div class="table-wrap">
+      <table class="people">
+        <thead><tr id="peopleHead"></tr></thead>
+        <tbody id="peopleBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  // Data source: Apps Script page (google.script.run), external page (fetch to API_URL), or ?demo=1 sample data.
+  var API_URL = 'https://script.google.com/macros/s/AKfycbwi_22ZS7ztl0mTWlh-YoMJduxDmmlqsA6WaztHylVHC8VdLdLyAFl8i9jntCa32UXg/exec';
+  var GAS = typeof google !== 'undefined' && google.script && google.script.run;
+  var DEMO = !GAS && /[?&]demo=1\b/.test(location.search);
+  var LIVE = !DEMO;
+  var PW_KEY = 'hn2026_staff_pw';
+  var REFRESH_MS = 60000;
+
+  var DIET_LABEL = { vegetarian: 'Ăn chay', normal: 'Bình thường', other: 'Khác', blank: 'Không trả lời', unknown: 'Chưa có thông tin' };
+  var GALA_LABEL = { yes: 'Có', no: 'Không', unknown: 'Chưa có thông tin' };
+  var COLUMNS = [
+    { key: 'idx', label: '#', sortable: false },
+    { key: 'id', label: 'Mã check-in' },
+    { key: 'name', label: 'Họ và tên' },
+    { key: 'title', label: 'Chức danh' },
+    { key: 'unit', label: 'Đơn vị' },
+    { key: 'dept', label: 'Phòng' },
+    { key: 'phone', label: 'SĐT' },
+    { key: 'diet', label: 'Chế độ ăn' },
+    { key: 'gala', label: 'Gala' },
+    { key: 'submittedAt', label: 'Đăng ký lúc' }
+  ];
+
+  var state = { data: null, unit: '', sort: 'submittedAt', dir: -1, timer: null, loading: false };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function storage(op, val) {
+    try {
+      if (op === 'get') return sessionStorage.getItem(PW_KEY);
+      if (op === 'set') sessionStorage.setItem(PW_KEY, val);
+      if (op === 'del') sessionStorage.removeItem(PW_KEY);
+    } catch (e) { /* storage blocked */ }
+    return null;
+  }
+  var memPw = null;
+  function getPw() { return memPw || storage('get'); }
+
+  function call(fn, arg) {
+    return new Promise(function (resolve, reject) {
+      if (DEMO) { setTimeout(function () { resolve(fn === 'verifyPassword' ? true : sampleData()); }, 250); return; }
+      if (GAS) { google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fn](arg); return; }
+      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 30000);
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: fn, password: arg }), signal: ctrl ? ctrl.signal : undefined })
+        .then(function (r) {
+          if (!r.ok) throw new Error('Máy chủ trả lỗi ' + r.status + '. Thử lại sau ít phút.');
+          return r.json();
+        })
+        .then(function (j) { if (j.ok) resolve(j.data); else reject(new Error(j.error)); })
+        .catch(function (e) {
+          reject(e && /mật khẩu|Máy chủ|Thiếu cột|Chưa/.test(e.message) ? e
+            : new Error('Không kết nối được máy chủ. Kiểm tra mạng và thử lại.'));
+        })
+        .then(function () { clearTimeout(timer); });
+    });
+  }
+  function errText(e) { return (e && e.message) ? e.message.replace(/^Exception:\s*/, '') : String(e); }
+
+  /* ---------- formatting ---------- */
+  function shortUnit(u) {
+    var m = /^(ST\w+) - Saigontourist Travel (.+)$/.exec(u || '');
+    return m ? m[1] + ' · ' + m[2] : u;
+  }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function fmtTime(ms) {
+    if (!ms) return '';
+    var d = new Date(ms);
+    return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  function fmtPhone(p) {
+    return p && p.length === 10 ? p.slice(0, 4) + ' ' + p.slice(4, 7) + ' ' + p.slice(7) : (p || '');
+  }
+  function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+
+  /* ---------- login ---------- */
+  $('loginForm').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var pw = $('pw').value;
+    $('loginBtn').disabled = true;
+    $('loginError').textContent = '';
+    call('verifyPassword', pw).then(function () {
+      memPw = pw; storage('set', pw);
+      showApp();
+    }).catch(function (e) {
+      $('loginError').textContent = errText(e);
+    }).then(function () { $('loginBtn').disabled = false; });
+  });
+
+  function showApp() {
+    $('login').hidden = true;
+    $('app').hidden = false;
+    load();
+    clearInterval(state.timer);
+    state.timer = setInterval(function () { if (document.visibilityState === 'visible') load(); }, REFRESH_MS);
+  }
+  function logout(msg) {
+    memPw = null; storage('del');
+    clearInterval(state.timer);
+    state.data = null;
+    $('app').hidden = true;
+    $('login').hidden = false;
+    $('pw').value = '';
+    $('loginError').textContent = msg || '';
+    $('pw').focus();
+  }
+  $('logoutBtn').addEventListener('click', function () { logout(); });
+  $('refreshBtn').addEventListener('click', function () { load(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && state.data && Date.now() - state.data.generatedAt > REFRESH_MS) load();
+  });
+
+  function load() {
+    if (state.loading) return;
+    state.loading = true;
+    $('refreshBtn').disabled = true;
+    $('updated').textContent = state.data ? 'Đang cập nhật…' : 'Đang tải…';
+    call('getDashboardData', getPw()).then(function (data) {
+      state.data = data;
+      render();
+    }).catch(function (e) {
+      var msg = errText(e);
+      if (/mật khẩu/i.test(msg)) { logout(msg); return; }
+      $('updated').textContent = 'Lỗi tải dữ liệu: ' + msg;
+    }).then(function () { state.loading = false; $('refreshBtn').disabled = false; });
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    var d = state.data;
+    var people = d.people;
+    $('sampleTag').hidden = !DEMO;
+    $('updated').textContent = 'Cập nhật lúc ' + new Date(d.generatedAt).toLocaleTimeString('vi-VN') + ' · tự làm mới mỗi phút';
+
+    renderWarnings(d);
+    renderKpis(d);
+    renderUnits(d);
+    renderDiet(people);
+    renderGala(people);
+    renderUnitFilter(d);
+    renderTable();
+  }
+
+  function renderWarnings(d) {
+    var w = d.warnings, items = [];
+    if (w.duplicatesRemoved) items.push(w.duplicatesRemoved + ' lần gửi trùng (cùng tên + SĐT) đã được gộp, giữ lần gửi mới nhất.');
+    w.sharedPhones.forEach(function (s) {
+      items.push('SĐT ' + esc(fmtPhone(s.phone)) + ' được dùng cho ' + s.names.length + ' người khác nhau: ' + s.names.map(esc).join(', ') + '. Cần kiểm tra trước khi check-in.');
+    });
+    if (w.missingProfile) items.push(w.missingProfile + ' người đăng ký trước khi biểu mẫu có Phần 4, nên chưa có thông tin chế độ ăn và Gala.');
+    if (w.unknownUnits.length) items.push('Đơn vị không có trong danh sách: ' + w.unknownUnits.map(esc).join('; ') + '.');
+    $('warnings').hidden = !items.length;
+    $('warnSummary').textContent = 'Cần kiểm tra (' + items.length + ')';
+    $('warnList').innerHTML = items.map(function (t) { return '<li>' + t + '</li>'; }).join('');
+  }
+
+  function kpi(label, value, note) {
+    return '<div class="card kpi"><div class="label">' + label + '</div><div class="value num">' + value + '</div><div class="note">' + note + '</div></div>';
+  }
+
+  function renderKpis(d) {
+    var p = d.people, now = new Date();
+    var today = p.filter(function (x) { return x.submittedAt && sameDay(new Date(x.submittedAt), now); }).length;
+    var company = p.filter(function (x) { return x.group === 'company'; }).length;
+    var branch = p.filter(function (x) { return x.group === 'branch'; }).length;
+    var veg = p.filter(function (x) { return x.diet === 'vegetarian'; }).length;
+    var dietOther = p.filter(function (x) { return x.diet === 'other'; }).length;
+    var unknown = p.filter(function (x) { return x.diet === 'unknown'; }).length;
+    var gala = p.filter(function (x) { return x.gala === 'yes'; });
+    var performers = gala.reduce(function (s, x) { return s + (x.galaPerformers || 0); }, 0);
+    var counts = unitCounts(p);
+    var allUnits = d.companyUnits.concat(d.branchUnits);
+    var empty = allUnits.filter(function (u) { return !counts[u]; }).length;
+
+    $('kpis').innerHTML =
+      kpi('Đã đăng ký', p.length, '+' + today + ' hôm nay · ' + d.submissions + ' lượt gửi') +
+      kpi('Công ty / Chi nhánh', company + ' <small>/ ' + branch + '</small>', 'người') +
+      kpi('Ăn chay', veg, (dietOther ? dietOther + ' chế độ khác · ' : '') + unknown + ' chưa có thông tin') +
+      kpi('Tiết mục Gala', gala.length, performers + ' người biểu diễn') +
+      kpi('Đơn vị chưa đăng ký', empty + ' <small>/ ' + allUnits.length + '</small>', 'chưa có ai đăng ký');
+  }
+
+  function unitCounts(people) {
+    var c = {};
+    people.forEach(function (x) { c[x.unit] = (c[x.unit] || 0) + 1; });
+    return c;
+  }
+
+  function renderUnits(d) {
+    var counts = unitCounts(d.people);
+    var others = Object.keys(counts).filter(function (u) { return d.companyUnits.indexOf(u) < 0 && d.branchUnits.indexOf(u) < 0; });
+    var max = Math.max.apply(null, [1].concat(Object.keys(counts).map(function (k) { return counts[k]; })));
+    function list(units, el, totalEl) {
+      var rows = units.map(function (u) { return { u: u, n: counts[u] || 0 }; })
+        .sort(function (a, b) { return b.n - a.n || a.u.localeCompare(b.u, 'vi'); });
+      var total = rows.reduce(function (s, r) { return s + r.n; }, 0);
+      $(totalEl).textContent = total + ' người';
+      $(el).innerHTML = rows.map(function (r) {
+        var label = shortUnit(r.u);
+        return '<li><button type="button" class="bar-row' + (r.n ? '' : ' zero') + (state.unit === r.u ? ' active' : '') + '" data-unit="' + esc(r.u) + '" title="' + esc(r.u) + ': ' + r.n + ' người">' +
+          '<span class="name">' + esc(label) + '</span>' +
+          '<span class="track"><span class="fill" style="width:' + (r.n / max * 100).toFixed(1) + '%"></span></span>' +
+          '<span class="count num">' + r.n + '</span></button></li>';
+      }).join('');
+    }
+    list(d.companyUnits, 'companyBars', 'companyTotal');
+    list(d.branchUnits, 'branchBars', 'branchTotal');
+    $('otherWrap').hidden = !others.length;
+    if (others.length) list(others, 'otherBars', 'otherTotal');
+  }
+
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('.bar-row');
+    if (!b) return;
+    var u = b.getAttribute('data-unit');
+    state.unit = state.unit === u ? '' : u;
+    $('fUnit').value = state.unit;
+    renderUnits(state.data);
+    renderTable();
+    if (state.unit) $('peopleCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  function renderDiet(people) {
+    var c = { vegetarian: 0, normal: 0, other: 0, blank: 0, unknown: 0 };
+    people.forEach(function (p) { c[p.diet]++; });
+    $('dietStats').innerHTML = ['vegetarian', 'normal', 'other', 'blank', 'unknown'].map(function (k) {
+      return '<div><b class="num">' + c[k] + '</b><span>' + DIET_LABEL[k] + '</span></div>';
+    }).join('');
+    var rows = people.filter(function (p) { return p.diet === 'vegetarian' || p.diet === 'other'; })
+      .sort(function (a, b) { return (a.diet === b.diet ? 0 : a.diet === 'vegetarian' ? -1 : 1) || a.name.localeCompare(b.name, 'vi'); });
+    $('dietList').innerHTML = rows.length ? rows.map(function (p) {
+      var label = p.diet === 'vegetarian' ? 'Ăn chay' : esc(p.dietOther);
+      if (p.diet === 'other' && /chay/i.test(p.dietOther)) label = '<span class="flag" title="Ghi &quot;chay&quot; trong mục Khác">' + label + '</span>';
+      return '<tr><td>' + esc(p.name) + '</td><td>' + esc(shortUnit(p.unit)) + '</td><td>' + label + '</td></tr>';
+    }).join('') : '<tr><td colspan="3" class="muted">Chưa có ai đăng ký ăn chay hoặc chế độ khác.</td></tr>';
+  }
+
+  function renderGala(people) {
+    var g = people.filter(function (p) { return p.gala === 'yes'; });
+    var performers = g.reduce(function (s, p) { return s + (p.galaPerformers || 0); }, 0);
+    var no = people.filter(function (p) { return p.gala === 'no'; }).length;
+    var unknown = people.filter(function (p) { return p.gala === 'unknown'; }).length;
+    $('galaStats').innerHTML =
+      '<div><b class="num">' + g.length + '</b><span>Tiết mục</span></div>' +
+      '<div><b class="num">' + performers + '</b><span>Người biểu diễn</span></div>' +
+      '<div><b class="num">' + no + '</b><span>Không tham gia</span></div>' +
+      '<div><b class="num">' + unknown + '</b><span>Chưa có thông tin</span></div>';
+    var types = {};
+    g.forEach(function (p) { var t = p.galaType || '(Chưa ghi)'; types[t] = (types[t] || 0) + 1; });
+    $('galaTypes').innerHTML = Object.keys(types).sort(function (a, b) { return types[b] - types[a]; })
+      .map(function (t) { return '<span class="chip">' + esc(t) + '<b class="num">' + types[t] + '</b></span>'; }).join('');
+    $('galaList').innerHTML = g.length ? g.slice().sort(function (a, b) { return a.submittedAt - b.submittedAt; }).map(function (p) {
+      return '<tr><td>' + esc(p.galaTitle || '—') + '</td><td>' + esc(p.galaType) + '</td><td class="num">' + (p.galaPerformers == null ? '—' : p.galaPerformers) +
+        '</td><td>' + esc(p.name) + '<div class="muted">' + esc(shortUnit(p.unit)) + '</div></td></tr>';
+    }).join('') : '<tr><td colspan="4" class="muted">Chưa có tiết mục nào.</td></tr>';
+  }
+
+  function renderUnitFilter(d) {
+    var counts = unitCounts(d.people);
+    var opt = function (u) { return '<option value="' + esc(u) + '">' + esc(shortUnit(u)) + ' (' + (counts[u] || 0) + ')</option>'; };
+    var others = Object.keys(counts).filter(function (u) { return d.companyUnits.indexOf(u) < 0 && d.branchUnits.indexOf(u) < 0; });
+    $('fUnit').innerHTML = '<option value="">Tất cả đơn vị</option>' +
+      '<optgroup label="Công ty">' + d.companyUnits.map(opt).join('') + '</optgroup>' +
+      '<optgroup label="Chi nhánh">' + d.branchUnits.map(opt).join('') + '</optgroup>' +
+      (others.length ? '<optgroup label="Khác">' + others.map(opt).join('') + '</optgroup>' : '');
+    $('fUnit').value = state.unit;
+  }
+
+  function filtered() {
+    var q = $('q').value.trim().toLowerCase();
+    var qDigits = q.replace(/\D/g, '');
+    var g = $('fGroup').value, diet = $('fDiet').value, gala = $('fGala').value;
+    return state.data.people.filter(function (p) {
+      if (g && p.group !== g) return false;
+      if (state.unit && p.unit !== state.unit) return false;
+      if (diet && p.diet !== diet) return false;
+      if (gala && p.gala !== gala) return false;
+      if (!q) return true;
+      var hay = (p.name + ' ' + p.title + ' ' + p.unit + ' ' + p.dept + ' ' + p.id).toLowerCase();
+      return hay.indexOf(q) >= 0 || (qDigits.length >= 3 && p.phone.indexOf(qDigits) >= 0);
+    });
+  }
+
+  function renderHead() {
+    $('peopleHead').innerHTML = COLUMNS.map(function (c) {
+      if (c.sortable === false) return '<th>' + c.label + '</th>';
+      var arrow = state.sort === c.key ? (state.dir > 0 ? ' ▲' : ' ▼') : '';
+      var aria = state.sort === c.key ? (state.dir > 0 ? 'ascending' : 'descending') : 'none';
+      return '<th aria-sort="' + aria + '"><button type="button" data-sort="' + c.key + '">' + c.label + arrow + '</button></th>';
+    }).join('');
+  }
+  $('peopleHead').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-sort]');
+    if (!b) return;
+    var k = b.getAttribute('data-sort');
+    if (state.sort === k) state.dir = -state.dir; else { state.sort = k; state.dir = k === 'submittedAt' ? -1 : 1; }
+    renderTable();
+  });
+
+  function renderTable() {
+    renderHead();
+    var rows = filtered();
+    var k = state.sort, dir = state.dir;
+    rows.sort(function (a, b) {
+      var x = a[k], y = b[k];
+      if (typeof x === 'number' || typeof y === 'number') return ((x || 0) - (y || 0)) * dir;
+      return String(x || '').localeCompare(String(y || ''), 'vi') * dir;
+    });
+    $('rowCount').textContent = rows.length + ' / ' + state.data.people.length + ' người';
+    $('peopleBody').innerHTML = rows.length ? rows.map(function (p, i) {
+      var gala = p.gala === 'yes' ? 'Có' + (p.galaTitle ? ': ' + esc(p.galaTitle) : '') : '<span class="muted">' + GALA_LABEL[p.gala] + '</span>';
+      var diet = p.diet === 'other' ? esc(p.dietOther) : (p.diet === 'blank' || p.diet === 'unknown' ? '<span class="muted">' + DIET_LABEL[p.diet] + '</span>' : DIET_LABEL[p.diet]);
+      return '<tr>' +
+        '<td class="num muted">' + (i + 1) + '</td>' +
+        '<td class="code">' + esc(p.id) + '</td>' +
+        '<td>' + esc(p.name) + (p.submissions > 1 ? ' <span class="muted" title="Số lần gửi">×' + p.submissions + '</span>' : '') + '</td>' +
+        '<td>' + esc(p.title) + '</td>' +
+        '<td title="' + esc(p.unit) + '">' + esc(shortUnit(p.unit)) + '</td>' +
+        '<td>' + esc(p.dept) + '</td>' +
+        '<td class="num" style="white-space:nowrap">' + esc(fmtPhone(p.phone)) + '</td>' +
+        '<td>' + diet + '</td>' +
+        '<td>' + gala + '</td>' +
+        '<td class="num muted" style="white-space:nowrap">' + fmtTime(p.submittedAt) + '</td>' +
+        '</tr>';
+    }).join('') : '<tr><td colspan="' + COLUMNS.length + '" class="empty">Không có người nào khớp bộ lọc.</td></tr>';
+  }
+
+  ['q', 'fGroup', 'fDiet', 'fGala'].forEach(function (id) {
+    $(id).addEventListener('input', function () { if (state.data) renderTable(); });
+  });
+  $('fUnit').addEventListener('change', function () { state.unit = this.value; renderUnits(state.data); renderTable(); });
+  $('clearBtn').addEventListener('click', function () {
+    $('q').value = ''; $('fGroup').value = ''; $('fDiet').value = ''; $('fGala').value = '';
+    state.unit = ''; $('fUnit').value = '';
+    renderUnits(state.data); renderTable();
+  });
+
+  /* ---------- sample data (preview outside Apps Script only) ---------- */
+  var sampleCache = null;
+  function sampleData() {
+    if (sampleCache) { sampleCache.generatedAt = Date.now(); return sampleCache; }
+    var seed = 7;
+    var rnd = function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+    var pick = function (a) { return a[Math.floor(rnd() * a.length)]; };
+    var company = ['Ban lãnh đạo', 'P. Kinh Doanh Thương Mại Điện Tử', 'P. Cung Ứng Dịch Vụ và Sản Phẩm', 'P. Du Học và Việc Làm Ngoài Nước', 'P. Chăm Sóc Khách Hàng và Quản Lý Chất Lượng', 'Khối Du Lịch Nội Địa', 'Khối Du Lịch Quốc Tế', 'Khối Du Lịch Nước Ngoài', 'P. CN Thông Tin', 'P. Hướng Dẫn Quốc Tế', 'P. Kế Hoạch - PT Kinh Doanh', 'P. Kế Toán', 'P. Nhân sự - Hành Chánh', 'P. Tiếp Thị - Truyền Thông', 'P. Vận Chuyển', 'P. Vé Máy Bay'];
+    var cities = [['STH', 'Hà Nội'], ['STP', 'Hải Phòng'], ['STQ', 'Quảng Ninh'], ['STI', 'Nghệ An'], ['STU', 'Huế'], ['STD', 'Đà Nẵng'], ['STN', 'Nha Trang'], ['STBM', 'Buôn Ma Thuột'], ['STQN', 'Quy Nhơn'], ['STO', 'Đồng Nai'], ['STB', 'Bình Dương'], ['STV', 'Vũng Tàu'], ['STL', 'Long An'], ['STVL', 'Vĩnh Long'], ['STT', 'Tiền Giang'], ['STC', 'Cần Thơ'], ['STA', 'An Giang'], ['STR', 'Rạch Giá']];
+    var branch = cities.map(function (c) { return c[0] + ' - Saigontourist Travel ' + c[1]; });
+    var ho = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Huỳnh'];
+    var dem = ['Văn', 'Thị', 'Minh', 'Thanh', 'Ngọc', 'Hữu', 'Quốc', 'Thu'];
+    var ten = ['An', 'Bình', 'Châu', 'Dũng', 'Hà', 'Hải', 'Hương', 'Khoa', 'Lan', 'Long', 'Mai', 'Nam', 'Phúc', 'Quân', 'Tâm', 'Trang', 'Tuấn', 'Vy'];
+    var titles = ['Trưởng phòng', 'Phó phòng', 'Giám đốc Chi nhánh', 'Phó Giám đốc', 'Chuyên viên', 'Trưởng bộ phận'];
+    var types = ['Hát', 'Hát', 'Múa', 'Nhạc cụ', 'Kịch/Tiểu phẩm'];
+    var people = [], now = Date.now();
+    for (var i = 0; i < 96; i++) {
+      var isBranch = rnd() < 0.42;
+      var unit = isBranch ? pick(branch.slice(0, 15)) : pick(company.slice(0, 14));
+      var early = i > 84;
+      var gala = early ? 'unknown' : (rnd() < 0.1 ? 'yes' : 'no');
+      var r = rnd();
+      var diet = early ? 'unknown' : r < 0.09 ? 'vegetarian' : r < 0.12 ? 'other' : r < 0.2 ? 'blank' : 'normal';
+      var code = '';
+      for (var j = 0; j < 6; j++) code += 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'.charAt(Math.floor(rnd() * 32));
+      people.push({
+        id: code, name: pick(ho) + ' ' + pick(dem) + ' ' + pick(ten), title: pick(titles),
+        gender: rnd() < 0.5 ? 'Nam' : 'Nữ', phone: '09' + String(10000000 + Math.floor(rnd() * 89999999)),
+        unit: unit, group: isBranch ? 'branch' : 'company', dept: '', travel: '', hasProfile: !early,
+        diet: diet, dietOther: diet === 'other' ? pick(['Không ăn hải sản', 'Chay ngày rằm', 'Dị ứng đậu phộng']) : '',
+        gala: gala, galaTitle: gala === 'yes' ? pick(['Việt Nam ơi', 'Hành trình mới', 'Sắc màu Saigontourist', 'Tình ca du lịch']) : '',
+        galaType: gala === 'yes' ? pick(types) : '', galaPerformers: gala === 'yes' ? 1 + Math.floor(rnd() * 8) : null,
+        submittedAt: now - Math.floor(rnd() * 6 * 86400000), submissions: rnd() < 0.05 ? 2 : 1
+      });
+    }
+    people.sort(function (a, b) { return b.submittedAt - a.submittedAt; });
+    sampleCache = {
+      people: people, submissions: people.length + 4, generatedAt: Date.now(),
+      companyUnits: company, branchUnits: branch,
+      warnings: { duplicatesRemoved: 4, sharedPhones: [{ phone: people[3].phone, names: [people[3].name, 'Trần Thu Hà'] }], missingProfile: 11, unknownUnits: [] }
+    };
+    return sampleCache;
+  }
+
+  /* ---------- start ---------- */
+  if (DEMO) {
+    var hint = document.createElement('p');
+    hint.className = 'muted';
+    hint.style.margin = '12px 0 0';
+    hint.textContent = 'Bản xem thử: nhập mật khẩu bất kỳ để xem dữ liệu mẫu.';
+    $('loginForm').appendChild(hint);
+  }
+  if (getPw()) {
+    call('verifyPassword', getPw()).then(showApp).catch(function () { logout(); });
+  }
+})();
+</script>
+</body>
+</html>
