@@ -217,6 +217,28 @@ table.people tbody tr:hover td { background: var(--surface-2); }
 .code-btn .icon { width: 12px; height: 12px; color: var(--text-3); }
 .new-badge { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--good-soft); color: var(--good); margin-left: 6px; animation: fade-in .4s ease-out; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.btn.danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+.btn.danger:hover { filter: brightness(1.08); background: var(--bad); }
+.selbar { position: sticky; bottom: 12px; z-index: 15; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 0; padding: 10px 14px; border-radius: 12px; background: var(--text); color: var(--bg); box-shadow: var(--shadow-lg); animation: toast-in .2s ease-out; }
+.selbar b { font-weight: 700; }
+.selbar .spacer { flex: 1; }
+.selbar .btn { min-height: 34px; }
+.selbar .btn.ghost { color: inherit; }
+.selbar .btn.ghost:hover { background: rgba(128,128,128,.25); }
+th.sel, td.sel { width: 36px; padding-right: 0 !important; }
+input.chk { width: 17px; height: 17px; margin: 0; cursor: pointer; accent-color: var(--accent); vertical-align: middle; }
+tr.picked td { background: var(--accent-soft) !important; }
+dialog { border: 1px solid var(--border); border-radius: 16px; padding: 0; background: var(--surface); color: var(--text); width: min(480px, calc(100vw - 32px)); box-shadow: var(--shadow-lg); }
+dialog::backdrop { background: rgba(8, 12, 20, .55); backdrop-filter: blur(2px); }
+dialog form { padding: 22px 22px 18px; }
+dialog h2 { margin: 0 0 6px; font-size: 18px; }
+dialog p { margin: 0 0 12px; color: var(--text-2); }
+dialog ul { margin: 0 0 14px; padding: 10px 14px 10px 30px; max-height: 190px; overflow: auto; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+dialog li + li { margin-top: 3px; }
+dialog .ack { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px; font-size: 13.5px; cursor: pointer; }
+dialog .ack input { margin-top: 3px; }
+.dlg-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.dlg-err { color: var(--bad); font-size: 13px; min-height: 18px; margin-bottom: 8px; }
 .in-badge { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; background: var(--good-soft); color: var(--good); font-weight: 600; font-size: 12px; }
 .empty { padding: 36px 16px; text-align: center; color: var(--text-3); }
 
@@ -384,10 +406,30 @@ table.people tbody tr:hover td { background: var(--surface-2); }
             <tbody id="peopleBody"></tbody>
           </table>
         </div>
+        <div class="selbar" id="selBar" hidden>
+          <span><b id="selCount">0</b> đã chọn</span>
+          <span class="spacer"></span>
+          <button class="btn ghost" type="button" id="selClear">Bỏ chọn</button>
+          <button class="btn danger" type="button" id="selDelete">Xoá đã chọn…</button>
+        </div>
       </section>
     </div>
   </main>
 </div>
+
+<dialog id="delDlg" aria-labelledby="delTitle">
+  <form id="delForm" onsubmit="return false">
+    <h2 id="delTitle">Xoá đăng ký?</h2>
+    <p id="delLead"></p>
+    <ul id="delList"></ul>
+    <label class="ack"><input type="checkbox" id="delAck" class="chk"><span>Tôi hiểu rằng thao tác này xoá vĩnh viễn khỏi Google Sheet và không thể hoàn tác.</span></label>
+    <div class="dlg-err" id="delErr" role="alert"></div>
+    <div class="dlg-actions">
+      <button type="button" class="btn" id="delCancel">Huỷ</button>
+      <button type="button" class="btn danger" id="delGo" disabled>Xoá vĩnh viễn</button>
+    </div>
+  </form>
+</dialog>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
@@ -407,6 +449,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
   var DIET_LABEL = { vegetarian: 'Ăn chay', normal: 'Bình thường', other: 'Khác', blank: 'Không trả lời', unknown: 'Chưa có thông tin' };
   var GALA_LABEL = { yes: 'Có', no: 'Không', unknown: 'Chưa có thông tin' };
   var COLUMNS = [
+    { key: 'sel', label: '', sortable: false },
     { key: 'idx', label: '#', sortable: false },
     { key: 'id', label: 'Mã check-in' },
     { key: 'name', label: 'Họ và tên' },
@@ -422,7 +465,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
 
   var state = {
     data: null, v: null, at: 0, unit: '', sort: 'submittedAt', dir: -1,
-    timer: null, inflight: null, knownIds: null, newIds: {}, lastError: null
+    timer: null, inflight: null, knownIds: null, newIds: {}, lastError: null, sel: {}, visible: []
   };
   var $ = function (id) { return document.getElementById(id); };
 
@@ -606,6 +649,9 @@ table.people tbody tr:hover td { background: var(--surface-2); }
   /* ---------- render ---------- */
   function render() {
     var d = state.data;
+    var have = {};
+    d.people.forEach(function (p) { if (p.id) have[p.id] = true; });
+    Object.keys(state.sel).forEach(function (id) { if (!have[id]) delete state.sel[id]; });
     renderWarnings(d);
     renderKpis(d);
     renderUnits(d);
@@ -781,6 +827,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
 
   function renderHead() {
     $('peopleHead').innerHTML = COLUMNS.map(function (c) {
+      if (c.key === 'sel') return '<th scope="col" class="sel"><span><input type="checkbox" class="chk" id="selAll" aria-label="Chọn tất cả người đang hiển thị"></span></th>';
       if (c.sortable === false) return '<th scope="col"><span>' + c.label + '</span></th>';
       var on = state.sort === c.key;
       var arrow = on ? (state.dir > 0 ? ' ↑' : ' ↓') : '';
@@ -807,6 +854,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
       return String(x || '').localeCompare(String(y || ''), 'vi') * dir;
     });
     $('rowCount').textContent = rows.length + ' / ' + state.data.people.length + ' người';
+    state.visible = rows;
     if (!state.data.people.length) {
       $('peopleBody').innerHTML = '<tr><td colspan="' + COLUMNS.length + '" class="empty">Chưa có ai đăng ký.</td></tr>';
       return;
@@ -816,6 +864,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
       var diet = p.diet === 'other' ? esc(p.dietOther) : (p.diet === 'blank' || p.diet === 'unknown' ? '<span class="muted">' + DIET_LABEL[p.diet] + '</span>' : DIET_LABEL[p.diet]);
       var isNew = state.newIds[p.id || p.name];
       return '<tr>' +
+        '<td class="sel">' + (p.id ? '<input type="checkbox" class="chk row-chk" data-id="' + esc(p.id) + '" aria-label="Chọn ' + esc(p.name) + '"' + (state.sel[p.id] ? ' checked' : '') + '>' : '') + '</td>' +
         '<td class="num muted">' + (i + 1) + '</td>' +
         '<td>' + (p.id ? '<button type="button" class="code-btn" data-copy="' + esc(p.id) + '" aria-label="Chép mã ' + esc(p.id) + '">' + esc(p.id) + icon('copy') + '</button>' : '<span class="muted">—</span>') + '</td>' +
         '<td>' + esc(p.name) + (p.submissions > 1 ? ' <span class="muted" title="Số lần gửi">×' + p.submissions + '</span>' : '') + (isNew ? '<span class="new-badge">Mới</span>' : '') + '</td>' +
@@ -829,6 +878,7 @@ table.people tbody tr:hover td { background: var(--surface-2); }
         '<td class="num" style="white-space:nowrap">' + (p.checkedInAt ? '<span class="in-badge">✓ ' + fmtTime(p.checkedInAt).slice(-5) + '</span>' : '<span class="muted">—</span>') + '</td>' +
         '</tr>';
     }).join('') : '<tr><td colspan="' + COLUMNS.length + '" class="empty">Không có người nào khớp bộ lọc.</td></tr>';
+    syncSel();
   }
 
   $('peopleBody').addEventListener('click', function (ev) {
@@ -859,11 +909,93 @@ table.people tbody tr:hover td { background: var(--surface-2); }
     else if (ev.key === 'Escape' && document.activeElement === $('q') && $('q').value) { $('q').value = ''; renderTable(); }
   });
 
+  /* ---------- selection + delete ---------- */
+  function selIds() { return Object.keys(state.sel); }
+  function syncSel() {
+    var n = selIds().length;
+    $('selBar').hidden = !n;
+    $('selCount').textContent = n;
+    var all = $('selAll');
+    if (all) {
+      var ids = state.visible.filter(function (p) { return p.id; });
+      var on = ids.filter(function (p) { return state.sel[p.id]; }).length;
+      all.checked = ids.length > 0 && on === ids.length;
+      all.indeterminate = on > 0 && on < ids.length;
+      all.disabled = !ids.length;
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('#peopleBody tr'), function (tr) {
+      var c = tr.querySelector('.row-chk');
+      tr.classList.toggle('picked', !!(c && c.checked));
+    });
+  }
+  $('peopleBody').addEventListener('change', function (ev) {
+    var c = ev.target;
+    if (!c.classList || !c.classList.contains('row-chk')) return;
+    var id = c.getAttribute('data-id');
+    if (c.checked) state.sel[id] = true; else delete state.sel[id];
+    syncSel();
+  });
+  $('peopleHead').addEventListener('change', function (ev) {
+    if (!ev.target || ev.target.id !== 'selAll') return;
+    var on = ev.target.checked;
+    state.visible.forEach(function (p) { if (!p.id) return; if (on) state.sel[p.id] = true; else delete state.sel[p.id]; });
+    Array.prototype.forEach.call(document.querySelectorAll('.row-chk'), function (c) { c.checked = on; });
+    syncSel();
+  });
+  $('selClear').addEventListener('click', function () {
+    state.sel = {};
+    Array.prototype.forEach.call(document.querySelectorAll('.row-chk'), function (c) { c.checked = false; });
+    syncSel();
+  });
+
+  var dlg = $('delDlg'), delBusy = false;
+  $('selDelete').addEventListener('click', function () {
+    var ids = selIds();
+    if (!ids.length || !state.data) return;
+    var byId = {};
+    state.data.people.forEach(function (p) { if (p.id) byId[p.id] = p; });
+    var people = ids.map(function (id) { return byId[id]; }).filter(Boolean);
+    $('delTitle').textContent = 'Xoá ' + people.length + ' người đăng ký?';
+    var checked = people.filter(function (p) { return p.checkedInAt; }).length;
+    $('delLead').textContent = 'Các dòng đăng ký (kể cả các lần gửi trùng)' + (checked ? ' và ' + checked + ' lượt check-in' : '') + ' của những người dưới đây sẽ bị xoá khỏi Google Sheet.';
+    var shown = people.slice(0, 8).map(function (p) { return '<li>' + esc(p.name) + ' <span class="muted">· ' + esc(shortUnit(p.unit)) + '</span></li>'; });
+    if (people.length > 8) shown.push('<li class="muted">… và ' + (people.length - 8) + ' người khác</li>');
+    $('delList').innerHTML = shown.join('');
+    $('delAck').checked = false; $('delGo').disabled = true; $('delErr').textContent = '';
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+    $('delCancel').focus();
+  });
+  $('delAck').addEventListener('change', function () { $('delGo').disabled = !this.checked || delBusy; });
+  $('delCancel').addEventListener('click', function () { if (!delBusy) dlg.close(); });
+  dlg.addEventListener('cancel', function (ev) { if (delBusy) ev.preventDefault(); });
+  $('delGo').addEventListener('click', function () {
+    if (delBusy || !$('delAck').checked) return;
+    var ids = selIds(), btn = this;
+    delBusy = true; btn.disabled = true; $('delCancel').disabled = true; btn.textContent = 'Đang xoá…'; $('delErr').textContent = '';
+    call('deleteRecords', { password: getPw(), ids: ids }).then(function (res) {
+      dlg.close();
+      state.sel = {};
+      toast('Đã xoá ' + res.people + ' người (' + res.registrationRows + ' dòng đăng ký, ' + res.checkinRows + ' lượt check-in)');
+      state.v = null;
+      return refresh(true);
+    }).catch(function (e) {
+      var msg = errText(e);
+      if (isAuthError(msg)) { dlg.close(); logout(msg); return; }
+      $('delErr').textContent = msg;
+    }).then(function () { delBusy = false; btn.textContent = 'Xoá vĩnh viễn'; $('delCancel').disabled = false; btn.disabled = !$('delAck').checked; });
+  });
+
   /* ---------- sample data (?demo=1 only) ---------- */
   var sampleCache = null, demoTick = 0;
   function demoApi(body) {
     if (body.action === 'ping') return true;
     var d = sampleData();
+    if (body.action === 'deleteRecords') {
+      var gone = {}; (body.ids || []).forEach(function (id) { gone[id] = true; });
+      var before = d.people.length;
+      d.people = d.people.filter(function (p) { return !gone[p.id]; });
+      return { people: before - d.people.length, registrationRows: before - d.people.length, checkinRows: 0 };
+    }
     var v = 'demo' + d.people.length;
     if (body.v === v) return { v: v, at: Date.now(), same: true };
     return { v: v, at: Date.now(), data: JSON.parse(JSON.stringify(d)) };
