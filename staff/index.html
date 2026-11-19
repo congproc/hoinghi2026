@@ -1018,7 +1018,7 @@ dialog .ack input { margin-top: 3px; }
   var seed = 7;
   function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
   function pick(a) { return a[Math.floor(rnd() * a.length)]; }
-  var S_COMPANY = ['Ban lãnh đạo', 'P. Kinh Doanh Thương Mại Điện Tử', 'P. Cung Ứng Dịch Vụ và Sản Phẩm', 'P. Du Học và Việc Làm Ngoài Nước', 'P. Chăm Sóc Khách Hàng và Quản Lý Chất Lượng', 'Khối Du Lịch Nội Địa', 'Khối Du Lịch Quốc Tế', 'Khối Du Lịch Nước Ngoài', 'P. CN Thông Tin', 'P. Hướng Dẫn Quốc Tế', 'P. Kế Hoạch - PT Kinh Doanh', 'P. Kế Toán', 'P. Nhân sự - Hành Chánh', 'P. Tiếp Thị - Truyền Thông', 'P. Vận Chuyển', 'P. Vé Máy Bay'];
+  var S_COMPANY = ['Ban lãnh đạo', 'P. Kinh Doanh Thương Mại Điện Tử', 'P. Cung Ứng Dịch Vụ và Sản Phẩm', 'P. Du Học và Việc Làm Ngoài Nước', 'P. Chăm Sóc Khách Hàng và Quản Lý Chất Lượng', 'Khối Du Lịch Nội Địa', 'Khối Du Lịch Quốc Tế', 'Khối Du Lịch Nước Ngoài', 'P. Công Nghệ Thông Tin', 'P. Hướng Dẫn Quốc Tế', 'P. Kế Hoạch - PT Kinh Doanh', 'P. Kế Toán', 'P. Nhân sự - Hành Chánh', 'P. Tiếp Thị - Truyền Thông', 'P. Vận Chuyển', 'P. Vé Máy Bay'];
   var S_BRANCH = [['STH', 'Hà Nội'], ['STP', 'Hải Phòng'], ['STQ', 'Quảng Ninh'], ['STI', 'Nghệ An'], ['STU', 'Huế'], ['STD', 'Đà Nẵng'], ['STN', 'Nha Trang'], ['STBM', 'Buôn Ma Thuột'], ['STQN', 'Quy Nhơn'], ['STO', 'Đồng Nai'], ['STB', 'Bình Dương'], ['STV', 'Vũng Tàu'], ['STL', 'Long An'], ['STVL', 'Vĩnh Long'], ['STT', 'Tiền Giang'], ['STC', 'Cần Thơ'], ['STA', 'An Giang'], ['STR', 'Rạch Giá']].map(function (c) { return c[0] + ' - Saigontourist Travel ' + c[1]; });
   function addSamplePerson(people, ts, early) {
     var isBranch = rnd() < 0.42;
