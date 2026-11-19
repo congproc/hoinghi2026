@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-ui8">
+<meta name="build" content="2026-11-19-ui9">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -269,7 +269,9 @@ body.idle-cursor .ctl { opacity: 0; }
 .main { grid-template-columns: minmax(0, 1fr) clamp(300px, 25vw, 640px); }
 .guest-name { white-space: nowrap; text-wrap: nowrap; overflow-wrap: normal; }
 .guest-name.wrap { white-space: normal; text-wrap: balance; overflow-wrap: anywhere; } /* last resort for extreme names */
-.portrait { height: min(54vh, 30vw); }
+.portrait { height: min(50vh, 28vw); }
+.main { grid-template-columns: minmax(0, 1fr) clamp(280px, 22.5vw, 600px); }
+.guest-name { font-weight: 800; letter-spacing: -0.03em; }
 </style>
 </head>
 <body>
