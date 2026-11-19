@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-ui3">
+<meta name="build" content="2026-11-19-ui4">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -231,6 +231,26 @@ body.idle-cursor .ctl { opacity: 0; }
 .enter .portrait { animation: rise .7s cubic-bezier(.16,1,.3,1) both; }
 @media (max-width: 900px) { .gwrap { gap: 4vw; } .portrait { height: min(30vh, 38vw); } }
 @media (prefers-reduced-motion: reduce) { .portrait .scan { display: none; } .portrait img { transition: none; } }
+
+/* ---------- layout v2: wide spotlight, one compact status card, taller feed ---------- */
+.main { grid-template-columns: minmax(0, 1fr) clamp(320px, 27vw, 680px); gap: 1.6vw; }
+.side { grid-template-rows: auto minmax(0, 1fr); }
+.ring { width: clamp(96px, min(9.6vw, 15vh), 230px); }
+.ring .big { font-size: clamp(26px, 3.1vw, 68px); }
+.stat .v { font-size: clamp(20px, 2.2vw, 48px); }
+.stat .v.sm { font-size: clamp(15px, 1.5vw, 32px); }
+.groups { display: grid; gap: 1.2vh; margin-top: 1.6vh; padding: 1.6vh 0 0; border-top: 1px solid var(--line-2); animation: none; }
+.grp-head { margin-bottom: .6vh; }
+.guest-name { font-size: var(--nm, clamp(40px, 6.4vw, 150px)); }
+.gwrap { gap: 3vw; }
+.portrait { height: min(56vh, 32vw); }
+.spot { padding: 2.4vh 2.4vw; }
+.bottom .sysline { display: inline-flex; align-items: center; gap: .8vw; }
+.bottom .sysline b { font-weight: 500; }
+.bottom .ok { color: var(--ok); }
+.bottom .bad { color: var(--bad); }
+.bottom .sep { opacity: .5; }
+@media (max-width: 1000px) { .main { grid-template-columns: 1fr; } .portrait { height: min(30vh, 38vw); } .gwrap { gap: 4vw; } }
 </style>
 </head>
 <body>
@@ -245,11 +265,6 @@ body.idle-cursor .ctl { opacity: 0; }
       <div class="sub">&amp; Phương hướng 2027 · Gala Dinner · 22.12.2026</div>
     </div>
     <div class="spacer"></div>
-    <div class="sys" aria-label="Trạng thái hệ thống">
-      <span>Kết nối</span><b id="sysConn" class="ok">● đang tải</b>
-      <span>Độ trễ</span><b id="sysLat">— ms</b>
-      <span>Làm mới</span><b id="sysPoll">tức thì</b>
-    </div>
     <div class="clock"><div class="t"><span id="hh">--</span><i>:</i><span id="mm">--</span></div><div class="d" id="date"></div></div>
   </header>
 
@@ -281,10 +296,7 @@ body.idle-cursor .ctl { opacity: 0; }
             <div class="stat"><div class="k">Chưa check-in</div><div class="v sm" id="remain">—</div></div>
           </div>
         </div>
-        <div class="cb" aria-hidden="true"></div>
-      </div>
-
-      <div class="panel groups">
+        <div class="groups">
         <div>
           <div class="grp-head"><span>Khối / Phòng Công ty</span><span id="gCompany">0 / 0</span></div>
           <div class="seg company" id="sCompany" aria-hidden="true"></div>
@@ -292,6 +304,7 @@ body.idle-cursor .ctl { opacity: 0; }
         <div>
           <div class="grp-head"><span>Chi nhánh</span><span id="gBranch">0 / 0</span></div>
           <div class="seg branch" id="sBranch" aria-hidden="true"></div>
+        </div>
         </div>
         <div class="cb" aria-hidden="true"></div>
       </div>
@@ -307,7 +320,8 @@ body.idle-cursor .ctl { opacity: 0; }
   <footer class="bottom">
     <span>▸ Quét mã QR tại sảnh để check-in</span>
     <span class="spacer"></span>
-    <span id="conn">Đang kết nối…</span>
+    <span class="sysline"><b id="sysConn" class="ok">● đang tải</b><span class="sep">·</span><b id="sysLat">— ms</b></span>
+    <span id="conn" hidden>Đang kết nối…</span>
     <button class="ctl" type="button" id="fsBtn">Toàn màn hình [F]</button>
   </footer>
 </div>
