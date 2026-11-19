@@ -3,44 +3,175 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Màn hình chào mừng · mô phỏng LED</title>
+<title>Xem trước màn hình LED · Hội nghị 2026</title>
 <style>
-  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-  #stage { position: absolute; left: 50%; top: 50%; transform-origin: 0 0; background: #00192f; box-shadow: 0 0 0 1px #1c2c3c; }
-  iframe { width: 100%; height: 100%; border: 0; display: block; }
-  #hint { position: fixed; left: 12px; bottom: 10px; font: 12px/1.4 ui-monospace, monospace; color: #7fa6c4; background: rgba(0,0,0,.6); padding: 6px 10px; border-radius: 6px; transition: opacity .5s; pointer-events: none; }
-  #hint.off { opacity: 0; }
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font: 13px/1.45 ui-monospace, "JetBrains Mono", Menlo, monospace; color: #cfe3f3; }
+  #stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; background: #00192f; outline: 1px solid #27445e; }
+  #stage iframe { width: 100%; height: 100%; border: 0; display: block; background: #00192f; }
+  /* overlays drawn in wall pixels, on top of the preview */
+  #safe, #grid { position: absolute; inset: 0; pointer-events: none; display: none; }
+  #safe { border: 0; }
+  #safe i { position: absolute; border: 1px dashed rgba(255,242,0,.8); }
+  #grid { background-image: linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px); }
+  #grid b { position: absolute; background: rgba(255,80,80,.7); }
+  /* control panel */
+  #panel { position: fixed; left: 10px; bottom: 10px; z-index: 5; width: min(430px, calc(100vw - 20px)); background: rgba(4,18,32,.92); border: 1px solid #27445e; border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); transition: opacity .35s; }
+  #panel.off { opacity: 0; pointer-events: none; }
+  #panel h1 { margin: 0 0 6px; font: 700 12px/1.2 inherit; letter-spacing: .08em; text-transform: uppercase; color: #5fd3ff; }
+  .row { display: flex; gap: 8px; align-items: center; margin: 5px 0; flex-wrap: wrap; }
+  .row label { color: #8fb0c8; min-width: 78px; }
+  select, button { font: inherit; color: #e6f2fb; background: #0b2540; border: 1px solid #2c4d6a; border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+  button.on { background: #0070b8; border-color: #29a5dd; }
+  select:focus-visible, button:focus-visible { outline: 2px solid #fff200; outline-offset: 1px; }
+  #info { margin-top: 6px; padding-top: 6px; border-top: 1px solid #1d3a52; color: #9fc0d8; }
+  #info b { color: #fff200; font-weight: 600; }
+  #hintKeys { color: #6b8aa3; margin-top: 4px; }
+  #tab { position: fixed; left: 10px; bottom: 10px; z-index: 4; display: none; }
+  body.nopanel #tab { display: block; }
 </style>
 </head>
 <body>
-<div id="stage"><iframe id="f" title="Màn hình chào mừng" allow="fullscreen"></iframe></div>
-<div id="hint"></div>
+<div id="stage">
+  <iframe id="f" title="Màn hình chào mừng" allow="fullscreen"></iframe>
+  <div id="safe"></div>
+  <div id="grid"></div>
+</div>
+
+<button id="tab" type="button" title="Hiện bảng điều khiển (H)">⚙ Điều khiển</button>
+<div id="panel" role="group" aria-label="Điều khiển xem trước">
+  <h1>Xem trước màn hình LED 5,10 m × 2,56 m</h1>
+  <div class="row"><label for="pitch">Độ mịn LED</label>
+    <select id="pitch">
+      <option value="1.5">P1.5 · 3400 × 1707</option>
+      <option value="1.9">P1.9 · 2684 × 1347</option>
+      <option value="2">P2.0 · 2550 × 1280</option>
+      <option value="2.5" selected>P2.5 · 2040 × 1024</option>
+      <option value="2.6">P2.6 · 1962 × 985</option>
+      <option value="3">P3 · 1700 × 853</option>
+      <option value="3.91">P3.91 · 1304 × 655</option>
+      <option value="4">P4 · 1275 × 640</option>
+      <option value="px">Nhập số điểm ảnh…</option>
+    </select></div>
+  <div class="row"><label>Cách xem</label>
+    <button type="button" data-view="fit">Vừa cửa sổ</button>
+    <button type="button" data-view="1">100% (1 điểm = 1 px)</button>
+    <button type="button" data-view="far">Xem từ xa</button>
+    <select id="dist" aria-label="Khoảng cách xem"><option value="8">8 m</option><option value="12">12 m</option><option value="16" selected>16 m</option><option value="24">24 m</option><option value="32">32 m</option></select></div>
+  <div class="row"><label>Lớp phủ</label>
+    <button type="button" id="bSafe">Vùng an toàn 5%</button>
+    <button type="button" id="bGrid">Lưới 1 m</button></div>
+  <div id="info"></div>
+  <div id="hintKeys">F toàn màn hình · H ẩn/hiện bảng · S vùng an toàn · G lưới · 1 / 0 = 100% / vừa · mũi tên cuộn khi 100%</div>
+</div>
+
 <script>
 (function () {
-  // Shows the welcome screen on a canvas with the exact LED wall shape (5.10 m x 2.56 m = 2040 x 1024 px at P2.5),
-  // scaled to fit this window with black bars. ?w=1920&h=964 picks another canvas. Keys: F fullscreen, H hide/show this note.
+  // Exact preview of the welcome screen on the venue LED wall (5.10 m x 2.56 m).
+  // The page is rendered at the wall's REAL pixel size (pitch -> pixels), so every size, wrap and crop is identical
+  // to what the wall shows when /screen/ runs at that resolution. Parameters: pitch (mm) or w,h (px); view=fit|1|far; d (metres).
+  var WALL_W = 5100, WALL_H = 2560; // mm
+  var PX_PER_CM = 96 / 2.54;        // CSS pixels per cm on a typical laptop (approximate)
+  var EYE = 0.6;                    // metres from the laptop screen
+  var $ = function (id) { return document.getElementById(id); };
   var q = new URLSearchParams(location.search);
-  var W = Number(q.get('w')) || 2040, H = Number(q.get('h')) || 1024;
-  var stage = document.getElementById('stage'), f = document.getElementById('f'), hint = document.getElementById('hint');
-  stage.style.width = W + 'px'; stage.style.height = H + 'px';
-  var inner = new URLSearchParams(location.search); inner.delete('w'); inner.delete('h');
-  f.src = './' + (inner.toString() ? '?' + inner.toString() : '');
-  var timer;
-  function fit() {
-    var s = Math.min(innerWidth / W, innerHeight / H);
-    stage.style.transform = 'scale(' + s + ') translate(-50%, -50%)';
-    hint.textContent = W + ' × ' + H + ' px (tỉ lệ ' + (W / H).toFixed(3) + ' : 1) · hiển thị ' + Math.round(s * 100) + '% · F = toàn màn hình · H = ẩn ghi chú';
+  var OWN = ['pitch', 'w', 'h', 'view', 'd', 'safe', 'grid'];
+
+  var st = { pitch: Number(q.get('pitch')) || 2.5, w: Number(q.get('w')) || 0, h: Number(q.get('h')) || 0, view: q.get('view') || 'fit', d: Number(q.get('d')) || 16, safe: q.get('safe') === '1', grid: q.get('grid') === '1' };
+  if (st.w && st.h) st.pitch = 0;
+
+  function dims() {
+    if (st.w && st.h) return { w: st.w, h: st.h, pitch: WALL_W / st.w };
+    return { w: Math.round(WALL_W / st.pitch), h: Math.round(WALL_H / st.pitch), pitch: st.pitch };
   }
-  addEventListener('resize', fit); fit();
-  function flash() { hint.classList.remove('off'); clearTimeout(timer); timer = setTimeout(function () { hint.classList.add('off'); }, 4000); }
-  flash();
-  addEventListener('keydown', function (e) {
-    var k = e.key.toLowerCase();
-    if (k === 'f') { if (!document.fullscreenElement) document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(function () {}); else document.exitFullscreen(); }
-    if (k === 'h') { hint.classList.toggle('off'); }
+
+  var stage = $('stage'), f = $('f'), pan = { x: 0, y: 0 };
+  var inner = new URLSearchParams(location.search); OWN.forEach(function (k) { inner.delete(k); });
+  f.src = './' + (inner.toString() ? '?' + inner.toString() : '');
+
+  function save() {
+    var p = new URLSearchParams(location.search); OWN.forEach(function (k) { p.delete(k); });
+    if (st.w && st.h) { p.set('w', st.w); p.set('h', st.h); } else if (st.pitch !== 2.5) p.set('pitch', st.pitch);
+    if (st.view !== 'fit') p.set('view', st.view);
+    if (st.view === 'far') p.set('d', st.d);
+    if (st.safe) p.set('safe', 1); if (st.grid) p.set('grid', 1);
+    if (history.replaceState) history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p.toString() : ''));
+  }
+
+  function layout() {
+    var d = dims(), W = d.w, H = d.h, s;
+    stage.style.width = W + 'px'; stage.style.height = H + 'px';
+    if (st.view === '1') s = 1;
+    else if (st.view === 'far') s = Math.min((EYE * (WALL_W / 1000) / st.d * 100 * PX_PER_CM) / W, Math.min(innerWidth / W, innerHeight / H)); // apparent size from the audience, capped to the window
+    else s = Math.min(innerWidth / W, innerHeight / H);
+    var vw = W * s, vh = H * s;
+    var x = vw <= innerWidth ? (innerWidth - vw) / 2 : Math.min(0, Math.max(innerWidth - vw, pan.x));
+    var y = vh <= innerHeight ? (innerHeight - vh) / 2 : Math.min(0, Math.max(innerHeight - vh, pan.y));
+    pan.x = x; pan.y = y;
+    stage.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    // overlays in wall pixels
+    var m = Math.round(Math.min(W, H) * 0.05);
+    $('safe').innerHTML = '<i style="left:' + m + 'px;top:' + m + 'px;right:' + m + 'px;bottom:' + m + 'px"></i>';
+    $('safe').style.display = st.safe ? 'block' : 'none';
+    var g = $('grid'); g.style.display = st.grid ? 'block' : 'none';
+    var pxm = 1000 / d.pitch; g.style.backgroundSize = pxm + 'px ' + pxm + 'px';
+    g.innerHTML = '<b style="left:50%;top:0;bottom:0;width:2px"></b><b style="top:50%;left:0;right:0;height:2px"></b>';
+    document.querySelectorAll('[data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === st.view); });
+    $('dist').style.opacity = st.view === 'far' ? 1 : .45;
+    $('bSafe').classList.toggle('on', st.safe); $('bGrid').classList.toggle('on', st.grid);
+    var sel = $('pitch'); if (st.w && st.h) sel.value = 'px'; else sel.value = String(st.pitch);
+    d.scale = s; info(d); save();
+  }
+
+  function info(d) {
+    var el = $('info'), win = f.contentDocument, nm = null, fs = 0;
+    try { nm = win && win.querySelector('.guest-name'); fs = nm ? parseFloat(win.defaultView.getComputedStyle(nm).fontSize) : 0; } catch (e) {}
+    var lines = [];
+    lines.push('Điểm ảnh: <b>' + d.w + ' × ' + d.h + '</b> (tỉ lệ ' + (d.w / d.h).toFixed(3) + ' : 1) · 1 điểm = <b>' + d.pitch.toFixed(2) + ' mm</b>');
+    lines.push('Đang hiển thị ở <b>' + Math.round(d.scale * 100) + '%</b>' + (st.view === 'far' ? ' = như nhìn từ <b>' + st.d + ' m</b>' : ''));
+    if (fs) {
+      var cap = fs * 0.72 * d.pitch / 10; // cap height in cm
+      lines.push('Chữ tên đang hiện: <b>' + Math.round(fs) + ' px</b> = chữ hoa cao <b>' + cap.toFixed(1) + ' cm</b> trên màn hình thật → đọc rõ đến khoảng <b>' + Math.round(cap * 3) + ' m</b>');
+    }
+    el.innerHTML = lines.join('<br>');
+  }
+
+  $('pitch').addEventListener('change', function () {
+    if (this.value === 'px') {
+      var v = prompt('Nhập số điểm ảnh của màn hình LED (rộng × cao), ví dụ 1920x960', '2040x1024'), m = v && /(\d{3,5})\s*[x×]\s*(\d{3,5})/i.exec(v);
+      if (m) { st.w = Number(m[1]); st.h = Number(m[2]); } else { this.value = st.w ? 'px' : String(st.pitch); return; }
+    } else { st.pitch = Number(this.value); st.w = st.h = 0; }
+    pan.x = pan.y = 0; layout();
   });
-  // keys pressed while the iframe has focus
-  f.addEventListener('load', function () { try { f.contentWindow.addEventListener('keydown', function (e) { if (e.key.toLowerCase() === 'h') hint.classList.toggle('off'); }); } catch (e) {} });
+  document.querySelectorAll('[data-view]').forEach(function (b) { b.addEventListener('click', function () { st.view = b.getAttribute('data-view'); pan.x = pan.y = 0; layout(); }); });
+  $('dist').addEventListener('change', function () { st.d = Number(this.value); layout(); });
+  $('bSafe').addEventListener('click', function () { st.safe = !st.safe; layout(); });
+  $('bGrid').addEventListener('click', function () { st.grid = !st.grid; layout(); });
+  $('tab').addEventListener('click', function () { document.body.classList.remove('nopanel'); $('panel').classList.remove('off'); });
+  if (document.querySelector('#dist option[value="' + st.d + '"]')) $('dist').value = String(st.d);
+
+  function togglePanel() { var off = !$('panel').classList.contains('off'); $('panel').classList.toggle('off', off); document.body.classList.toggle('nopanel', off); }
+  function key(e) {
+    if (e.target && /select|input/i.test(e.target.tagName)) return;
+    var k = e.key.toLowerCase();
+    if (k === 'f') { if (!document.fullscreenElement) { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(function () {}); } else document.exitFullscreen(); }
+    else if (k === 'h') togglePanel();
+    else if (k === 's') { st.safe = !st.safe; layout(); }
+    else if (k === 'g') { st.grid = !st.grid; layout(); }
+    else if (k === '1') { st.view = '1'; layout(); }
+    else if (k === '0') { st.view = 'fit'; layout(); }
+    else if (st.view === '1' && /^arrow/.test(k)) { var st2 = 120; if (k === 'arrowleft') pan.x += st2; if (k === 'arrowright') pan.x -= st2; if (k === 'arrowup') pan.y += st2; if (k === 'arrowdown') pan.y -= st2; layout(); e.preventDefault(); }
+  }
+  addEventListener('keydown', key);
+  f.addEventListener('load', function () { try { f.contentWindow.addEventListener('keydown', function (e) { if (['h', 's', 'g', '1', '0'].indexOf(e.key.toLowerCase()) >= 0) key(e); }); } catch (e) {} });
+  addEventListener('resize', layout);
+  // drag to pan at 100%
+  var drag = null;
+  addEventListener('mousedown', function (e) { if (st.view === '1' && !e.target.closest('#panel')) drag = { x: e.clientX - pan.x, y: e.clientY - pan.y }; });
+  addEventListener('mousemove', function (e) { if (drag) { pan.x = e.clientX - drag.x; pan.y = e.clientY - drag.y; layout(); } });
+  addEventListener('mouseup', function () { drag = null; });
+  setInterval(function () { info(Object.assign(dims(), { scale: parseFloat((/scale\(([\d.]+)\)/.exec(stage.style.transform) || [0, 1])[1]) })); }, 1500); // refresh the live text size
+  layout();
 })();
 </script>
 </body>
