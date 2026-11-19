@@ -472,6 +472,10 @@ dialog .ack input { margin-top: 3px; }
 .card-head { min-height: 28px; align-items: center; }
 .card-head h2 { font-size: 15.5px; font-weight: 700; }
 .card-head .hint { font-size: 12.5px; }
+
+/* phones: filter dropdowns shrink instead of widening the page */
+.toolbar select { min-width: 0; max-width: 100%; }
+@media (max-width: 700px) { .toolbar select { flex: 1 1 calc(50% - 8px); } .toolbar .search { flex-basis: 100%; } }
 </style>
 </head>
 <body>
