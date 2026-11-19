@@ -295,6 +295,7 @@ dialog .ack input { margin-top: 3px; }
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
 </svg>
 
@@ -398,7 +399,7 @@ dialog .ack input { margin-top: 3px; }
           <select id="fDiet" aria-label="Chế độ ăn"><option value="">Mọi chế độ ăn</option><option value="vegetarian">Ăn chay</option><option value="normal">Bình thường</option><option value="other">Khác</option><option value="blank">Không trả lời</option><option value="unknown">Chưa có thông tin</option></select>
           <select id="fGala" aria-label="Gala"><option value="">Gala: tất cả</option><option value="yes">Có tiết mục</option><option value="no">Không</option><option value="unknown">Chưa có thông tin</option></select>
           <button class="btn ghost" id="clearBtn" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Xoá lọc</button>
-          <button class="btn ghost" id="csvBtn" type="button" title="Tải danh sách check-in (CSV)">Tải CSV</button>
+          <button class="btn" id="csvBtn" type="button" title="Tải danh sách check-in (CSV)"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg><span>Tải CSV</span></button>
           <span class="count num" id="rowCount" aria-live="polite"></span>
         </div>
         <div class="table-wrap">
