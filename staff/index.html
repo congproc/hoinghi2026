@@ -322,8 +322,8 @@ dialog .ack input { margin-top: 3px; }
 .legend b { color: var(--text); font-variant-numeric: tabular-nums; }
 .lg-extra { color: var(--text-3); }
 .ov-side .k { display: flex; justify-content: space-between; gap: 8px; }
-.spark { margin-top: 10px; height: 86px; }
-.spark svg { width: 100%; height: 100%; overflow: visible; }
+.spark { margin-top: 10px; height: 86px; min-width: 0; }
+.spark svg { display: block; overflow: visible; }
 .spark .bar { fill: var(--accent); opacity: .35; transform-box: fill-box; transform-origin: bottom; animation: grow .7s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i) * 28ms); }
 .spark .bar.today { opacity: 1; }
 .spark .bar.peak { opacity: .7; }
@@ -927,9 +927,11 @@ dialog .ack input { margin-top: 3px; }
 
     var st = inviteStats(d);
     var expected = st ? st.total - st.excused : 0;
+    var yest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    var yesterday = p.filter(function (x) { return x.submittedAt && sameDay(new Date(x.submittedAt), yest); }).length;
     var regKpi = st
-      ? kpi('Đã đăng ký / được mời', st.matched + ' <small>/ ' + st.total + '</small>' + (fresh ? '<span class="delta" title="Mới kể từ khi mở trang">+' + fresh + ' mới</span>' : ''),
-          (expected ? Math.round(st.matched / expected * 100) : 0) + '% · +' + today + ' hôm nay' + (st.extra.length ? ' · ' + st.extra.length + ' ngoài danh sách mời' : '') + (st.excused ? ' · ' + st.excused + ' vắng dự kiến' : ''))
+      ? kpi('Đăng ký hôm nay', today + (fresh ? '<span class="delta" title="Mới kể từ khi mở trang">+' + fresh + ' mới</span>' : ''),
+          (today > yesterday ? '▲ ' + (today - yesterday) + ' so với hôm qua' : today < yesterday ? '▼ ' + (yesterday - today) + ' so với hôm qua' : 'bằng hôm qua') + ' (' + yesterday + ')')
       : kpi('Đã đăng ký', p.length + (fresh ? '<span class="delta" title="Mới kể từ khi mở trang">+' + fresh + ' mới</span>' : ''), '+' + today + ' hôm nay · ' + d.submissions + ' lượt gửi');
     var unitsKpi = st
       ? kpi('Chưa đăng ký', st.missing.length + ' <small>người</small>', empty + ' đơn vị chưa có ai đăng ký')
@@ -1003,6 +1005,8 @@ dialog .ack input { margin-top: 3px; }
   }
 
   /* ---------- overview: progress, deadline, last 14 days ---------- */
+  var sparkT = null;
+  addEventListener('resize', function () { clearTimeout(sparkT); sparkT = setTimeout(function () { if (state.data) renderOverview(state.data); }, 200); });
   var DEADLINE = new Date(2026, 10, 25, 23, 59, 59); // registration closes 25/11/2026
   function renderOverview(d) {
     var st = inviteStats(d), el = $('overview');
@@ -1031,13 +1035,14 @@ dialog .ack input { margin-top: 3px; }
     var days14 = [], now = new Date(), counts = {};
     d.people.forEach(function (p) { if (p.submittedAt) { var t = new Date(p.submittedAt); var k = t.getFullYear() + '-' + t.getMonth() + '-' + t.getDate(); counts[k] = (counts[k] || 0) + 1; } });
     for (var i = 13; i >= 0; i--) { var dd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); days14.push({ d: dd, n: counts[dd.getFullYear() + '-' + dd.getMonth() + '-' + dd.getDate()] || 0 }); }
-    var key = days14.map(function (x) { return x.n; }).join(',');
+    var W = Math.max(220, Math.round($('spark').clientWidth || 300)), H = 70;
+    var key = days14.map(function (x) { return x.n; }).join(',') + '@' + W;
     if (el.__spark !== key) {
       el.__spark = key;
-      var max = Math.max(1, Math.max.apply(null, days14.map(function (x) { return x.n; }))), W = 280, H = 70, bw = 14, gap = (W - bw * 14) / 13;
+      var max = Math.max(1, Math.max.apply(null, days14.map(function (x) { return x.n; }))), bw = Math.max(8, Math.min(26, Math.floor(W / 14 * 0.62))), gap = (W - bw * 14) / 13;
       var peak = days14.reduce(function (a, x, i) { return x.n > days14[a].n ? i : a; }, 0);
       $('sparkSum').textContent = days14.reduce(function (s, x) { return s + x.n; }, 0) + ' trong 14 ngày';
-      $('spark').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + (H + 16) + '" preserveAspectRatio="none" role="img" aria-label="Số đăng ký mỗi ngày trong 14 ngày qua">' +
+      $('spark').innerHTML = '<svg width="' + W + '" height="' + (H + 16) + '" viewBox="0 0 ' + W + ' ' + (H + 16) + '" role="img" aria-label="Số đăng ký mỗi ngày trong 14 ngày qua">' +
         '<line class="axis" x1="0" x2="' + W + '" y1="' + H + '" y2="' + H + '"/>' +
         days14.map(function (x, i) {
           var h = Math.max(x.n ? 3 : 0, x.n / max * (H - 8)), x0 = i * (bw + gap), cls = 'bar' + (i === 13 ? ' today' : i === peak && x.n ? ' peak' : '');
