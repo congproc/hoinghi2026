@@ -513,7 +513,7 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
 .lv-chart .bar { fill: var(--accent); }
 .lv-chart .open { stroke: var(--text-2); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .lv-feed, .lv-units, .lv-left { list-style: none; margin: 0; padding: 0; }
-.lv-feed li { display: flex; gap: 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.lv-feed li { display: flex; gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--border); }
 .lv-feed li:last-child { border-bottom: 0; }
 .lv-feed time { font-variant-numeric: tabular-nums; color: var(--good); font-weight: 600; flex: none; }
 .lv-feed .u { color: var(--text-3); font-size: 12.5px; }
@@ -1101,7 +1101,7 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
     for (i = 0; i < nb; i++) bins.push(0);
     arr.forEach(function (x) { var k = Math.floor((x.checkedInAt - t0) / B); if (k >= 0 && k < nb) bins[k]++; });
     bins.forEach(function (v) { if (v > mx) mx = v; });
-    var W = 720, H = 240, M = { l: 34, r: 10, t: 12, b: 28 }, pw = W - M.l - M.r, ph = H - M.t - M.b, bw = pw / nb;
+    var W = 720, H = 290, M = { l: 34, r: 10, t: 12, b: 28 }, pw = W - M.l - M.r, ph = H - M.t - M.b, bw = pw / nb;
     var top = mx <= 5 ? 5 : Math.ceil(mx / 5) * 5, g = '';
     [0, .5, 1].forEach(function (f) { var y = M.t + ph - ph * f; g += '<line class="gl" x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + y + '" y2="' + y + '"/><text class="ax" x="' + (M.l - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + Math.round(top * f) + '</text>'; });
     bins.forEach(function (v, k) { var h = ph * v / top, tm = new Date(t0 + k * B); if (v) g += '<rect class="bar" x="' + (M.l + k * bw + 1) + '" y="' + (M.t + ph - h) + '" width="' + Math.max(1, bw - 2) + '" height="' + h + '" rx="2"><title>' + pad(tm.getHours()) + ':' + pad(tm.getMinutes()) + ' · ' + v + ' người</title></rect>'; });
@@ -1111,7 +1111,7 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
     if (onDay && ek >= 0 && ek <= nb) g += '<line class="open" x1="' + (M.l + ek * bw) + '" x2="' + (M.l + ek * bw) + '" y1="' + M.t + '" y2="' + (M.t + ph) + '"/>';
     $('lvChart').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Số người check-in theo từng 10 phút">' + g + '</svg>';
     // latest arrivals
-    $('lvFeed').innerHTML = n ? arr.slice(-8).reverse().map(function (x) { return '<li><time>' + fmtTime(x.checkedInAt).slice(-5) + '</time><span><b>' + esc(x.name) + '</b><br><span class="u">' + esc(unitCompact(x.unit)) + '</span></span></li>'; }).join('') : '<li class="muted">Chưa có ai check-in.</li>';
+    $('lvFeed').innerHTML = n ? arr.slice(-5).reverse().map(function (x) { return '<li><time>' + fmtTime(x.checkedInAt).slice(-5) + '</time><span><b>' + esc(x.name) + '</b><br><span class="u">' + esc(unitCompact(x.unit)) + '</span></span></li>'; }).join('') : '<li class="muted">Chưa có ai check-in.</li>';
     // per unit (most people still missing first)
     var U = {};
     p.forEach(function (x) { var u = U[x.unit] || (U[x.unit] = { u: x.unit, t: 0, a: 0 }); u.t++; if (x.checkedInAt) u.a++; });
