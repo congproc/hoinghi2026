@@ -213,6 +213,22 @@ body.idle-cursor .ctl { opacity: 0; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .scan { display: none; }
 }
+
+/* portrait */
+.gwrap { display: flex; align-items: center; gap: 2.6vw; min-width: 0; }
+.ginfo { min-width: 0; flex: 1 1 auto; }
+.portrait { position: relative; flex: 0 0 auto; height: min(50vh, 27vw); aspect-ratio: 3 / 4; border: 1px solid rgba(95,211,255,.45); background: linear-gradient(160deg, rgba(0,112,184,.55), rgba(0,40,80,.85)); overflow: hidden; }
+.portrait img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.06); transition: opacity .7s ease, transform 1.2s cubic-bezier(.16,1,.3,1); }
+.portrait img.ready { opacity: 1; transform: none; }
+.portrait .ini { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--mono); font-weight: 800; font-size: clamp(40px, 7vw, 150px); color: var(--yellow); text-shadow: 0 0 24px rgba(255,242,0,.45); }
+.portrait::before, .portrait::after { content: ""; position: absolute; width: 16px; height: 16px; border: 3px solid var(--yellow); z-index: 2; pointer-events: none; }
+.portrait::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.portrait::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+.portrait .scan { position: absolute; left: 0; right: 0; top: 0; height: 18%; background: linear-gradient(180deg, rgba(95,211,255,0), rgba(95,211,255,.28)); border-bottom: 2px solid rgba(95,211,255,.8); z-index: 1; pointer-events: none; animation: pscan 1.1s .1s cubic-bezier(.65,0,.2,1) both; }
+@keyframes pscan { 0% { transform: translateY(-100%); opacity: 1; } 100% { transform: translateY(560%); opacity: 0; } }
+.enter .portrait { animation: rise .7s cubic-bezier(.16,1,.3,1) both; }
+@media (max-width: 900px) { .gwrap { flex-direction: column; align-items: flex-start; } .portrait { height: 30vh; } }
+@media (prefers-reduced-motion: reduce) { .portrait .scan { display: none; } .portrait img { transition: none; } }
 </style>
 </head>
 <body>
@@ -381,7 +397,67 @@ body.idle-cursor .ctl { opacity: 0; }
     }).then(function () { $('loginBtn').disabled = false; $('loginBtn').textContent = 'Bắt đầu'; });
   });
 
-  /* ---------- polling ---------- */
+
+  /* ---------- live stream (Firebase) ---------- */
+  var DB_URL = 'https://hoinghi2026-5a68e-default-rtdb.asia-southeast1.firebasedatabase.app';
+  var chk = {}, meta = { total: 0, company: 0, branch: 0 }, es = null, lastEvent = 0;
+  function snapshot() {
+    var list = Object.keys(chk).map(function (id) { var r = chk[id]; return { id: id, at: r.t, name: r.name, title: r.title, gender: r.gender, unit: r.unit, group: r.group, photo: r.photo }; })
+      .sort(function (x, y) { return x.at - y.at || (x.id < y.id ? -1 : 1); });
+    var n = list.length, cnt = function (g) { return list.filter(function (x) { return x.group === g; }).length; };
+    var from = state.first || n < state.seq ? Math.max(0, n - 12) : state.seq;
+    var res = { seq: n, registered: meta.total, registeredCompany: meta.company, registeredBranch: meta.branch, arrived: n, arrivedCompany: cnt('company'), arrivedBranch: cnt('branch'), arrivals: list.slice(from), from: from, at: Date.now() };
+    if (n < state.seq) { state.first = true; state.queue = []; }
+    return res;
+  }
+  function pushUpdate() {
+    var res = snapshot();
+    res.arrivals.forEach(function (a) { preload(a.photo); });
+    state.failures = 0; apply(res);
+  }
+  function loadMeta() {
+    return fetch(DB_URL + '/meta.json', { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (m) {
+      if (m) { meta = { total: m.total || 0, company: m.company || 0, branch: m.branch || 0 }; }
+    }).catch(function () {});
+  }
+  function connect() {
+    if (es) { try { es.close(); } catch (e) {} }
+    es = new EventSource(DB_URL + '/checkins.json');
+    var onData = function (ev) {
+      lastEvent = Date.now();
+      var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+      if (!d) return;
+      var path = d.path || '/';
+      if (ev.type === 'put') {
+        if (path === '/') chk = d.data || {};
+        else { var id = path.split('/')[1]; if (path.split('/').length === 2) { if (d.data) chk[id] = d.data; else delete chk[id]; } }
+      } else if (ev.type === 'patch') {
+        Object.keys(d.data || {}).forEach(function (k) { if (d.data[k]) chk[k] = d.data[k]; else delete chk[k]; });
+      }
+      pushUpdate();
+    };
+    es.addEventListener('put', onData);
+    es.addEventListener('patch', onData);
+    es.addEventListener('keep-alive', function () { lastEvent = Date.now(); });
+    es.onopen = function () { lastEvent = Date.now(); setConn(true); };
+    es.onerror = function () { state.failures++; setConn(false); };
+  }
+  // safety nets: reconnect if the stream goes quiet, and re-read everything now and then
+  setInterval(function () { if (!DEMO && Date.now() - lastEvent > 70000) connect(); }, 15000);
+  setInterval(function () {
+    if (DEMO) return;
+    var t0 = performance.now();
+    fetch(DB_URL + '/checkins.json', { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (all) {
+      state.latency = Math.round(performance.now() - t0);
+      chk = all || {}; loadMeta().then(pushUpdate);
+    }).catch(function () { state.failures++; setConn(false); });
+  }, 30000);
+  function startLive() {
+    $('login').hidden = true;
+    loadMeta().then(connect);
+  }
+
+  /* ---------- polling (demo only) ---------- */
   var pollTimer = null;
   function schedule() { clearTimeout(pollTimer); pollTimer = setTimeout(poll, POLL_MS); }
   function poll() {
@@ -395,7 +471,7 @@ body.idle-cursor .ctl { opacity: 0; }
   }
   function setConn(ok) {
     $('liveDot').classList.toggle('off', !ok);
-    $('conn').textContent = ok ? 'Trực tiếp · đồng bộ mỗi ' + (POLL_MS / 1000) + ' giây' : 'Mất kết nối · đang thử lại (' + state.failures + ')…';
+    $('conn').textContent = ok ? 'Trực tiếp · cập nhật tức thì' : 'Mất kết nối · đang thử lại (' + state.failures + ')…';
     var c = $('sysConn'); c.className = ok ? 'ok' : 'bad'; c.textContent = ok ? '● trực tuyến' : '● mất kết nối';
     $('sysLat').textContent = state.latency != null ? state.latency + ' ms' : '— ms';
   }
@@ -468,17 +544,35 @@ body.idle-cursor .ctl { opacity: 0; }
     swapSpot(function (el) { buildGuest(el, a, n); });
     hit();
   }
+  function initials(name) {
+    var p = String(name || '').trim().split(/\s+/);
+    return ((p.length > 1 ? p[0].charAt(0) : '') + (p[p.length - 1] || '').charAt(0)).toUpperCase() || '?';
+  }
+  var photoCache = {};
+  function preload(url) { if (!url || photoCache[url]) return; var im = new Image(); im.src = url; photoCache[url] = im; }
   function buildGuest(el, a, n) {
     enter(el);
     el.innerHTML =
-      '<div class="kicker">Chào mừng ' + esc(addr(a.gender)) + '</div>' +
-      '<div class="guest-name">' + esc(a.name) + '</div>' +
-      (a.title ? '<p class="guest-title">' + esc(a.title) + '</p>' : '') +
-      '<div class="readout">' +
-        (a.unit ? '<div class="cell ' + esc(a.group) + '"><div class="k">Đơn vị</div><div class="v">' + esc(unitLabel(a.unit)) + '</div></div>' : '') +
-        '<div class="cell ' + esc(a.group) + '"><div class="k">Giờ vào</div><div class="v mono">' + hhmmss(a.at) + '</div></div>' +
-        '<div class="cell ' + esc(a.group) + '"><div class="k">Thứ tự</div><div class="v mono">#' + pad(n, 3) + '</div></div>' +
+      '<div class="gwrap">' +
+        '<div class="portrait" aria-hidden="true"><div class="ini">' + esc(initials(a.name)) + '</div>' +
+          (a.photo ? '<img alt="" referrerpolicy="no-referrer">' : '') + '<div class="scan"></div></div>' +
+        '<div class="ginfo">' +
+          '<div class="kicker">Chào mừng ' + esc(addr(a.gender)) + '</div>' +
+          '<div class="guest-name">' + esc(a.name) + '</div>' +
+          (a.title ? '<p class="guest-title">' + esc(a.title) + '</p>' : '') +
+          '<div class="readout">' +
+            (a.unit ? '<div class="cell ' + esc(a.group) + '"><div class="k">Đơn vị</div><div class="v">' + esc(unitLabel(a.unit)) + '</div></div>' : '') +
+            '<div class="cell ' + esc(a.group) + '"><div class="k">Giờ vào</div><div class="v mono">' + hhmmss(a.at) + '</div></div>' +
+            '<div class="cell ' + esc(a.group) + '"><div class="k">Thứ tự</div><div class="v mono">#' + pad(n, 3) + '</div></div>' +
+          '</div>' +
+        '</div>' +
       '</div>';
+    var img = el.querySelector('.portrait img');
+    if (img) {
+      img.onload = function () { img.classList.add('ready'); };
+      img.onerror = function () { img.remove(); }; // keep the initials
+      img.src = a.photo;
+    }
     $('spotLabel').textContent = 'Chào mừng ' + addr(a.gender);
     $('spotTag').textContent = 'check-in #' + pad(n, 3);
     $('spotFoot').textContent = 'Nhận diện: ' + (a.group === 'branch' ? 'chi nhánh' : 'công ty');
@@ -660,15 +754,11 @@ body.idle-cursor .ctl { opacity: 0; }
 
   /* ---------- start ---------- */
   showIdle(); renderFeed(); setConn(true); $('sysConn').textContent = '● đang tải';
-  var saved = DEMO ? 'demo' : store(PW_KEY);
-  if (saved) {
-    state.pw = saved;
-    call({ action: 'screen', password: saved, since: -1 }).then(function (res) { apply(res); schedule(); })
-      .catch(function () { store(PW_KEY, null); $('login').hidden = false; });
+  if (DEMO) {
+    state.pw = 'demo';
+    call({ action: 'screen', password: 'demo', since: -1 }).then(function (res) { apply(res); schedule(); });
   } else {
-    $('login').hidden = false;
-    $('pw').focus();
-    call({ action: 'ping' }).catch(function () {});
+    startLive();
   }
 })();
 </script>

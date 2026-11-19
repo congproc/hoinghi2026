@@ -321,26 +321,69 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
   var RETRY_DELAYS = [700, 1600, 3200];
   var retryHook = null;
   function isBusy(msg) { return /bận|busy|too many|simultaneous|quá nhiều/i.test(msg || ''); }
-  function once(body) {
+  var DB_URL = 'https://hoinghi2026-5a68e-default-rtdb.asia-southeast1.firebasedatabase.app';
+  var BUSY = { retry: true, msg: 'Mạng chập chờn, chưa kết nối được. Vui lòng thử lại.' };
+  function normPhone(s) {
+    var d = String(s || '').replace(/\D/g, '');
+    if (d.indexOf('0084') === 0) d = d.slice(4);
+    else if (d.indexOf('84') === 0 && d.length >= 11) d = d.slice(2);
+    if (d && d.charAt(0) !== '0' && d.length === 9) d = '0' + d;
+    return d;
+  }
+  // One request to the database. Resolves {status, data}; rejects (retry) on network errors and 5xx.
+  function fb(method, path, body) {
     return new Promise(function (resolve, reject) {
       var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
       var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, TIMEOUT_MS);
-      fetch(API_URL, { method: 'POST', body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined, credentials: 'omit' })
+      fetch(DB_URL + path + '.json', { method: method, body: body === undefined ? undefined : JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined, credentials: 'omit' })
         .then(function (r) {
-          if (!r.ok) throw { retry: true, msg: 'Máy chủ đang bận (' + r.status + '). Vui lòng thử lại.' };
-          return r.json().catch(function () { throw { retry: true, msg: 'Máy chủ đang bận. Vui lòng thử lại.' }; });
+          if (r.status >= 500 || r.status === 429) throw BUSY;
+          return r.json().catch(function () { return null; }).then(function (j) { resolve({ status: r.status, data: j }); });
         })
-        .then(function (j) {
-          if (j.ok) return resolve(j.data);
-          var m = String(j.error || '');
-          reject({ retry: isBusy(m), msg: m, server: true });
-        })
-        .catch(function (e) {
-          if (e && (e.server || e.retry)) reject(e);
-          else reject({ retry: true, msg: 'Mạng chập chờn, chưa kết nối được. Vui lòng thử lại.' });
-        })
+        .catch(function (e) { reject(e && e.retry ? e : BUSY); })
         .then(function () { clearTimeout(timer); });
     });
+  }
+  function toPerson(id, v) {
+    return { ref: id, name: v.name, title: v.title || '', gender: v.gender || '', unit: v.unit || '', group: v.group || 'other', photo: v.photo || '' };
+  }
+  function getCheckin(id) {
+    return fb('GET', '/checkins/' + id).then(function (r) { return r.data && r.data.t ? r.data.t : null; });
+  }
+  function withTime(p) {
+    return getCheckin(p.ref).then(function (t) { p.checkedInAt = t; return p; });
+  }
+  function once(body) {
+    var act = body.action;
+    if (act === 'ping') return fb('GET', '/meta/total').then(function () { return true; });
+    if (act === 'lookup') {
+      return fb('GET', '/byPhone/' + normPhone(body.phone)).then(function (r) {
+        var m = r.data || {};
+        var list = Object.keys(m).map(function (id) { return toPerson(id, m[id]); })
+          .sort(function (x, y) { return x.name.localeCompare(y.name, 'vi'); });
+        return Promise.all(list.map(withTime)).then(function (l) { return { matches: l }; });
+      });
+    }
+    if (act === 'lookupCode') {
+      var code = String(body.code || '').toUpperCase();
+      return fb('GET', '/byCode/' + code).then(function (r) {
+        if (!r.data) return { match: null };
+        return withTime(toPerson(code, r.data)).then(function (p) { return { match: p }; });
+      });
+    }
+    if (act === 'checkin') {
+      var p = body.person, id = body.id;
+      var rec = { t: { '.sv': 'timestamp' }, name: p.name, title: p.title || '', unit: p.unit || '', group: p.group || 'other', gender: p.gender || '', photo: p.photo || '', via: body.via };
+      return fb('PUT', '/checkins/' + id, rec).then(function (r) {
+        if (r.status === 200 && r.data && r.data.t) return { already: false, at: r.data.t, person: p };
+        // refused: the database only accepts the first check-in, so this person is already in
+        return getCheckin(id).then(function (t) {
+          if (t) return { already: true, at: t, person: p };
+          throw { retry: false, msg: 'Không ghi nhận được check-in. Vui lòng thử lại hoặc gặp bàn lễ tân.', server: true };
+        });
+      });
+    }
+    return Promise.reject({ retry: false, msg: 'Yêu cầu không hợp lệ.', server: true });
   }
   function call(action, extra) {
     var body = { action: action };
@@ -450,7 +493,7 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
     if (state.busy || !state.picked) return;
     var btn = this;
     busy(btn, 'Đang check-in…');
-    var req = state.mode === 'code' ? call('checkinCode', { code: state.code }) : call('checkin', { phone: state.phone, ref: state.picked.ref });
+    var req = call('checkin', { id: state.picked.ref, person: state.picked, via: state.mode === 'code' ? 'Lễ tân (mã)' : 'Tự check-in (SĐT)' });
     req.then(function (res) {
       showDone(res.person || state.picked, res.at, res.already);
     }).catch(function (e) {
@@ -563,11 +606,11 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
   function demoApi(b) {
     return new Promise(function (resolve, reject) {
       setTimeout(function () {
-        var withState = function (p, i) { return { ref: i, name: p.name, title: p.title, gender: p.gender, unit: p.unit, group: p.group, checkedInAt: demoDone[p.code] || null }; };
+        var withState = function (p, i) { return { ref: p.code, name: p.name, title: p.title, gender: p.gender, unit: p.unit, group: p.group, checkedInAt: demoDone[p.code] || null }; };
         if (b.action === 'ping') return resolve(true);
         if (b.action === 'lookup') return resolve({ matches: DEMO_PEOPLE.filter(function (p) { return p.phone === b.phone; }).map(withState) });
         if (b.action === 'lookupCode') { var m = DEMO_PEOPLE.filter(function (p) { return p.code === b.code; })[0]; return resolve({ match: m ? withState(m, 0) : null }); }
-        var p = b.action === 'checkin' ? DEMO_PEOPLE.filter(function (x) { return x.phone === b.phone; })[b.ref] : DEMO_PEOPLE.filter(function (x) { return x.code === b.code; })[0];
+        var p = DEMO_PEOPLE.filter(function (x) { return x.code === b.id; })[0];
         if (!p) return reject(new Error('Không tìm thấy thông tin đăng ký.'));
         var already = !!demoDone[p.code];
         if (!already) demoDone[p.code] = Date.now();
