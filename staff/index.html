@@ -654,6 +654,22 @@ dialog .ack input { margin-top: 3px; }
   }
   setInterval(function () { if (!DEMO && fbSrc && Date.now() - fbLast > 70000) fbConnect(); }, 15000);
 
+
+  // Also remove each person from the live database (roster + check-in), so the welcome screen and
+  // check-in page forget them. A short-lived "delreq" proves the staff password to the database rules.
+  function fbDelete(ids, phones, pw) {
+    if (DEMO) return Promise.resolve(0);
+    var failed = 0;
+    return Promise.all(ids.map(function (id) {
+      var up = {}; up['people/' + id] = null; up['byCode/' + id] = null; up['checkins/' + id] = null; up['delreq/' + id] = null;
+      if (phones[id]) up['byPhone/' + phones[id] + '/' + id] = null;
+      return fetch(FB_URL + '/delreq/' + id + '.json', { method: 'PUT', body: JSON.stringify(pw), credentials: 'omit' })
+        .then(function (r) { if (!r.ok) throw new Error('pin'); return fetch(FB_URL + '/.json', { method: 'PATCH', body: JSON.stringify(up), credentials: 'omit' }); })
+        .then(function (r) { if (!r.ok) throw new Error('del'); })
+        .catch(function () { failed++; });
+    })).then(function () { return failed; });
+  }
+
   function csvCell(v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
   function stamp(ms) { var d = new Date(ms); return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
@@ -1036,10 +1052,14 @@ dialog .ack input { margin-top: 3px; }
     if (delBusy || !$('delAck').checked) return;
     var ids = selIds(), btn = this;
     delBusy = true; btn.disabled = true; $('delCancel').disabled = true; btn.textContent = 'Đang xoá…'; $('delErr').textContent = '';
+    var phones = {};
+    (state.data ? state.data.people : []).forEach(function (p) { if (p.id) phones[p.id] = p.phone; });
     call('deleteRecords', { password: getPw(), ids: ids }).then(function (res) {
+      return fbDelete(ids, phones, getPw()).then(function (failed) { res.fbFailed = failed; return res; });
+    }).then(function (res) {
       dlg.close();
       state.sel = {};
-      toast('Đã xoá ' + res.people + ' người (' + res.registrationRows + ' dòng đăng ký, ' + res.checkinRows + ' lượt check-in)');
+      toast('Đã xoá ' + res.people + ' người (' + res.registrationRows + ' dòng đăng ký, ' + res.checkinRows + ' lượt check-in)' + (res.fbFailed ? ' · ' + res.fbFailed + ' người chưa xoá được khỏi màn hình/check-in, hãy báo kỹ thuật' : ''));
       state.v = null;
       return refresh(true);
     }).catch(function (e) {
