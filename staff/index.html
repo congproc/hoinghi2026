@@ -6,249 +6,400 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Theo dõi đăng ký</title>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   color-scheme: light;
   --bg: #f4f4f2;
   --surface: #fcfcfb;
-  --surface-2: #efeeea;
+  --surface-2: #f0efeb;
+  --surface-3: #e7e6e1;
   --border: #e2e1dc;
   --text: #0b0b0b;
   --text-2: #52514e;
-  --text-3: #7a7974;
+  --text-3: #6f6e69;
   --accent: #2a78d6;
+  --accent-strong: #1f63b8;
   --accent-soft: #e3eefb;
+  --on-accent: #ffffff;
   --track: #ecebe7;
+  --good: #1a7f37;
+  --good-soft: #e6f4ea;
   --warn-bg: #fff6e0;
   --warn-border: #f0d48a;
   --warn-text: #6b4b00;
   --bad: #c03a39;
-  --radius: 10px;
+  --bad-soft: #fdecec;
+  --shadow: 0 1px 2px rgba(16, 16, 15, .04), 0 2px 8px rgba(16, 16, 15, .04);
+  --shadow-lg: 0 8px 28px rgba(16, 16, 15, .14);
+  --radius: 12px;
+  --font: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #121211;
-    --surface: #1a1a19;
-    --surface-2: #232321;
-    --border: #2e2e2b;
-    --text: #f0efec;
-    --text-2: #c3c2b7;
-    --text-3: #8f8e86;
-    --accent: #3987e5;
-    --accent-soft: #1d2b3d;
-    --track: #262624;
-    --warn-bg: #2d2412;
-    --warn-border: #5c4718;
-    --warn-text: #f1d38c;
-    --bad: #e66767;
+    --bg: #121211; --surface: #1a1a19; --surface-2: #222220; --surface-3: #2c2c29; --border: #2e2e2b;
+    --text: #f0efec; --text-2: #c3c2b7; --text-3: #9a998f;
+    --accent: #3987e5; --accent-strong: #5c9ded; --accent-soft: #1d2b3d; --on-accent: #ffffff; --track: #262624;
+    --good: #4cc26b; --good-soft: #15291b;
+    --warn-bg: #2d2412; --warn-border: #5c4718; --warn-text: #f1d38c;
+    --bad: #e66767; --bad-soft: #2f1717;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3); --shadow-lg: 0 8px 28px rgba(0, 0, 0, .5);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #121211; --surface: #1a1a19; --surface-2: #232321; --border: #2e2e2b;
-  --text: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e86; --accent: #3987e5;
-  --accent-soft: #1d2b3d; --track: #262624; --warn-bg: #2d2412; --warn-border: #5c4718;
-  --warn-text: #f1d38c; --bad: #e66767;
+  --bg: #121211; --surface: #1a1a19; --surface-2: #222220; --surface-3: #2c2c29; --border: #2e2e2b;
+  --text: #f0efec; --text-2: #c3c2b7; --text-3: #9a998f;
+  --accent: #3987e5; --accent-strong: #5c9ded; --accent-soft: #1d2b3d; --on-accent: #ffffff; --track: #262624;
+  --good: #4cc26b; --good-soft: #15291b;
+  --warn-bg: #2d2412; --warn-border: #5c4718; --warn-text: #f1d38c;
+  --bad: #e66767; --bad-soft: #2f1717;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3); --shadow-lg: 0 8px 28px rgba(0, 0, 0, .5);
 }
+
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
   background: var(--bg); color: var(--text);
-  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font: 14px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 button, input, select { font: inherit; color: inherit; }
+button { touch-action: manipulation; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .num { font-variant-numeric: tabular-nums; }
 [hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* Login */
-.login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
-.login-card { width: 100%; max-width: 360px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 24px; }
-.login-card h1 { font-size: 18px; margin: 0 0 4px; }
-.login-card p { margin: 0 0 20px; color: var(--text-2); }
-.login-card label { display: block; font-weight: 600; margin-bottom: 6px; }
-.login-card input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
-.login-card .btn { width: 100%; margin-top: 14px; justify-content: center; padding: 10px; }
-.error { color: var(--bad); margin-top: 10px; min-height: 1.4em; }
-
-/* Layout */
-.wrap { max-width: 1440px; margin: 0 auto; padding: 20px 24px 48px; }
-header.top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-header.top h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
-header.top .sub { color: var(--text-2); font-size: 13px; }
-header.top .spacer { flex: 1; }
-.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 0 14px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  font-weight: 500; cursor: pointer; white-space: nowrap;
+  transition: background-color .15s, border-color .15s, transform .1s;
+}
 .btn:hover { background: var(--surface-2); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.primary:hover { filter: brightness(1.05); }
-.btn:disabled { opacity: .6; cursor: default; }
-.tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .55; cursor: default; transform: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover { background: var(--surface-2); }
+.icon-btn { width: 36px; padding: 0; }
+.spin { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; min-width: 0; }
-.card h2 { font-size: 15px; margin: 0 0 2px; }
-.card .hint { color: var(--text-3); font-size: 12.5px; margin: 0 0 12px; }
+/* ---------- Login ---------- */
+.login { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 16px; }
+.login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px 28px 28px; box-shadow: var(--shadow); }
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.brand-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-weight: 700; font-size: 13px; letter-spacing: .02em; }
+.login-card h1 { font-size: 20px; line-height: 1.3; margin: 0; }
+.login-card .lead { margin: 2px 0 0; color: var(--text-2); font-size: 13px; }
+.field { margin-top: 20px; }
+.field label { display: block; font-weight: 600; margin-bottom: 6px; }
+.pw-wrap { position: relative; }
+.pw-wrap input {
+  width: 100%; height: 44px; padding: 0 48px 0 14px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--bg); font-size: 15px; transition: border-color .15s, box-shadow .15s;
+}
+.pw-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pw-wrap input[aria-invalid="true"] { border-color: var(--bad); }
+.pw-toggle { position: absolute; right: 4px; top: 4px; width: 36px; height: 36px; border: 0; background: none; border-radius: 8px; color: var(--text-2); cursor: pointer; display: grid; place-items: center; }
+.pw-toggle:hover { background: var(--surface-2); }
+.login-card .btn.primary { width: 100%; height: 44px; margin-top: 16px; font-size: 15px; }
+.form-error { display: flex; gap: 6px; align-items: flex-start; color: var(--bad); font-size: 13px; margin-top: 8px; min-height: 20px; }
+.form-error:empty { visibility: hidden; }
+.login-foot { margin: 18px 0 0; color: var(--text-3); font-size: 12.5px; }
 
-.warnings { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; }
-.warnings summary { cursor: pointer; font-weight: 600; }
-.warnings ul { margin: 8px 0 2px; padding-left: 20px; }
+/* ---------- App shell ---------- */
+.topbar { position: sticky; top: 0; z-index: 20; background: var(--bg); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+.topbar-inner { max-width: 1440px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.topbar h1 { font-size: 17px; margin: 0; letter-spacing: -0.01em; }
+.topbar .sub { color: var(--text-3); font-size: 12.5px; }
+.spacer { flex: 1; }
+.status { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-size: 12.5px; color: var(--text-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); flex: none; }
+.status.live .dot { animation: pulse 2.4s ease-in-out infinite; }
+.status.loading .dot { background: var(--accent); }
+.status.error { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--border)); background: var(--bad-soft); }
+.status.error .dot { background: var(--bad); }
+.status button { border: 0; background: none; color: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; padding: 0; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; overflow: hidden; opacity: 0; transition: opacity .2s; }
+.progress.on { opacity: 1; }
+.progress::before { content: ""; position: absolute; inset: 0; background: var(--accent); transform-origin: left; animation: indet 1.2s ease-in-out infinite; }
+@keyframes indet { 0% { transform: translateX(-100%) scaleX(.3); } 60% { transform: translateX(60%) scaleX(.5); } 100% { transform: translateX(110%) scaleX(.3); } }
+.tag { display: inline-flex; align-items: center; font-size: 12px; height: 22px; padding: 0 8px; border-radius: 999px; background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+
+.wrap { max-width: 1440px; margin: 0 auto; padding: 20px 24px 56px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; min-width: 0; box-shadow: var(--shadow); }
+.card-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+.card-head h2 { font-size: 15px; margin: 0; font-weight: 600; }
+.card-head .hint { color: var(--text-3); font-size: 12.5px; margin: 0; }
+
+.warnings { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); border-radius: var(--radius); margin-bottom: 16px; }
+.warnings summary { cursor: pointer; font-weight: 600; padding: 12px 16px; display: flex; align-items: center; gap: 8px; list-style: none; }
+.warnings summary::-webkit-details-marker { display: none; }
+.warnings summary .chev { margin-left: auto; transition: transform .2s; }
+.warnings[open] summary .chev { transform: rotate(180deg); }
+.warnings ul { margin: 0; padding: 0 16px 14px 40px; }
+.warnings li + li { margin-top: 4px; }
 
 /* KPIs */
 .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
-.kpi .label { color: var(--text-2); font-size: 13px; }
-.kpi .value { font-size: 32px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.15; margin: 4px 0 2px; }
+.kpi { padding: 16px 18px; }
+.kpi .label { color: var(--text-2); font-size: 13px; font-weight: 500; }
+.kpi .value { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 6px 0 4px; }
 .kpi .value small { font-size: 16px; color: var(--text-3); font-weight: 500; }
 .kpi .note { color: var(--text-3); font-size: 12.5px; }
+.delta { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; background: var(--good-soft); color: var(--good); font-weight: 600; font-size: 12px; margin-left: 6px; vertical-align: 6px; }
 
 .grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; align-items: start; }
 .stack { display: grid; gap: 16px; }
-.unit-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.unit-cols h3 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-2); margin: 0 0 8px; display: flex; justify-content: space-between; }
+.unit-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.unit-cols h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); margin: 0 0 6px; display: flex; justify-content: space-between; font-weight: 600; }
 
 /* Bar list (single series) */
 .bars { list-style: none; margin: 0; padding: 0; }
-.bar-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 28px; align-items: center; gap: 8px; width: 100%; padding: 4px 6px; margin: 0 -6px; border: 0; background: none; border-radius: 6px; cursor: pointer; text-align: left; }
-.bar-row:hover, .bar-row:focus-visible { background: var(--surface-2); outline: none; }
+.bar-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px 28px; align-items: center; gap: 10px; width: calc(100% + 12px); min-height: 30px; padding: 3px 6px; margin: 0 -6px; border: 0; background: none; border-radius: 6px; cursor: pointer; text-align: left; transition: background-color .12s; }
+.bar-row:hover { background: var(--surface-2); }
 .bar-row.active { background: var(--accent-soft); }
 .bar-row .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
 .bar-row.zero .name, .bar-row.zero .count { color: var(--text-3); }
 .track { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; }
-.fill { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 0; }
+.fill { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; }
 .bar-row .count { text-align: right; font-weight: 600; font-size: 13px; }
 
 /* Diet + Gala */
-.stat-line { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 12px; }
-.stat-line div { min-width: 70px; }
-.stat-line b { display: block; font-size: 22px; letter-spacing: -0.01em; }
+.stat-line { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-bottom: 14px; }
+.stat-line b { display: block; font-size: 22px; letter-spacing: -0.01em; font-weight: 700; }
 .stat-line span { color: var(--text-2); font-size: 12.5px; }
 .mini { width: 100%; border-collapse: collapse; font-size: 13px; }
-.mini th { text-align: left; font-weight: 600; color: var(--text-2); font-size: 12px; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border); }
-.mini td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.mini th { text-align: left; font-weight: 600; color: var(--text-2); font-size: 12px; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); }
+.mini td { padding: 7px 8px 7px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
 .mini tr:last-child td { border-bottom: 0; }
-.scroll { max-height: 260px; overflow: auto; }
+.scroll { max-height: 264px; overflow: auto; }
 .muted { color: var(--text-3); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.chip { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
-.chip b { margin-left: 4px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; height: 26px; padding: 0 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
 .flag { color: var(--warn-text); background: var(--warn-bg); border-radius: 4px; padding: 0 4px; }
 
 /* People table */
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-.toolbar input[type=search] { flex: 1 1 240px; min-width: 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
-.toolbar select { padding: 7px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); max-width: 220px; }
+.search { position: relative; flex: 1 1 260px; min-width: 0; }
+.search .icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
+.search input { width: 100%; height: 36px; padding: 0 34px 0 34px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+.search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font: 11px/18px var(--font); padding: 0 6px; border: 1px solid var(--border); border-radius: 4px; color: var(--text-3); background: var(--surface); }
+.toolbar select { height: 36px; padding: 0 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); max-width: 220px; cursor: pointer; }
 .toolbar .count { color: var(--text-2); margin-left: auto; }
-.table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; max-height: 70vh; }
+.table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 10px; max-height: 70vh; }
 table.people { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.people th { position: sticky; top: 0; background: var(--surface-2); text-align: left; font-weight: 600; padding: 8px 10px; white-space: nowrap; border-bottom: 1px solid var(--border); z-index: 1; }
-table.people th button { all: unset; cursor: pointer; }
-table.people th button:focus-visible { outline: 2px solid var(--accent); border-radius: 2px; }
-table.people td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-table.people tbody tr:hover { background: var(--surface-2); }
-.code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: .04em; }
-.empty { padding: 28px; text-align: center; color: var(--text-3); }
+table.people th { position: sticky; top: 0; background: var(--surface-2); text-align: left; font-weight: 600; padding: 0; white-space: nowrap; border-bottom: 1px solid var(--border); z-index: 1; color: var(--text-2); }
+table.people th > span, table.people th button { display: flex; align-items: center; gap: 4px; padding: 9px 10px; }
+table.people th button { width: 100%; border: 0; background: none; font-weight: 600; color: inherit; cursor: pointer; text-align: left; }
+table.people th button:hover { color: var(--text); }
+table.people th[aria-sort="ascending"] button, table.people th[aria-sort="descending"] button { color: var(--text); }
+table.people td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.people tbody tr:last-child td { border-bottom: 0; }
+table.people tbody tr:hover td { background: var(--surface-2); }
+.code-btn { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: .05em; border: 1px dashed var(--border); background: var(--surface); padding: 2px 6px; border-radius: 6px; cursor: copy; display: inline-flex; align-items: center; gap: 4px; }
+.code-btn:hover { border-style: solid; border-color: var(--accent); }
+.code-btn .icon { width: 12px; height: 12px; color: var(--text-3); }
+.new-badge { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--good-soft); color: var(--good); margin-left: 6px; animation: fade-in .4s ease-out; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.empty { padding: 36px 16px; text-align: center; color: var(--text-3); }
+
+/* Skeleton + error states */
+.sk { display: block; border-radius: 6px; background: var(--surface-3); animation: sk 1.4s ease-in-out infinite; }
+@keyframes sk { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+.state-card { max-width: 440px; margin: 64px auto; text-align: center; padding: 32px 24px; }
+.state-card h2 { font-size: 17px; margin: 12px 0 4px; }
+.state-card p { color: var(--text-2); margin: 0 0 18px; }
+.state-card .icon { width: 28px; height: 28px; color: var(--bad); }
+
+/* Toast */
+.toasts { position: fixed; right: 16px; bottom: 16px; display: grid; gap: 8px; z-index: 50; }
+.toast { background: var(--text); color: var(--bg); padding: 10px 14px; border-radius: 10px; box-shadow: var(--shadow-lg); font-size: 13px; max-width: 340px; animation: toast-in .2s ease-out; }
+.toast.out { animation: toast-out .14s ease-in forwards; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(4px); } }
 
 @media (max-width: 1100px) {
   .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
-  .wrap { padding: 16px 16px 40px; }
+  .topbar-inner { padding: 10px 16px; }
+  .topbar .sub { display: none; }
+  .wrap { padding: 16px 16px 48px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .unit-cols { grid-template-columns: 1fr; }
   .kpi .value { font-size: 26px; }
+  .search kbd { display: none; }
+  .toolbar select { flex: 1 1 140px; max-width: none; }
+}
+@media (pointer: coarse) {
+  .btn, .toolbar select, .search input { min-height: 44px; }
+  .icon-btn { width: 44px; }
+  .bar-row { min-height: 40px; }
+  input, select { font-size: 16px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 </style>
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+</svg>
+
 <section class="login" id="login">
-  <form class="login-card" id="loginForm" autocomplete="off">
-    <h1>Theo dõi đăng ký</h1>
-    <p>Hội nghị Tổng kết 2026 · Dành cho Ban Tổ chức</p>
-    <label for="pw">Mật khẩu</label>
-    <input id="pw" type="password" required autofocus>
+  <form class="login-card" id="loginForm" novalidate>
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">2026</div>
+      <div>
+        <h1>Theo dõi đăng ký</h1>
+        <p class="lead">Hội nghị Tổng kết 2026 · Ban Tổ chức</p>
+      </div>
+    </div>
+    <input type="text" name="username" autocomplete="username" value="Ban Tổ chức" hidden>
+    <div class="field">
+      <label for="pw">Mật khẩu</label>
+      <div class="pw-wrap">
+        <input id="pw" name="password" type="password" autocomplete="current-password" required aria-describedby="loginError" autofocus>
+        <button type="button" class="pw-toggle" id="pwToggle" aria-label="Hiện mật khẩu" aria-pressed="false">
+          <svg class="icon" aria-hidden="true"><use href="#i-eye"/></svg>
+        </button>
+      </div>
+      <div class="form-error" id="loginError" role="alert"></div>
+    </div>
     <button class="btn primary" type="submit" id="loginBtn">Đăng nhập</button>
-    <div class="error" id="loginError" role="alert"></div>
+    <p class="login-foot" id="loginFoot">Mật khẩu do Ban Tổ chức cung cấp.</p>
   </form>
 </section>
 
-<main class="wrap" id="app" hidden>
-  <header class="top">
-    <div>
-      <h1>Theo dõi đăng ký — Hội nghị Tổng kết 2026</h1>
-      <div class="sub"><span id="updated">Đang tải…</span> <span class="tag" id="sampleTag" hidden>Dữ liệu mẫu</span></div>
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <h1>Theo dõi đăng ký</h1>
+        <div class="sub">Hội nghị Tổng kết 2026 · 22/12/2026</div>
+      </div>
+      <span class="tag" id="sampleTag" hidden>Dữ liệu mẫu</span>
+      <div class="spacer"></div>
+      <div class="status" id="status" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="statusText">Đang tải…</span></div>
+      <button class="btn icon-btn" id="refreshBtn" type="button" aria-label="Làm mới dữ liệu" title="Làm mới (R)">
+        <svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>
+      </button>
+      <button class="btn ghost" id="logoutBtn" type="button">
+        <svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg><span>Đăng xuất</span>
+      </button>
     </div>
-    <div class="spacer"></div>
-    <button class="btn" id="refreshBtn" type="button">↻ Làm mới</button>
-    <button class="btn" id="logoutBtn" type="button">Đăng xuất</button>
+    <div class="progress" id="progress" aria-hidden="true"></div>
   </header>
 
-  <details class="warnings" id="warnings" hidden>
-    <summary id="warnSummary"></summary>
-    <ul id="warnList"></ul>
-  </details>
+  <main class="wrap" id="main">
+    <section id="errorState" class="card state-card" hidden>
+      <svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>
+      <h2>Không tải được dữ liệu</h2>
+      <p id="errorText"></p>
+      <button class="btn primary" type="button" id="retryBtn">Thử lại</button>
+    </section>
 
-  <section class="kpis" id="kpis"></section>
+    <div id="content">
+      <details class="warnings" id="warnings" hidden>
+        <summary><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg><span id="warnSummary"></span><svg class="icon chev" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+        <ul id="warnList"></ul>
+      </details>
 
-  <section class="grid">
-    <div class="card">
-      <h2>Đăng ký theo đơn vị</h2>
-      <p class="hint">Bấm vào một đơn vị để lọc danh sách bên dưới.</p>
-      <div class="unit-cols">
-        <div><h3><span>Khối / Phòng Công ty</span><span id="companyTotal" class="num"></span></h3><ul class="bars" id="companyBars"></ul></div>
-        <div><h3><span>Chi nhánh</span><span id="branchTotal" class="num"></span></h3><ul class="bars" id="branchBars"></ul>
-          <div id="otherWrap" hidden><h3 style="margin-top:14px"><span>Đơn vị khác</span><span id="otherTotal" class="num"></span></h3><ul class="bars" id="otherBars"></ul></div>
+      <section class="kpis" id="kpis" aria-label="Tổng quan"></section>
+
+      <section class="grid">
+        <div class="card">
+          <div class="card-head"><h2>Đăng ký theo đơn vị</h2><p class="hint">Bấm vào một đơn vị để lọc danh sách</p></div>
+          <div class="unit-cols">
+            <div><h3><span>Khối / Phòng Công ty</span><span id="companyTotal" class="num"></span></h3><ul class="bars" id="companyBars"></ul></div>
+            <div><h3><span>Chi nhánh</span><span id="branchTotal" class="num"></span></h3><ul class="bars" id="branchBars"></ul>
+              <div id="otherWrap" hidden><h3 style="margin-top:16px"><span>Đơn vị khác</span><span id="otherTotal" class="num"></span></h3><ul class="bars" id="otherBars"></ul></div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="stack">
-      <div class="card">
-        <h2>Chế độ ăn</h2>
-        <p class="hint">Danh sách gửi bộ phận ẩm thực.</p>
-        <div class="stat-line" id="dietStats"></div>
-        <div class="scroll"><table class="mini"><thead><tr><th>Họ và tên</th><th>Đơn vị</th><th>Chế độ ăn</th></tr></thead><tbody id="dietList"></tbody></table></div>
-      </div>
-      <div class="card">
-        <h2>Tiết mục văn nghệ Gala</h2>
-        <p class="hint">Đăng ký biểu diễn tại Gala Dinner.</p>
-        <div class="stat-line" id="galaStats"></div>
-        <div class="chips" id="galaTypes"></div>
-        <div class="scroll"><table class="mini"><thead><tr><th>Tiết mục</th><th>Thể loại</th><th class="num">Số người</th><th>Người đăng ký</th></tr></thead><tbody id="galaList"></tbody></table></div>
-      </div>
-    </div>
-  </section>
+        <div class="stack">
+          <div class="card">
+            <div class="card-head"><h2>Chế độ ăn</h2><p class="hint">Gửi bộ phận ẩm thực</p></div>
+            <div class="stat-line" id="dietStats"></div>
+            <div class="scroll"><table class="mini"><thead><tr><th>Họ và tên</th><th>Đơn vị</th><th>Chế độ ăn</th></tr></thead><tbody id="dietList"></tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Tiết mục văn nghệ Gala</h2></div>
+            <div class="stat-line" id="galaStats"></div>
+            <div class="chips" id="galaTypes"></div>
+            <div class="scroll"><table class="mini"><thead><tr><th>Tiết mục</th><th>Thể loại</th><th class="num">Số người</th><th>Người đăng ký</th></tr></thead><tbody id="galaList"></tbody></table></div>
+          </div>
+        </div>
+      </section>
 
-  <section class="card" id="peopleCard">
-    <h2>Danh sách đăng ký</h2>
-    <p class="hint">Mỗi người một dòng (đã gộp các lần gửi trùng, giữ lần gửi mới nhất). Mã check-in dùng tại bàn lễ tân.</p>
-    <div class="toolbar">
-      <input type="search" id="q" placeholder="Tìm tên, chức danh, SĐT, mã…" aria-label="Tìm kiếm">
-      <select id="fGroup" aria-label="Nhóm"><option value="">Tất cả nhóm</option><option value="company">Công ty</option><option value="branch">Chi nhánh</option><option value="other">Đơn vị khác</option></select>
-      <select id="fUnit" aria-label="Đơn vị"><option value="">Tất cả đơn vị</option></select>
-      <select id="fDiet" aria-label="Chế độ ăn"><option value="">Mọi chế độ ăn</option><option value="vegetarian">Ăn chay</option><option value="normal">Bình thường</option><option value="other">Khác</option><option value="blank">Không trả lời</option><option value="unknown">Chưa có thông tin</option></select>
-      <select id="fGala" aria-label="Gala"><option value="">Gala: tất cả</option><option value="yes">Có tiết mục</option><option value="no">Không</option><option value="unknown">Chưa có thông tin</option></select>
-      <button class="btn" id="clearBtn" type="button">Xoá lọc</button>
-      <span class="count num" id="rowCount"></span>
+      <section class="card" id="peopleCard">
+        <div class="card-head"><h2>Danh sách đăng ký</h2><p class="hint">Mỗi người một dòng · bấm mã check-in để chép</p></div>
+        <div class="toolbar">
+          <label class="search">
+            <span class="sr-only">Tìm kiếm</span>
+            <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+            <input type="search" id="q" placeholder="Tìm tên, chức danh, SĐT, mã…" autocomplete="off">
+            <kbd aria-hidden="true">/</kbd>
+          </label>
+          <select id="fGroup" aria-label="Nhóm"><option value="">Tất cả nhóm</option><option value="company">Công ty</option><option value="branch">Chi nhánh</option><option value="other">Đơn vị khác</option></select>
+          <select id="fUnit" aria-label="Đơn vị"><option value="">Tất cả đơn vị</option></select>
+          <select id="fDiet" aria-label="Chế độ ăn"><option value="">Mọi chế độ ăn</option><option value="vegetarian">Ăn chay</option><option value="normal">Bình thường</option><option value="other">Khác</option><option value="blank">Không trả lời</option><option value="unknown">Chưa có thông tin</option></select>
+          <select id="fGala" aria-label="Gala"><option value="">Gala: tất cả</option><option value="yes">Có tiết mục</option><option value="no">Không</option><option value="unknown">Chưa có thông tin</option></select>
+          <button class="btn ghost" id="clearBtn" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Xoá lọc</button>
+          <span class="count num" id="rowCount" aria-live="polite"></span>
+        </div>
+        <div class="table-wrap">
+          <table class="people">
+            <thead><tr id="peopleHead"></tr></thead>
+            <tbody id="peopleBody"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
-    <div class="table-wrap">
-      <table class="people">
-        <thead><tr id="peopleHead"></tr></thead>
-        <tbody id="peopleBody"></tbody>
-      </table>
-    </div>
-  </section>
-</main>
+  </main>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
 (function () {
   'use strict';
+  /* ---------- config ---------- */
   // Data source: Apps Script page (google.script.run), external page (fetch to API_URL), or ?demo=1 sample data.
   var API_URL = 'https://script.google.com/macros/s/AKfycbwi_22ZS7ztl0mTWlh-YoMJduxDmmlqsA6WaztHylVHC8VdLdLyAFl8i9jntCa32UXg/exec';
   var GAS = typeof google !== 'undefined' && google.script && google.script.run;
   var DEMO = !GAS && /[?&]demo=1\b/.test(location.search);
-  var LIVE = !DEMO;
   var PW_KEY = 'hn2026_staff_pw';
-  var REFRESH_MS = 60000;
+  var CACHE_KEY = 'hn2026_staff_cache';
+  var REFRESH_MS = 30000;
+  var TIMEOUT_MS = 30000;
 
   var DIET_LABEL = { vegetarian: 'Ăn chay', normal: 'Bình thường', other: 'Khác', blank: 'Không trả lời', unknown: 'Chưa có thông tin' };
   var GALA_LABEL = { yes: 'Có', no: 'Không', unknown: 'Chưa có thông tin' };
@@ -265,45 +416,65 @@ table.people tbody tr:hover { background: var(--surface-2); }
     { key: 'submittedAt', label: 'Đăng ký lúc' }
   ];
 
-  var state = { data: null, unit: '', sort: 'submittedAt', dir: -1, timer: null, loading: false };
+  var state = {
+    data: null, v: null, at: 0, unit: '', sort: 'submittedAt', dir: -1,
+    timer: null, inflight: null, knownIds: null, newIds: {}, lastError: null
+  };
   var $ = function (id) { return document.getElementById(id); };
 
+  /* ---------- small utils ---------- */
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  function storage(op, val) {
+  function store(key, val) {
     try {
-      if (op === 'get') return sessionStorage.getItem(PW_KEY);
-      if (op === 'set') sessionStorage.setItem(PW_KEY, val);
-      if (op === 'del') sessionStorage.removeItem(PW_KEY);
-    } catch (e) { /* storage blocked */ }
+      if (val === undefined) return sessionStorage.getItem(key);
+      if (val === null) sessionStorage.removeItem(key); else sessionStorage.setItem(key, val);
+    } catch (e) { /* storage blocked: work without it */ }
     return null;
   }
   var memPw = null;
-  function getPw() { return memPw || storage('get'); }
+  function getPw() { return memPw || store(PW_KEY); }
+  function debounce(fn, ms) { var t; return function () { var a = arguments, self = this; clearTimeout(t); t = setTimeout(function () { fn.apply(self, a); }, ms); }; }
+  function icon(name) { return '<svg class="icon" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
 
-  function call(fn, arg) {
+  function toast(msg) {
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    $('toasts').appendChild(el);
+    setTimeout(function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 160); }, 2400);
+  }
+
+  /* ---------- transport ---------- */
+  function call(action, extra) {
+    var body = { action: action };
+    for (var k in extra) body[k] = extra[k];
     return new Promise(function (resolve, reject) {
-      if (DEMO) { setTimeout(function () { resolve(fn === 'verifyPassword' ? true : sampleData()); }, 250); return; }
-      if (GAS) { google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fn](arg); return; }
+      if (DEMO) { setTimeout(function () { resolve(demoApi(body)); }, action === 'ping' ? 50 : 450); return; }
+      if (GAS) { google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).api(body); return; }
       var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 30000);
-      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: fn, password: arg }), signal: ctrl ? ctrl.signal : undefined })
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, TIMEOUT_MS);
+      fetch(API_URL, { method: 'POST', body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined, credentials: 'omit' })
         .then(function (r) {
-          if (!r.ok) throw new Error('Máy chủ trả lỗi ' + r.status + '. Thử lại sau ít phút.');
+          if (!r.ok) throw new ServerError('Máy chủ trả lỗi ' + r.status + '. Thử lại sau ít phút.');
           return r.json();
         })
-        .then(function (j) { if (j.ok) resolve(j.data); else reject(new Error(j.error)); })
+        .then(function (j) { if (j.ok) resolve(j.data); else reject(new ServerError(j.error)); })
         .catch(function (e) {
-          reject(e && /mật khẩu|Máy chủ|Thiếu cột|Chưa/.test(e.message) ? e
-            : new Error('Không kết nối được máy chủ. Kiểm tra mạng và thử lại.'));
+          if (e instanceof ServerError) reject(e);
+          else if (e && e.name === 'AbortError') reject(new Error('Máy chủ phản hồi quá chậm. Kiểm tra mạng và thử lại.'));
+          else reject(new Error('Không kết nối được máy chủ. Kiểm tra mạng và thử lại.'));
         })
         .then(function () { clearTimeout(timer); });
     });
   }
-  function errText(e) { return (e && e.message) ? e.message.replace(/^Exception:\s*/, '') : String(e); }
+  function ServerError(msg) { this.name = 'ServerError'; this.message = msg; }
+  ServerError.prototype = Object.create(Error.prototype);
+  function errText(e) { return (e && e.message) ? String(e.message).replace(/^(Exception|Error):\s*/, '') : String(e); }
+  function isAuthError(msg) { return /mật khẩu/i.test(msg); }
 
   /* ---------- formatting ---------- */
   function shortUnit(u) {
@@ -316,77 +487,145 @@ table.people tbody tr:hover { background: var(--surface-2); }
     var d = new Date(ms);
     return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
-  function fmtPhone(p) {
-    return p && p.length === 10 ? p.slice(0, 4) + ' ' + p.slice(4, 7) + ' ' + p.slice(7) : (p || '');
-  }
+  function fmtClock(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
+  function fmtPhone(p) { return p && p.length === 10 ? p.slice(0, 4) + ' ' + p.slice(4, 7) + ' ' + p.slice(7) : (p || ''); }
   function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
 
+  /* ---------- status ---------- */
+  function setStatus(kind) {
+    var el = $('status');
+    el.className = 'status ' + kind;
+    $('progress').classList.toggle('on', kind === 'loading');
+    $('refreshBtn').querySelector('.icon').classList.toggle('spin', kind === 'loading');
+    if (kind === 'loading') $('statusText').textContent = state.data ? 'Đang cập nhật…' : 'Đang tải…';
+    else if (kind === 'live') $('statusText').textContent = 'Cập nhật lúc ' + fmtClock(state.at);
+    else if (kind === 'error') $('statusText').innerHTML = 'Mất kết nối · dữ liệu lúc ' + fmtClock(state.at) + ' · <button type="button" id="statusRetry">Thử lại</button>';
+  }
+
   /* ---------- login ---------- */
+  $('pwToggle').addEventListener('click', function () {
+    var input = $('pw'), show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    this.setAttribute('aria-pressed', String(show));
+    this.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+    this.innerHTML = icon(show ? 'eye-off' : 'eye');
+    input.focus();
+  });
+  $('pw').addEventListener('input', function () { this.removeAttribute('aria-invalid'); $('loginError').textContent = ''; });
+
   $('loginForm').addEventListener('submit', function (ev) {
     ev.preventDefault();
     var pw = $('pw').value;
-    $('loginBtn').disabled = true;
+    if (!pw) { showLoginError('Vui lòng nhập mật khẩu.'); return; }
+    var btn = $('loginBtn');
+    btn.disabled = true;
+    btn.innerHTML = icon('refresh').replace('class="icon"', 'class="icon spin"') + 'Đang đăng nhập…';
     $('loginError').textContent = '';
-    call('verifyPassword', pw).then(function () {
-      memPw = pw; storage('set', pw);
-      showApp();
+    // One request: checks the password and returns the data.
+    call('dashboard', { password: pw }).then(function (res) {
+      memPw = pw; store(PW_KEY, pw);
+      enterApp();
+      applyResult(res);
     }).catch(function (e) {
-      $('loginError').textContent = errText(e);
-    }).then(function () { $('loginBtn').disabled = false; });
+      showLoginError(errText(e));
+    }).then(function () { btn.disabled = false; btn.textContent = 'Đăng nhập'; });
   });
+  function showLoginError(msg) {
+    $('loginError').innerHTML = icon('alert') + '<span>' + esc(msg) + '</span>';
+    $('pw').setAttribute('aria-invalid', 'true');
+    $('pw').focus(); $('pw').select();
+  }
 
-  function showApp() {
+  function enterApp() {
     $('login').hidden = true;
     $('app').hidden = false;
-    load();
+    $('sampleTag').hidden = !DEMO;
     clearInterval(state.timer);
-    state.timer = setInterval(function () { if (document.visibilityState === 'visible') load(); }, REFRESH_MS);
+    state.timer = setInterval(function () { if (document.visibilityState === 'visible') refresh(); }, REFRESH_MS);
   }
   function logout(msg) {
-    memPw = null; storage('del');
+    memPw = null; store(PW_KEY, null); store(CACHE_KEY, null);
     clearInterval(state.timer);
-    state.data = null;
+    state.data = null; state.v = null; state.knownIds = null; state.newIds = {};
     $('app').hidden = true;
     $('login').hidden = false;
     $('pw').value = '';
-    $('loginError').textContent = msg || '';
-    $('pw').focus();
+    if (msg) showLoginError(msg); else { $('loginError').textContent = ''; $('pw').focus(); }
   }
   $('logoutBtn').addEventListener('click', function () { logout(); });
-  $('refreshBtn').addEventListener('click', function () { load(); });
+  $('refreshBtn').addEventListener('click', function () { refresh(true); });
+  $('retryBtn').addEventListener('click', function () { refresh(true); });
+  document.addEventListener('click', function (ev) { if (ev.target && ev.target.id === 'statusRetry') refresh(true); });
   document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'visible' && state.data && Date.now() - state.data.generatedAt > REFRESH_MS) load();
+    if (document.visibilityState === 'visible' && state.data && Date.now() - state.at > REFRESH_MS) refresh();
   });
 
-  function load() {
-    if (state.loading) return;
-    state.loading = true;
-    $('refreshBtn').disabled = true;
-    $('updated').textContent = state.data ? 'Đang cập nhật…' : 'Đang tải…';
-    call('getDashboardData', getPw()).then(function (data) {
-      state.data = data;
+  /* ---------- data loading ---------- */
+  function refresh(force) {
+    if (state.inflight) return state.inflight;
+    setStatus('loading');
+    if (!state.data) renderSkeleton();
+    state.inflight = call('dashboard', { password: getPw(), v: force ? null : state.v })
+      .then(applyResult)
+      .catch(function (e) {
+        var msg = errText(e);
+        if (isAuthError(msg)) { logout(msg); return; }
+        state.lastError = msg;
+        if (state.data) { setStatus('error'); if (force) toast(msg); }
+        else { $('content').hidden = true; $('errorState').hidden = false; $('errorText').textContent = msg; setStatus('error'); $('statusText').textContent = 'Mất kết nối'; }
+      })
+      .then(function () { state.inflight = null; });
+    return state.inflight;
+  }
+
+  function applyResult(res) {
+    state.at = res.at || Date.now();
+    state.lastError = null;
+    $('errorState').hidden = true;
+    $('content').hidden = false;
+    if (!res.same) {
+      var ids = {}, added = 0;
+      res.data.people.forEach(function (p) { ids[p.id || p.name] = true; });
+      if (state.knownIds) {
+        Object.keys(ids).forEach(function (k) { if (!state.knownIds[k]) { state.newIds[k] = true; added++; } });
+      }
+      state.knownIds = ids;
+      state.data = res.data;
+      state.v = res.v;
+      store(CACHE_KEY, JSON.stringify({ v: res.v, at: state.at, data: res.data }));
       render();
-    }).catch(function (e) {
-      var msg = errText(e);
-      if (/mật khẩu/i.test(msg)) { logout(msg); return; }
-      $('updated').textContent = 'Lỗi tải dữ liệu: ' + msg;
-    }).then(function () { state.loading = false; $('refreshBtn').disabled = false; });
+      if (added) toast(added === 1 ? 'Có 1 người mới đăng ký' : 'Có ' + added + ' người mới đăng ký');
+    }
+    setStatus('live');
   }
 
   /* ---------- render ---------- */
   function render() {
     var d = state.data;
-    var people = d.people;
-    $('sampleTag').hidden = !DEMO;
-    $('updated').textContent = 'Cập nhật lúc ' + new Date(d.generatedAt).toLocaleTimeString('vi-VN') + ' · tự làm mới mỗi phút';
-
     renderWarnings(d);
     renderKpis(d);
     renderUnits(d);
-    renderDiet(people);
-    renderGala(people);
+    renderDiet(d.people);
+    renderGala(d.people);
     renderUnitFilter(d);
     renderTable();
+  }
+
+  function renderSkeleton() {
+    var tile = '<div class="card kpi"><span class="sk" style="width:60%;height:12px"></span><span class="sk" style="width:40%;height:30px;margin:12px 0 8px"></span><span class="sk" style="width:70%;height:10px"></span></div>';
+    $('kpis').innerHTML = tile + tile + tile + tile + tile;
+    var rows = '';
+    for (var i = 0; i < 8; i++) rows += '<li style="display:grid;grid-template-columns:1fr 96px 28px;gap:10px;align-items:center;min-height:30px"><span class="sk" style="height:10px;width:' + (55 + (i * 17) % 35) + '%"></span><span class="sk" style="height:8px"></span><span class="sk" style="height:10px"></span></li>';
+    $('companyBars').innerHTML = rows; $('branchBars').innerHTML = rows;
+    $('companyTotal').textContent = ''; $('branchTotal').textContent = '';
+    $('dietStats').innerHTML = '<span class="sk" style="width:80%;height:36px"></span>';
+    $('galaStats').innerHTML = '<span class="sk" style="width:70%;height:36px"></span>';
+    $('dietList').innerHTML = ''; $('galaList').innerHTML = ''; $('galaTypes').innerHTML = '';
+    renderHead();
+    var tr = '';
+    for (var j = 0; j < 6; j++) tr += '<tr>' + COLUMNS.map(function () { return '<td><span class="sk" style="height:10px;width:70%"></span></td>'; }).join('') + '</tr>';
+    $('peopleBody').innerHTML = tr;
+    $('rowCount').textContent = '';
   }
 
   function renderWarnings(d) {
@@ -419,9 +658,10 @@ table.people tbody tr:hover { background: var(--surface-2); }
     var counts = unitCounts(p);
     var allUnits = d.companyUnits.concat(d.branchUnits);
     var empty = allUnits.filter(function (u) { return !counts[u]; }).length;
+    var fresh = Object.keys(state.newIds).length;
 
     $('kpis').innerHTML =
-      kpi('Đã đăng ký', p.length, '+' + today + ' hôm nay · ' + d.submissions + ' lượt gửi') +
+      kpi('Đã đăng ký', p.length + (fresh ? '<span class="delta" title="Mới kể từ khi mở trang">+' + fresh + ' mới</span>' : ''), '+' + today + ' hôm nay · ' + d.submissions + ' lượt gửi') +
       kpi('Công ty / Chi nhánh', company + ' <small>/ ' + branch + '</small>', 'người') +
       kpi('Ăn chay', veg, (dietOther ? dietOther + ' chế độ khác · ' : '') + unknown + ' chưa có thông tin') +
       kpi('Tiết mục Gala', gala.length, performers + ' người biểu diễn') +
@@ -444,10 +684,10 @@ table.people tbody tr:hover { background: var(--surface-2); }
       var total = rows.reduce(function (s, r) { return s + r.n; }, 0);
       $(totalEl).textContent = total + ' người';
       $(el).innerHTML = rows.map(function (r) {
-        var label = shortUnit(r.u);
-        return '<li><button type="button" class="bar-row' + (r.n ? '' : ' zero') + (state.unit === r.u ? ' active' : '') + '" data-unit="' + esc(r.u) + '" title="' + esc(r.u) + ': ' + r.n + ' người">' +
-          '<span class="name">' + esc(label) + '</span>' +
-          '<span class="track"><span class="fill" style="width:' + (r.n / max * 100).toFixed(1) + '%"></span></span>' +
+        var active = state.unit === r.u;
+        return '<li><button type="button" class="bar-row' + (r.n ? '' : ' zero') + (active ? ' active' : '') + '" data-unit="' + esc(r.u) + '" aria-pressed="' + active + '" title="' + esc(r.u) + ': ' + r.n + ' người">' +
+          '<span class="name">' + esc(shortUnit(r.u)) + '</span>' +
+          '<span class="track" aria-hidden="true"><span class="fill" style="width:' + (r.n / max * 100).toFixed(1) + '%"></span></span>' +
           '<span class="count num">' + r.n + '</span></button></li>';
       }).join('');
     }
@@ -459,13 +699,13 @@ table.people tbody tr:hover { background: var(--surface-2); }
 
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest && ev.target.closest('.bar-row');
-    if (!b) return;
+    if (!b || !state.data) return;
     var u = b.getAttribute('data-unit');
     state.unit = state.unit === u ? '' : u;
     $('fUnit').value = state.unit;
     renderUnits(state.data);
     renderTable();
-    if (state.unit) $('peopleCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (state.unit) $('peopleCard').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   });
 
   function renderDiet(people) {
@@ -514,6 +754,10 @@ table.people tbody tr:hover { background: var(--surface-2); }
     $('fUnit').value = state.unit;
   }
 
+  function filtersActive() {
+    return !!($('q').value.trim() || $('fGroup').value || state.unit || $('fDiet').value || $('fGala').value);
+  }
+
   function filtered() {
     var q = $('q').value.trim().toLowerCase();
     var qDigits = q.replace(/\D/g, '');
@@ -531,15 +775,16 @@ table.people tbody tr:hover { background: var(--surface-2); }
 
   function renderHead() {
     $('peopleHead').innerHTML = COLUMNS.map(function (c) {
-      if (c.sortable === false) return '<th>' + c.label + '</th>';
-      var arrow = state.sort === c.key ? (state.dir > 0 ? ' ▲' : ' ▼') : '';
-      var aria = state.sort === c.key ? (state.dir > 0 ? 'ascending' : 'descending') : 'none';
-      return '<th aria-sort="' + aria + '"><button type="button" data-sort="' + c.key + '">' + c.label + arrow + '</button></th>';
+      if (c.sortable === false) return '<th scope="col"><span>' + c.label + '</span></th>';
+      var on = state.sort === c.key;
+      var arrow = on ? (state.dir > 0 ? ' ↑' : ' ↓') : '';
+      var aria = on ? (state.dir > 0 ? 'ascending' : 'descending') : 'none';
+      return '<th scope="col" aria-sort="' + aria + '"><button type="button" data-sort="' + c.key + '">' + c.label + '<span aria-hidden="true">' + arrow + '</span></button></th>';
     }).join('');
   }
   $('peopleHead').addEventListener('click', function (ev) {
     var b = ev.target.closest('button[data-sort]');
-    if (!b) return;
+    if (!b || !state.data) return;
     var k = b.getAttribute('data-sort');
     if (state.sort === k) state.dir = -state.dir; else { state.sort = k; state.dir = k === 'submittedAt' ? -1 : 1; }
     renderTable();
@@ -547,6 +792,7 @@ table.people tbody tr:hover { background: var(--surface-2); }
 
   function renderTable() {
     renderHead();
+    $('clearBtn').hidden = !filtersActive();
     var rows = filtered();
     var k = state.sort, dir = state.dir;
     rows.sort(function (a, b) {
@@ -555,13 +801,18 @@ table.people tbody tr:hover { background: var(--surface-2); }
       return String(x || '').localeCompare(String(y || ''), 'vi') * dir;
     });
     $('rowCount').textContent = rows.length + ' / ' + state.data.people.length + ' người';
+    if (!state.data.people.length) {
+      $('peopleBody').innerHTML = '<tr><td colspan="' + COLUMNS.length + '" class="empty">Chưa có ai đăng ký.</td></tr>';
+      return;
+    }
     $('peopleBody').innerHTML = rows.length ? rows.map(function (p, i) {
       var gala = p.gala === 'yes' ? 'Có' + (p.galaTitle ? ': ' + esc(p.galaTitle) : '') : '<span class="muted">' + GALA_LABEL[p.gala] + '</span>';
       var diet = p.diet === 'other' ? esc(p.dietOther) : (p.diet === 'blank' || p.diet === 'unknown' ? '<span class="muted">' + DIET_LABEL[p.diet] + '</span>' : DIET_LABEL[p.diet]);
+      var isNew = state.newIds[p.id || p.name];
       return '<tr>' +
         '<td class="num muted">' + (i + 1) + '</td>' +
-        '<td class="code">' + esc(p.id) + '</td>' +
-        '<td>' + esc(p.name) + (p.submissions > 1 ? ' <span class="muted" title="Số lần gửi">×' + p.submissions + '</span>' : '') + '</td>' +
+        '<td>' + (p.id ? '<button type="button" class="code-btn" data-copy="' + esc(p.id) + '" aria-label="Chép mã ' + esc(p.id) + '">' + esc(p.id) + icon('copy') + '</button>' : '<span class="muted">—</span>') + '</td>' +
+        '<td>' + esc(p.name) + (p.submissions > 1 ? ' <span class="muted" title="Số lần gửi">×' + p.submissions + '</span>' : '') + (isNew ? '<span class="new-badge">Mới</span>' : '') + '</td>' +
         '<td>' + esc(p.title) + '</td>' +
         '<td title="' + esc(p.unit) + '">' + esc(shortUnit(p.unit)) + '</td>' +
         '<td>' + esc(p.dept) + '</td>' +
@@ -573,70 +824,100 @@ table.people tbody tr:hover { background: var(--surface-2); }
     }).join('') : '<tr><td colspan="' + COLUMNS.length + '" class="empty">Không có người nào khớp bộ lọc.</td></tr>';
   }
 
-  ['q', 'fGroup', 'fDiet', 'fGala'].forEach(function (id) {
-    $(id).addEventListener('input', function () { if (state.data) renderTable(); });
+  $('peopleBody').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.code-btn');
+    if (!b) return;
+    var code = b.getAttribute('data-copy');
+    var done = function () { toast('Đã chép mã ' + code); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(done, function () { toast('Mã check-in: ' + code); });
+    } else toast('Mã check-in: ' + code);
   });
+
+  var onFilter = debounce(function () { if (state.data) renderTable(); }, 120);
+  $('q').addEventListener('input', onFilter);
+  ['fGroup', 'fDiet', 'fGala'].forEach(function (id) { $(id).addEventListener('change', function () { if (state.data) renderTable(); }); });
   $('fUnit').addEventListener('change', function () { state.unit = this.value; renderUnits(state.data); renderTable(); });
   $('clearBtn').addEventListener('click', function () {
     $('q').value = ''; $('fGroup').value = ''; $('fDiet').value = ''; $('fGala').value = '';
     state.unit = ''; $('fUnit').value = '';
-    renderUnits(state.data); renderTable();
+    renderUnits(state.data); renderTable(); $('q').focus();
   });
 
-  /* ---------- sample data (preview outside Apps Script only) ---------- */
-  var sampleCache = null;
+  document.addEventListener('keydown', function (ev) {
+    if ($('app').hidden || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var typing = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement && document.activeElement.tagName);
+    if (ev.key === '/' && !typing) { ev.preventDefault(); $('q').focus(); }
+    else if ((ev.key === 'r' || ev.key === 'R') && !typing) { ev.preventDefault(); refresh(true); }
+    else if (ev.key === 'Escape' && document.activeElement === $('q') && $('q').value) { $('q').value = ''; renderTable(); }
+  });
+
+  /* ---------- sample data (?demo=1 only) ---------- */
+  var sampleCache = null, demoTick = 0;
+  function demoApi(body) {
+    if (body.action === 'ping') return true;
+    var d = sampleData();
+    var v = 'demo' + d.people.length;
+    if (body.v === v) return { v: v, at: Date.now(), same: true };
+    return { v: v, at: Date.now(), data: JSON.parse(JSON.stringify(d)) };
+  }
   function sampleData() {
-    if (sampleCache) { sampleCache.generatedAt = Date.now(); return sampleCache; }
-    var seed = 7;
-    var rnd = function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-    var pick = function (a) { return a[Math.floor(rnd() * a.length)]; };
-    var company = ['Ban lãnh đạo', 'P. Kinh Doanh Thương Mại Điện Tử', 'P. Cung Ứng Dịch Vụ và Sản Phẩm', 'P. Du Học và Việc Làm Ngoài Nước', 'P. Chăm Sóc Khách Hàng và Quản Lý Chất Lượng', 'Khối Du Lịch Nội Địa', 'Khối Du Lịch Quốc Tế', 'Khối Du Lịch Nước Ngoài', 'P. CN Thông Tin', 'P. Hướng Dẫn Quốc Tế', 'P. Kế Hoạch - PT Kinh Doanh', 'P. Kế Toán', 'P. Nhân sự - Hành Chánh', 'P. Tiếp Thị - Truyền Thông', 'P. Vận Chuyển', 'P. Vé Máy Bay'];
-    var cities = [['STH', 'Hà Nội'], ['STP', 'Hải Phòng'], ['STQ', 'Quảng Ninh'], ['STI', 'Nghệ An'], ['STU', 'Huế'], ['STD', 'Đà Nẵng'], ['STN', 'Nha Trang'], ['STBM', 'Buôn Ma Thuột'], ['STQN', 'Quy Nhơn'], ['STO', 'Đồng Nai'], ['STB', 'Bình Dương'], ['STV', 'Vũng Tàu'], ['STL', 'Long An'], ['STVL', 'Vĩnh Long'], ['STT', 'Tiền Giang'], ['STC', 'Cần Thơ'], ['STA', 'An Giang'], ['STR', 'Rạch Giá']];
-    var branch = cities.map(function (c) { return c[0] + ' - Saigontourist Travel ' + c[1]; });
-    var ho = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Huỳnh'];
-    var dem = ['Văn', 'Thị', 'Minh', 'Thanh', 'Ngọc', 'Hữu', 'Quốc', 'Thu'];
-    var ten = ['An', 'Bình', 'Châu', 'Dũng', 'Hà', 'Hải', 'Hương', 'Khoa', 'Lan', 'Long', 'Mai', 'Nam', 'Phúc', 'Quân', 'Tâm', 'Trang', 'Tuấn', 'Vy'];
-    var titles = ['Trưởng phòng', 'Phó phòng', 'Giám đốc Chi nhánh', 'Phó Giám đốc', 'Chuyên viên', 'Trưởng bộ phận'];
-    var types = ['Hát', 'Hát', 'Múa', 'Nhạc cụ', 'Kịch/Tiểu phẩm'];
-    var people = [], now = Date.now();
-    for (var i = 0; i < 96; i++) {
-      var isBranch = rnd() < 0.42;
-      var unit = isBranch ? pick(branch.slice(0, 15)) : pick(company.slice(0, 14));
-      var early = i > 84;
-      var gala = early ? 'unknown' : (rnd() < 0.1 ? 'yes' : 'no');
-      var r = rnd();
-      var diet = early ? 'unknown' : r < 0.09 ? 'vegetarian' : r < 0.12 ? 'other' : r < 0.2 ? 'blank' : 'normal';
-      var code = '';
-      for (var j = 0; j < 6; j++) code += 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'.charAt(Math.floor(rnd() * 32));
-      people.push({
-        id: code, name: pick(ho) + ' ' + pick(dem) + ' ' + pick(ten), title: pick(titles),
-        gender: rnd() < 0.5 ? 'Nam' : 'Nữ', phone: '09' + String(10000000 + Math.floor(rnd() * 89999999)),
-        unit: unit, group: isBranch ? 'branch' : 'company', dept: '', travel: '', hasProfile: !early,
-        diet: diet, dietOther: diet === 'other' ? pick(['Không ăn hải sản', 'Chay ngày rằm', 'Dị ứng đậu phộng']) : '',
-        gala: gala, galaTitle: gala === 'yes' ? pick(['Việt Nam ơi', 'Hành trình mới', 'Sắc màu Saigontourist', 'Tình ca du lịch']) : '',
-        galaType: gala === 'yes' ? pick(types) : '', galaPerformers: gala === 'yes' ? 1 + Math.floor(rnd() * 8) : null,
-        submittedAt: now - Math.floor(rnd() * 6 * 86400000), submissions: rnd() < 0.05 ? 2 : 1
-      });
+    if (sampleCache) {
+      if (++demoTick % 2 === 0) addSamplePerson(sampleCache.people, Date.now());
+      return sampleCache;
     }
+    var people = [], now = Date.now();
+    for (var i = 0; i < 96; i++) addSamplePerson(people, now - Math.floor(rnd() * 6 * 86400000), i > 84);
     people.sort(function (a, b) { return b.submittedAt - a.submittedAt; });
     sampleCache = {
-      people: people, submissions: people.length + 4, generatedAt: Date.now(),
-      companyUnits: company, branchUnits: branch,
+      people: people, submissions: people.length + 4,
+      companyUnits: S_COMPANY, branchUnits: S_BRANCH,
       warnings: { duplicatesRemoved: 4, sharedPhones: [{ phone: people[3].phone, names: [people[3].name, 'Trần Thu Hà'] }], missingProfile: 11, unknownUnits: [] }
     };
     return sampleCache;
   }
+  var seed = 7;
+  function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+  function pick(a) { return a[Math.floor(rnd() * a.length)]; }
+  var S_COMPANY = ['Ban lãnh đạo', 'P. Kinh Doanh Thương Mại Điện Tử', 'P. Cung Ứng Dịch Vụ và Sản Phẩm', 'P. Du Học và Việc Làm Ngoài Nước', 'P. Chăm Sóc Khách Hàng và Quản Lý Chất Lượng', 'Khối Du Lịch Nội Địa', 'Khối Du Lịch Quốc Tế', 'Khối Du Lịch Nước Ngoài', 'P. CN Thông Tin', 'P. Hướng Dẫn Quốc Tế', 'P. Kế Hoạch - PT Kinh Doanh', 'P. Kế Toán', 'P. Nhân sự - Hành Chánh', 'P. Tiếp Thị - Truyền Thông', 'P. Vận Chuyển', 'P. Vé Máy Bay'];
+  var S_BRANCH = [['STH', 'Hà Nội'], ['STP', 'Hải Phòng'], ['STQ', 'Quảng Ninh'], ['STI', 'Nghệ An'], ['STU', 'Huế'], ['STD', 'Đà Nẵng'], ['STN', 'Nha Trang'], ['STBM', 'Buôn Ma Thuột'], ['STQN', 'Quy Nhơn'], ['STO', 'Đồng Nai'], ['STB', 'Bình Dương'], ['STV', 'Vũng Tàu'], ['STL', 'Long An'], ['STVL', 'Vĩnh Long'], ['STT', 'Tiền Giang'], ['STC', 'Cần Thơ'], ['STA', 'An Giang'], ['STR', 'Rạch Giá']].map(function (c) { return c[0] + ' - Saigontourist Travel ' + c[1]; });
+  function addSamplePerson(people, ts, early) {
+    var isBranch = rnd() < 0.42;
+    var gala = early ? 'unknown' : (rnd() < 0.1 ? 'yes' : 'no');
+    var r = rnd();
+    var diet = early ? 'unknown' : r < 0.09 ? 'vegetarian' : r < 0.12 ? 'other' : r < 0.2 ? 'blank' : 'normal';
+    var code = '';
+    for (var j = 0; j < 6; j++) code += 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'.charAt(Math.floor(rnd() * 32));
+    people.unshift({
+      id: code, name: pick(['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Huỳnh']) + ' ' + pick(['Văn', 'Thị', 'Minh', 'Thanh', 'Ngọc', 'Hữu', 'Quốc', 'Thu']) + ' ' + pick(['An', 'Bình', 'Châu', 'Dũng', 'Hà', 'Hải', 'Hương', 'Khoa', 'Lan', 'Long', 'Mai', 'Nam', 'Phúc', 'Quân', 'Tâm', 'Trang', 'Tuấn', 'Vy']),
+      title: pick(['Trưởng phòng', 'Phó phòng', 'Giám đốc Chi nhánh', 'Phó Giám đốc', 'Chuyên viên', 'Trưởng bộ phận']),
+      gender: rnd() < 0.5 ? 'Nam' : 'Nữ', phone: '09' + String(10000000 + Math.floor(rnd() * 89999999)),
+      unit: isBranch ? pick(S_BRANCH.slice(0, 15)) : pick(S_COMPANY.slice(0, 14)), group: isBranch ? 'branch' : 'company', dept: '', travel: '', hasProfile: !early,
+      diet: diet, dietOther: diet === 'other' ? pick(['Không ăn hải sản', 'Chay ngày rằm', 'Dị ứng đậu phộng']) : '',
+      gala: gala, galaTitle: gala === 'yes' ? pick(['Việt Nam ơi', 'Hành trình mới', 'Sắc màu Saigontourist', 'Tình ca du lịch']) : '',
+      galaType: gala === 'yes' ? pick(['Hát', 'Hát', 'Múa', 'Nhạc cụ', 'Kịch/Tiểu phẩm']) : '', galaPerformers: gala === 'yes' ? 1 + Math.floor(rnd() * 8) : null,
+      submittedAt: ts, submissions: rnd() < 0.05 ? 2 : 1
+    });
+  }
 
   /* ---------- start ---------- */
-  if (DEMO) {
-    var hint = document.createElement('p');
-    hint.className = 'muted';
-    hint.style.margin = '12px 0 0';
-    hint.textContent = 'Bản xem thử: nhập mật khẩu bất kỳ để xem dữ liệu mẫu.';
-    $('loginForm').appendChild(hint);
-  }
-  if (getPw()) {
-    call('verifyPassword', getPw()).then(showApp).catch(function () { logout(); });
+  if (DEMO) { memPw = 'demo'; } // sample data only: no login needed
+  var savedPw = getPw();
+  if (savedPw) {
+    // Returning in the same tab session: show the last data instantly, then update in the background.
+    var cached = null;
+    try { cached = JSON.parse(store(CACHE_KEY) || 'null'); } catch (e) { cached = null; }
+    enterApp();
+    if (cached && cached.data) {
+      state.data = cached.data; state.v = cached.v; state.at = cached.at;
+      state.knownIds = {};
+      cached.data.people.forEach(function (p) { state.knownIds[p.id || p.name] = true; });
+      render();
+    }
+    refresh();
+  } else {
+    // Wake the server while the user types the password, so login is faster.
+    call('ping', {}).catch(function () {});
   }
 })();
 </script>
