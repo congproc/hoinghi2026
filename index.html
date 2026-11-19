@@ -203,12 +203,12 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
     <section class="view" id="vCode" hidden>
       <span class="mode-tag" style="color:var(--accent)">Chế độ lễ tân</span>
       <h2 style="margin-top:6px">Check-in bằng mã</h2>
-      <p class="lead">Nhập mã check-in 6 ký tự của đại biểu (xem trên trang Theo dõi đăng ký).</p>
+      <p class="lead">Nhập mã check-in 6 ký tự của người cần check-in (xem trên trang Theo dõi đăng ký).</p>
       <form id="codeForm" novalidate>
         <label class="field-label" for="code">Mã check-in</label>
         <input class="big-input code" id="code" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="6" placeholder="ABC123" aria-describedby="codeErr">
         <div class="err" id="codeErr" role="alert"></div>
-        <button class="btn primary stack-gap" type="submit" id="codeBtn">Tìm đại biểu <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <button class="btn primary stack-gap" type="submit" id="codeBtn">Tìm người đăng ký <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
       </form>
     </section>
 
@@ -222,7 +222,7 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
 
     <!-- 3. Confirm -->
     <section class="view" id="vConfirm" hidden>
-      <h2>Đúng là Anh/Chị?</h2>
+      <h2 id="confirmTitle">Đúng là Anh/Chị?</h2>
       <p class="lead">Kiểm tra thông tin rồi bấm xác nhận.</p>
       <div class="person" id="confirmPerson"></div>
       <div class="err" id="confirmErr" role="alert"></div>
@@ -315,32 +315,59 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
     if (focusEl && id !== 'vPhone' && id !== 'vCode') setTimeout(function () { focusEl.focus({ preventScroll: true }); }, 50);
   }
 
-  /* ---------- transport ---------- */
-  function call(action, extra) {
-    var body = { action: action };
-    for (var k in extra) body[k] = extra[k];
-    if (DEMO) return demoApi(body);
+  /* ---------- transport (automatic retry) ---------- */
+  // Retried quietly: network drops, timeouts, Google "too many requests" pages and "busy" replies.
+  // Safe for check-in because the server records each person only once.
+  var RETRY_DELAYS = [700, 1600, 3200];
+  var retryHook = null;
+  function isBusy(msg) { return /bận|busy|too many|simultaneous|quá nhiều/i.test(msg || ''); }
+  function once(body) {
     return new Promise(function (resolve, reject) {
       var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
       var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, TIMEOUT_MS);
       fetch(API_URL, { method: 'POST', body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined, credentials: 'omit' })
-        .then(function (r) { if (!r.ok) throw { server: 'Máy chủ đang bận (' + r.status + '). Vui lòng thử lại.' }; return r.json(); })
-        .then(function (j) { if (j.ok) resolve(j.data); else reject(new Error(j.error)); })
+        .then(function (r) {
+          if (!r.ok) throw { retry: true, msg: 'Máy chủ đang bận (' + r.status + '). Vui lòng thử lại.' };
+          return r.json().catch(function () { throw { retry: true, msg: 'Máy chủ đang bận. Vui lòng thử lại.' }; });
+        })
+        .then(function (j) {
+          if (j.ok) return resolve(j.data);
+          var m = String(j.error || '');
+          reject({ retry: isBusy(m), msg: m, server: true });
+        })
         .catch(function (e) {
-          if (e instanceof Error) reject(e);
-          else if (e && e.server) reject(new Error(e.server));
-          else reject(new Error('Mạng chập chờn, chưa kết nối được. Vui lòng thử lại.'));
+          if (e && (e.server || e.retry)) reject(e);
+          else reject({ retry: true, msg: 'Mạng chập chờn, chưa kết nối được. Vui lòng thử lại.' });
         })
         .then(function () { clearTimeout(timer); });
     });
   }
+  function call(action, extra) {
+    var body = { action: action };
+    for (var k in extra) body[k] = extra[k];
+    if (DEMO) return demoApi(body);
+    function attempt(n) {
+      return once(body).catch(function (e) {
+        if (e && e.retry && n < RETRY_DELAYS.length) {
+          if (retryHook) retryHook(n + 1);
+          var wait = RETRY_DELAYS[n] + Math.floor(Math.random() * 400); // jitter so a crowd does not retry in lockstep
+          return new Promise(function (res) { setTimeout(res, wait); }).then(function () { return attempt(n + 1); });
+        }
+        throw new Error((e && e.msg) || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      });
+    }
+    return attempt(0);
+  }
+  // "Anh" for Nam, "Chị" for Nữ, otherwise "Anh/Chị" (capitalised as a sign of respect).
+  function addr(g) { g = String(g || '').trim().toLowerCase(); return g === 'nam' ? 'Anh' : (g === 'nữ' || g === 'nu' ? 'Chị' : 'Anh/Chị'); }
+  function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
   function cleanErr(e) { return String((e && e.message) || e).replace(/^(Exception|Error):\s*/, ''); }
 
   /* ---------- mode ---------- */
   function setMode(mode) {
     state.mode = mode;
     var reception = mode === 'code';
-    $('modeBtn').textContent = reception ? 'Đại biểu tự check-in' : 'Lễ tân';
+    $('modeBtn').textContent = reception ? 'Tự check-in' : 'Lễ tân';
     $('modeLabel').innerHTML = reception ? '<span class="mode-tag">● Chế độ lễ tân</span>' : 'Cần hỗ trợ? Gặp bàn lễ tân.';
     if (history.replaceState) history.replaceState(null, '', location.pathname + location.search + (reception ? '#le-tan' : ''));
     restart();
@@ -414,6 +441,7 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
     state.picked = p;
     if (p.checkedInAt) return showDone(p, p.checkedInAt, true);
     $('confirmPerson').innerHTML = personHtml(p);
+    $('confirmTitle').textContent = 'Đúng là ' + addr(p.gender) + '?';
     $('confirmErr').textContent = '';
     show('vConfirm');
   }
@@ -451,14 +479,14 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
     call('lookupCode', { code: c }).then(function (res) {
       if (!res.match) {
         $('code').setAttribute('aria-invalid', 'true');
-        $('codeErr').innerHTML = errHtml('Không có đại biểu nào với mã ' + c + '. Kiểm tra lại các ký tự dễ nhầm (ví dụ 8 và B).');
+        $('codeErr').innerHTML = errHtml('Không có người đăng ký nào với mã ' + c + '. Kiểm tra lại các ký tự dễ nhầm (ví dụ 8 và B).');
         $('code').select();
         return;
       }
       pick(res.match);
     }).catch(function (e) {
       $('codeErr').innerHTML = errHtml(cleanErr(e));
-    }).then(function () { idle($('codeBtn'), 'Tìm đại biểu ' + arrow); });
+    }).then(function () { idle($('codeBtn'), 'Tìm người đăng ký ' + arrow); });
   });
 
   /* ---------- result views ---------- */
@@ -466,9 +494,10 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
     $('doneName').textContent = p.name;
     $('doneMeta').textContent = [p.title, shortUnit(p.unit)].filter(Boolean).join(' · ');
     $('doneIcon').className = 'check' + (already ? ' info' : '');
-    $('doneLabel').textContent = already ? 'Anh/Chị đã check-in rồi' : 'Check-in thành công';
+    var who = addr(p.gender);
+    $('doneLabel').textContent = already ? cap(who) + ' đã check-in rồi' : 'Chào mừng ' + who;
     $('donePill').className = 'time-pill' + (already ? ' info' : '');
-    $('doneTime').textContent = (already ? 'Đã check-in lúc ' : 'Lúc ') + fmtTime(at);
+    $('doneTime').textContent = (already ? 'Đã check-in lúc ' : 'Check-in thành công lúc ') + fmtTime(at);
     $('againBtn').textContent = state.mode === 'code' ? 'Check-in mã khác' : 'Check-in cho người khác';
     show('vDone');
     if (!already) {
@@ -481,8 +510,11 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
     show('vNotFound');
   }
 
-  function busy(btn, label) { state.busy = true; btn.disabled = true; btn.innerHTML = spinner + label; }
-  function idle(btn, html) { state.busy = false; btn.disabled = false; btn.innerHTML = html; }
+  function busy(btn, label) {
+    state.busy = true; btn.disabled = true; btn.innerHTML = spinner + label;
+    retryHook = function (n) { btn.innerHTML = spinner + 'Đang kết nối lại… (' + n + ')'; };
+  }
+  function idle(btn, html) { state.busy = false; btn.disabled = false; btn.innerHTML = html; retryHook = null; }
 
   /* ---------- confetti ---------- */
   var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -524,14 +556,14 @@ label.field-label { display: block; font-weight: 600; font-size: 14px; margin-bo
   /* ---------- demo (?demo=1) ---------- */
   var demoDone = {};
   var DEMO_PEOPLE = [
-    { phone: '0912345678', code: 'ABC234', name: 'Nguyễn Thị Minh Anh', title: 'Trưởng phòng', unit: 'P. Tiếp Thị - Truyền Thông', group: 'company' },
-    { phone: '0988888888', code: 'XYZ789', name: 'Trần Quốc Bảo', title: 'Giám đốc Chi nhánh', unit: 'STD - Saigontourist Travel Đà Nẵng', group: 'branch' },
-    { phone: '0988888888', code: 'KLM456', name: 'Trần Thu Hà', title: 'Chuyên viên', unit: 'STD - Saigontourist Travel Đà Nẵng', group: 'branch' }
+    { phone: '0912345678', code: 'ABC234', gender: 'Nữ', name: 'Nguyễn Thị Minh Anh', title: 'Trưởng phòng', unit: 'P. Tiếp Thị - Truyền Thông', group: 'company' },
+    { phone: '0988888888', code: 'XYZ789', gender: 'Nam', name: 'Trần Quốc Bảo', title: 'Giám đốc Chi nhánh', unit: 'STD - Saigontourist Travel Đà Nẵng', group: 'branch' },
+    { phone: '0988888888', code: 'KLM456', gender: 'Nữ', name: 'Trần Thu Hà', title: 'Chuyên viên', unit: 'STD - Saigontourist Travel Đà Nẵng', group: 'branch' }
   ];
   function demoApi(b) {
     return new Promise(function (resolve, reject) {
       setTimeout(function () {
-        var withState = function (p, i) { return { ref: i, name: p.name, title: p.title, unit: p.unit, group: p.group, checkedInAt: demoDone[p.code] || null }; };
+        var withState = function (p, i) { return { ref: i, name: p.name, title: p.title, gender: p.gender, unit: p.unit, group: p.group, checkedInAt: demoDone[p.code] || null }; };
         if (b.action === 'ping') return resolve(true);
         if (b.action === 'lookup') return resolve({ matches: DEMO_PEOPLE.filter(function (p) { return p.phone === b.phone; }).map(withState) });
         if (b.action === 'lookupCode') { var m = DEMO_PEOPLE.filter(function (p) { return p.code === b.code; })[0]; return resolve({ match: m ? withState(m, 0) : null }); }

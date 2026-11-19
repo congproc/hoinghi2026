@@ -238,7 +238,7 @@ body.idle-cursor .ctl { opacity: 0; }
   <main class="main">
     <section class="panel spot" aria-live="polite" aria-atomic="true">
       <div class="glow" aria-hidden="true"></div>
-      <div class="tag"><span>Chào mừng đại biểu</span><span class="r" id="spotTag">chế độ chờ</span></div>
+      <div class="tag"><span id="spotLabel">Chào mừng Quý Anh Chị</span><span class="r" id="spotTag">chế độ chờ</span></div>
       <div class="spot-body" id="spotInner"></div>
       <div class="spot-foot"><span id="spotFoot"></span><span class="q" id="queueNote" hidden></span></div>
       <div class="cb" aria-hidden="true"></div>
@@ -327,6 +327,8 @@ body.idle-cursor .ctl { opacity: 0; }
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
+  // "Anh" for Nam, "Chị" for Nữ, otherwise "Anh/Chị" (capitalised as a sign of respect).
+  function addr(g) { g = String(g || '').trim().toLowerCase(); return g === 'nam' ? 'Anh' : (g === 'nữ' || g === 'nu' ? 'Chị' : 'Anh/Chị'); }
   function pad(n, w) { n = String(n); while (n.length < (w || 2)) n = '0' + n; return n; }
   function hhmm(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
   function hhmmss(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
@@ -469,7 +471,7 @@ body.idle-cursor .ctl { opacity: 0; }
   function buildGuest(el, a, n) {
     enter(el);
     el.innerHTML =
-      '<div class="kicker">Chào mừng</div>' +
+      '<div class="kicker">Chào mừng ' + esc(addr(a.gender)) + '</div>' +
       '<div class="guest-name">' + esc(a.name) + '</div>' +
       (a.title ? '<p class="guest-title">' + esc(a.title) + '</p>' : '') +
       '<div class="readout">' +
@@ -477,6 +479,7 @@ body.idle-cursor .ctl { opacity: 0; }
         '<div class="cell ' + esc(a.group) + '"><div class="k">Giờ vào</div><div class="v mono">' + hhmmss(a.at) + '</div></div>' +
         '<div class="cell ' + esc(a.group) + '"><div class="k">Thứ tự</div><div class="v mono">#' + pad(n, 3) + '</div></div>' +
       '</div>';
+    $('spotLabel').textContent = 'Chào mừng ' + addr(a.gender);
     $('spotTag').textContent = 'check-in #' + pad(n, 3);
     $('spotFoot').textContent = 'Nhận diện: ' + (a.group === 'branch' ? 'chi nhánh' : 'công ty');
     burst();
@@ -488,10 +491,11 @@ body.idle-cursor .ctl { opacity: 0; }
     enter(el);
     el.innerHTML =
       '<div class="kicker">Chào mừng</div>' +
-      '<div class="guest-name idle-name">Quý đại biểu</div>' +
+      '<div class="guest-name idle-name">Quý Anh Chị</div>' +
       '<p class="guest-title">đến với Hội nghị Tổng kết 2026</p>' +
       '<div class="readout"><div class="cell"><div class="k">Thời gian</div><div class="v mono">13:00 · 22/12/2026</div></div>' +
       '<div class="cell branch"><div class="k">Trạng thái</div><div class="v mono">đang chờ check-in<span class="cursor"></span></div></div></div>';
+    $('spotLabel').textContent = 'Chào mừng Quý Anh Chị';
     $('spotTag').textContent = 'chế độ chờ';
     $('spotFoot').textContent = '';
   }
@@ -526,7 +530,7 @@ body.idle-cursor .ctl { opacity: 0; }
     $('ofTotal').textContent = '/ ' + t.registered;
     $('pct').textContent = Math.round(p * 100) + '%';
     var remain = Math.max(t.registered - arrived, 0);
-    var rtxt = remain ? remain + ' đại biểu' : 'Đã đủ';
+    var rtxt = remain ? remain + ' người' : 'Đã đủ';
     if ($('remain').textContent !== rtxt && !reduceMotion && $('remain').textContent !== '—') { var rm = $('remain'); rm.classList.remove('pop'); void rm.offsetWidth; rm.classList.add('pop'); }
     $('remain').textContent = rtxt;
     $('gCompany').textContent = t.arrivedCompany + ' / ' + t.registeredCompany;
@@ -554,7 +558,7 @@ body.idle-cursor .ctl { opacity: 0; }
     var before = {};
     Array.prototype.forEach.call(ul.children, function (li) { if (li.dataset.n) before[li.dataset.n] = li.getBoundingClientRect().top; });
     var firstRender = !Object.keys(before).length;
-    if (!state.feed.length) { ul.innerHTML = '<li class="none" style="display:block">chưa có đại biểu check-in</li>'; $('feedCount').textContent = ''; return; }
+    if (!state.feed.length) { ul.innerHTML = '<li class="none" style="display:block">chưa có ai check-in</li>'; $('feedCount').textContent = ''; return; }
     ul.innerHTML = state.feed.map(function (it, i) {
       var a = it.a, isNew = !firstRender && !(String(it.n) in before);
       var anim = firstRender ? 'animation-delay:' + (.55 + i * .07) + 's' : (isNew ? '' : 'animation:none');
@@ -652,7 +656,7 @@ body.idle-cursor .ctl { opacity: 0; }
   var FT = ['Trưởng phòng', 'Phó phòng', 'Giám đốc Chi nhánh', 'Phó Giám đốc', 'Chuyên viên', 'Trưởng bộ phận'];
   var FU = ['P. Tiếp Thị - Truyền Thông', 'Khối Du Lịch Nội Địa', 'P. Kế Toán', 'STD - Saigontourist Travel Đà Nẵng', 'STH - Saigontourist Travel Hà Nội', 'STN - Saigontourist Travel Nha Trang', 'P. Vé Máy Bay'];
   function r(a) { return a[Math.floor(Math.random() * a.length)]; }
-  function fakeArrival(at) { var u = r(FU); return { at: at, name: r(FH) + ' ' + r(FM) + ' ' + r(FN), title: r(FT), unit: u, group: /^ST/.test(u) ? 'branch' : 'company' }; }
+  function fakeArrival(at) { var u = r(FU); var g = Math.random() < 0.5 ? 'Nam' : 'Nữ'; return { at: at, gender: g, name: r(FH) + ' ' + r(FM) + ' ' + r(FN), title: r(FT), unit: u, group: /^ST/.test(u) ? 'branch' : 'company' }; }
 
   /* ---------- start ---------- */
   showIdle(); renderFeed(); setConn(true); $('sysConn').textContent = '● đang tải';
