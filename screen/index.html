@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-x2">
+<meta name="build" content="2026-11-19-x3">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -489,6 +489,7 @@ body.idle-cursor .ctl { opacity: 0; }
   var unitArr = {}, unitTotals = {};
   // Which greeting details to show (URL: ?show=first,years,bday,act,word ; the guest's own word is OFF unless you add 'word').
   var SHOW = {}; (new URLSearchParams(location.search).get('show') || 'first,years,bday,act').split(',').forEach(function (k) { SHOW[k.trim()] = true; });
+  if (DEMO) window.__hn = { get unitTotals() { return unitTotals; }, get unitArr() { return unitArr; }, get SHOW() { return SHOW; } }; // test hook (demo only)
   var evAt = 0, chk = {}, meta = { total: 0, company: 0, branch: 0 }, es = null, lastEvent = 0;
   var seen = {}, baselined = false;
   function pushUpdate() {
