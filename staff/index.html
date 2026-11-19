@@ -398,6 +398,7 @@ dialog .ack input { margin-top: 3px; }
           <select id="fDiet" aria-label="Chế độ ăn"><option value="">Mọi chế độ ăn</option><option value="vegetarian">Ăn chay</option><option value="normal">Bình thường</option><option value="other">Khác</option><option value="blank">Không trả lời</option><option value="unknown">Chưa có thông tin</option></select>
           <select id="fGala" aria-label="Gala"><option value="">Gala: tất cả</option><option value="yes">Có tiết mục</option><option value="no">Không</option><option value="unknown">Chưa có thông tin</option></select>
           <button class="btn ghost" id="clearBtn" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Xoá lọc</button>
+          <button class="btn ghost" id="csvBtn" type="button" title="Tải danh sách check-in (CSV)">Tải CSV</button>
           <span class="count num" id="rowCount" aria-live="polite"></span>
         </div>
         <div class="table-wrap">
@@ -589,6 +590,7 @@ dialog .ack input { margin-top: 3px; }
     $('sampleTag').hidden = !DEMO;
     clearInterval(state.timer);
     state.timer = setInterval(function () { if (document.visibilityState === 'visible') refresh(); }, REFRESH_MS);
+    fbConnect();
   }
   function logout(msg) {
     memPw = null; store(PW_KEY, null); store(CACHE_KEY, null);
@@ -605,6 +607,67 @@ dialog .ack input { margin-top: 3px; }
   document.addEventListener('click', function (ev) { if (ev.target && ev.target.id === 'statusRetry') refresh(true); });
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible' && state.data && Date.now() - state.at > REFRESH_MS) refresh();
+  });
+
+
+  /* ---------- live check-ins (Firebase) ---------- */
+  var FB_URL = 'https://hoinghi2026-5a68e-default-rtdb.asia-southeast1.firebasedatabase.app';
+  var fbMap = {}, fbSrc = null, fbTimer = null, fbLast = 0;
+  // Check-ins live in Firebase; every registered person gets checkedInAt (ms) or null from there.
+  function overlayCheckins(d) {
+    if (!d || DEMO) return;
+    var n = 0;
+    d.people.forEach(function (p) {
+      var c = p.id ? fbMap[p.id] : null;
+      p.checkedInAt = c ? c.t : null; p.checkedVia = c ? c.via : '';
+      if (c) n++;
+    });
+    d.checkedIn = n;
+  }
+  function fbChanged() {
+    clearTimeout(fbTimer);
+    fbTimer = setTimeout(function () {
+      if (!state.data) return;
+      overlayCheckins(state.data); render();
+    }, 120);
+  }
+  function fbConnect() {
+    if (DEMO || typeof EventSource === 'undefined') return;
+    if (fbSrc) { try { fbSrc.close(); } catch (e) {} }
+    fbSrc = new EventSource(FB_URL + '/checkins.json');
+    var onData = function (ev) {
+      fbLast = Date.now();
+      var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+      if (!d) return;
+      var path = d.path || '/';
+      if (ev.type === 'put') {
+        if (path === '/') fbMap = d.data || {};
+        else if (path.split('/').length === 2) { var id = path.split('/')[1]; if (d.data) fbMap[id] = d.data; else delete fbMap[id]; }
+      } else {
+        Object.keys(d.data || {}).forEach(function (k) { if (d.data[k]) fbMap[k] = d.data[k]; else delete fbMap[k]; });
+      }
+      fbChanged();
+    };
+    fbSrc.addEventListener('put', onData);
+    fbSrc.addEventListener('patch', onData);
+    fbSrc.addEventListener('keep-alive', function () { fbLast = Date.now(); });
+  }
+  setInterval(function () { if (!DEMO && fbSrc && Date.now() - fbLast > 70000) fbConnect(); }, 15000);
+
+  function csvCell(v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function stamp(ms) { var d = new Date(ms); return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
+  $('csvBtn').addEventListener('click', function () {
+    if (!state.data) return;
+    var rows = [['Mã check-in', 'Họ và tên', 'Chức danh', 'Đơn vị', 'Nhóm', 'SĐT', 'Check-in lúc', 'Hình thức']];
+    state.data.people.slice().sort(function (a, b) { return (a.checkedInAt || 9e15) - (b.checkedInAt || 9e15) || String(a.name).localeCompare(b.name, 'vi'); })
+      .forEach(function (p) { rows.push([p.id, p.name, p.title, p.unit, p.group, "'" + p.phone, p.checkedInAt ? stamp(p.checkedInAt) : 'Chưa check-in', p.checkedVia || '']); });
+    var csv = '\ufeff' + rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'check-in-hoi-nghi-2026.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('Đã tải danh sách check-in');
   });
 
   /* ---------- data loading ---------- */
@@ -637,6 +700,7 @@ dialog .ack input { margin-top: 3px; }
         Object.keys(ids).forEach(function (k) { if (!state.knownIds[k]) { state.newIds[k] = true; added++; } });
       }
       state.knownIds = ids;
+      overlayCheckins(res.data);
       state.data = res.data;
       state.v = res.v;
       store(CACHE_KEY, JSON.stringify({ v: res.v, at: state.at, data: res.data }));
