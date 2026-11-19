@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-ui6">
+<meta name="build" content="2026-11-19-ui7">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -264,6 +264,12 @@ body.idle-cursor .ctl { opacity: 0; }
 .bottom .bad { color: var(--bad); }
 .bottom .sep { opacity: .5; }
 @media (max-width: 1000px) { .main { grid-template-columns: 1fr; } .portrait { height: min(30vh, 38vw); } .gwrap { gap: 4vw; } }
+
+/* ---------- one-line names ---------- */
+.main { grid-template-columns: minmax(0, 1fr) clamp(300px, 25vw, 640px); }
+.guest-name { white-space: nowrap; text-wrap: nowrap; overflow-wrap: normal; }
+.guest-name.wrap { white-space: normal; text-wrap: balance; overflow-wrap: anywhere; } /* last resort for extreme names */
+.portrait { height: min(54vh, 30vw); }
 </style>
 </head>
 <body>
@@ -616,15 +622,32 @@ body.idle-cursor .ctl { opacity: 0; }
     var p = String(name || '').trim().split(/\s+/);
     return ((p.length > 1 ? p[0].charAt(0) : '') + (p[p.length - 1] || '').charAt(0)).toUpperCase() || '?';
   }
-  // Shrink the name until everything fits the panel (long names, long titles, small windows).
+  // The name stays on ONE line: its font is sized to the available width (up to the default size).
+  // Only if that would be smaller than a readable floor does it wrap onto balanced lines (and shrinks until all fits).
   function fitGuest(el) {
     el = el || $('spotInner');
     var nm = el.querySelector('.guest-name'), info = el.querySelector('.ginfo'), gw = el.querySelector('.gwrap');
     if (!nm || !gw) return;
-    nm.style.removeProperty('--nm');
-    var size = parseFloat(getComputedStyle(nm).fontSize), min = size * 0.4, guard = 0;
-    var over = function () { return gw.offsetHeight > el.clientHeight + 1 || info.scrollWidth > info.clientWidth + 1 || nm.scrollWidth > nm.clientWidth + 1; };
-    while (size > min && over() && guard++ < 30) { size *= 0.94; nm.style.setProperty('--nm', size.toFixed(1) + 'px'); }
+    nm.classList.remove('wrap'); nm.style.removeProperty('--nm');
+    var size = parseFloat(getComputedStyle(nm).fontSize), room = info.clientWidth;
+    var floor = Math.max(28, innerWidth * 0.024);
+    if (nm.scrollWidth > room + 1) {
+      size = Math.floor(size * room / nm.scrollWidth * 0.985);
+      if (size >= floor) { nm.style.setProperty('--nm', size + 'px'); }
+      else { // too long for one readable line: balanced lines at a size that fits the panel
+        nm.classList.add('wrap');
+        size = Math.max(floor, parseFloat(getComputedStyle(nm).fontSize) * 0.8);
+        nm.style.setProperty('--nm', size + 'px');
+        var guard = 0, min = floor * 0.8;
+        var over = function () { return gw.offsetHeight > el.clientHeight + 1 || info.scrollWidth > info.clientWidth + 1 || nm.scrollWidth > nm.clientWidth + 1; };
+        while (size > min && over() && guard++ < 30) { size *= 0.94; nm.style.setProperty('--nm', size.toFixed(1) + 'px'); }
+      }
+    }
+    // everything else must still fit vertically (long title/unit with a big portrait)
+    var g2 = 0;
+    while (gw.offsetHeight > el.clientHeight + 1 && g2++ < 12) {
+      size *= 0.94; nm.style.setProperty('--nm', size.toFixed(1) + 'px');
+    }
   }
   addEventListener('resize', function () { if (state.showing) fitGuest(); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (state.showing) fitGuest(); });
@@ -834,9 +857,11 @@ body.idle-cursor .ctl { opacity: 0; }
   // ?demo=1 sample data. Extra flags for layout testing: &photo=1 (portrait photos), &long=1 (worst-case long text)
   var DEMO_PHOTO = /[?&]photo=1\b/.test(location.search), DEMO_LONG = /[?&]long=1\b/.test(location.search);
   var LONG = [
-    { name: 'Nguyễn Hoàng Thiên Phương Anh Thư', title: 'Phó Tổng Giám đốc phụ trách Kinh doanh và Phát triển thị trường quốc tế', unit: 'STN - Saigontourist Travel Nha Trang' },
-    { name: 'Trần Thị Ngọc Quỳnh Như', title: 'Giám đốc Chi nhánh kiêm Trưởng Văn phòng đại diện khu vực miền Trung', unit: 'Khối Du Lịch Nội Địa và Đường Bộ Quốc Tế' },
-    { name: 'Đặng Nguyễn Phương Uyên Khánh Ngân Hà', title: 'Trưởng phòng Kế hoạch - Phát triển Kinh doanh', unit: 'P. Kế Hoạch - Phát Triển Kinh Doanh' }
+    { name: 'Võ Văn An', title: 'Chuyên viên', unit: 'P. Kế Toán' },
+    { name: 'Đặng Ngọc Phượng Thuyên', title: 'Phó Phòng (quản lý điều hành)', unit: 'P. Kinh Doanh Khách Lẻ và Trực Tuyến' },
+    { name: 'NGUYỄN HUỲNH QUỐC KHÁNH', title: 'Phó Giám Đốc (kiêm nhiệm)', unit: 'STN - Saigontourist Travel Nha Trang' },
+    { name: 'Nguyễn Hoàng Thiên Phương Anh Thư Khánh', title: 'Phó Tổng Giám đốc phụ trách Kinh doanh và Phát triển thị trường quốc tế', unit: 'Khối Du Lịch Nội Địa và Đường Bộ Quốc Tế' },
+    { name: 'Nguyễn Thị Hoàng Thiên Phương Anh Thư Khánh Ngân Hà', title: 'Trưởng phòng', unit: 'P. Kế Hoạch - Phát Triển Kinh Doanh' }
   ];
   function fakeArrival(at) {
     var u = r(FU), g = Math.random() < 0.5 ? 'Nam' : 'Nữ';
