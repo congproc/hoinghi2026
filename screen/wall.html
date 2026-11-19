@@ -6,7 +6,7 @@
 <title>Xem trước màn hình LED · Hội nghị 2026</title>
 <style>
   :root { color-scheme: dark; }
-  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font: 13px/1.45 ui-monospace, "JetBrains Mono", Menlo, monospace; color: #cfe3f3; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font: 11px/1.4 ui-monospace, "JetBrains Mono", Menlo, monospace; color: #cfe3f3; }
   #stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; background: #00192f; outline: 1px solid #27445e; }
   #stage iframe { width: 100%; height: 100%; border: 0; display: block; background: #00192f; }
   /* overlays drawn in wall pixels, on top of the preview */
@@ -16,18 +16,19 @@
   #grid { background-image: linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px); }
   #grid b { position: absolute; background: rgba(255,80,80,.7); }
   /* control panel */
-  #panel { position: fixed; left: 10px; bottom: 10px; z-index: 5; width: min(430px, calc(100vw - 20px)); background: rgba(4,18,32,.92); border: 1px solid #27445e; border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); transition: opacity .35s; }
+  #panel { position: fixed; left: 10px; bottom: 10px; z-index: 5; width: min(330px, calc(100vw - 20px)); background: rgba(4,18,32,.92); border: 1px solid #27445e; border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px); transition: opacity .35s; }
   #panel.off { opacity: 0; pointer-events: none; }
-  #panel h1 { margin: 0 0 6px; font: 700 12px/1.2 inherit; letter-spacing: .08em; text-transform: uppercase; color: #5fd3ff; }
+  #panel h1 { margin: 0 0 4px; font: 700 10px/1.2 inherit; letter-spacing: .08em; text-transform: uppercase; color: #5fd3ff; }
   .row { display: flex; gap: 8px; align-items: center; margin: 5px 0; flex-wrap: wrap; }
-  .row label { color: #8fb0c8; min-width: 78px; }
+  .row label { color: #8fb0c8; min-width: 62px; }
   select, button { font: inherit; color: #e6f2fb; background: #0b2540; border: 1px solid #2c4d6a; border-radius: 6px; padding: 3px 8px; cursor: pointer; }
   button.on { background: #0070b8; border-color: #29a5dd; }
   select:focus-visible, button:focus-visible { outline: 2px solid #fff200; outline-offset: 1px; }
   #info { margin-top: 6px; padding-top: 6px; border-top: 1px solid #1d3a52; color: #9fc0d8; }
   #info b { color: #fff200; font-weight: 600; }
   #hintKeys { color: #6b8aa3; margin-top: 4px; }
-  #tab { position: fixed; left: 10px; bottom: 10px; z-index: 4; display: none; }
+  #tab { position: fixed; left: 8px; bottom: 8px; z-index: 4; display: none; opacity: .55; font-size: 11px; }
+#tab:hover { opacity: 1; }
   body.nopanel #tab { display: block; }
 </style>
 </head>
@@ -171,6 +172,13 @@
   addEventListener('mousemove', function (e) { if (drag) { pan.x = e.clientX - drag.x; pan.y = e.clientY - drag.y; layout(); } });
   addEventListener('mouseup', function () { drag = null; });
   setInterval(function () { info(Object.assign(dims(), { scale: parseFloat((/scale\(([\d.]+)\)/.exec(stage.style.transform) || [0, 1])[1]) })); }, 1500); // refresh the live text size
+  var hideT = null;
+  function armHide() { clearTimeout(hideT); hideT = setTimeout(function () { if (!$('panel').matches(':hover') && !document.activeElement.closest('#panel')) { $('panel').classList.add('off'); document.body.classList.add('nopanel'); } else armHide(); }, 6000); }
+  $('panel').addEventListener('mouseenter', function () { clearTimeout(hideT); });
+  $('panel').addEventListener('mouseleave', armHide);
+  $('tab').addEventListener('click', armHide);
+  addEventListener('keydown', function (e) { if (e.key.toLowerCase() === 'h') armHide(); });
+  armHide();
   layout();
 })();
 </script>
