@@ -476,6 +476,57 @@ dialog .ack input { margin-top: 3px; }
 /* phones: filter dropdowns shrink instead of widening the page */
 .toolbar select { min-width: 0; max-width: 100%; }
 @media (max-width: 700px) { .toolbar select { flex: 1 1 calc(50% - 8px); } .toolbar .search { flex-basis: 100%; } }
+
+/* ================= modes: pre-event (declutter) / check-in day ================= */
+.modes { margin-right: 4px; }
+.modes button { font-size: 13px; padding: 6px 12px; }
+.lv { display: none; }
+body[data-mode="live"] .lv { display: block; }
+body[data-mode="live"] #warnings, body[data-mode="live"] #overview, body[data-mode="live"] #burnCard, body[data-mode="live"] #kpis,
+body[data-mode="live"] #content .grid, body[data-mode="live"] #missingCard { display: none !important; }
+/* pre-event: fewer tiles, units full width, food + gala side by side below */
+body[data-mode="pre"] .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+body[data-mode="pre"] .kpis > :nth-child(2), body[data-mode="pre"] .kpis > :nth-child(6) { display: none; }
+body[data-mode="pre"] .grid { grid-template-columns: 1fr; }
+body[data-mode="pre"] .stack { height: auto; min-height: 0; grid-template-rows: none; grid-template-columns: 1fr 1fr; margin-top: 0; }
+body[data-mode="pre"] .grid { gap: 16px; }
+body[data-mode="pre"] .stack .scroll { max-height: 240px; min-height: 0; }
+@media (max-width: 800px) { body[data-mode="pre"] .stack { grid-template-columns: 1fr; } body[data-mode="pre"] .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+body[data-mode="pre"] .unit-cols { gap: 40px; }
+
+.lv-hero { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 32px; align-items: center; margin-bottom: 16px; }
+.lv-k { color: var(--text-2); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.lv-big { font-size: 64px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin: 4px 0 12px; }
+.lv-big small { font-size: 28px; color: var(--text-3); font-weight: 500; }
+.lv-big .pct { font-size: 22px; color: var(--good); margin-left: 14px; font-weight: 600; }
+.lv-bar { height: 12px; }
+.lv-bar i { height: 100%; }
+.lv-stats { display: grid; grid-template-columns: repeat(3, auto); gap: 8px 24px; margin: 0; justify-content: start; }
+.lv-stats dt { color: var(--text-2); font-size: 12.5px; }
+.lv-stats dd { margin: 2px 0 0; font-size: 28px; font-weight: 700; line-height: 1.15; }
+.lv-stats span { color: var(--text-3); font-size: 12px; }
+.lv-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; }
+.lv-grid2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.lv-chart svg { width: 100%; height: auto; display: block; }
+.lv-chart .ax { fill: var(--text-3); font-size: 11px; font-family: var(--font); }
+.lv-chart .gl { stroke: var(--border); stroke-width: 1; }
+.lv-chart .bar { fill: var(--accent); }
+.lv-chart .open { stroke: var(--text-2); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.lv-feed, .lv-units, .lv-left { list-style: none; margin: 0; padding: 0; }
+.lv-feed li { display: flex; gap: 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.lv-feed li:last-child { border-bottom: 0; }
+.lv-feed time { font-variant-numeric: tabular-nums; color: var(--good); font-weight: 600; flex: none; }
+.lv-feed .u { color: var(--text-3); font-size: 12.5px; }
+.lv-units li { display: grid; grid-template-columns: minmax(0, 11rem) 1fr auto; gap: 12px; align-items: center; padding: 6px 0; }
+.lv-units .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.lv-units .tr { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+.lv-units .tr i { display: block; height: 100%; background: var(--good); border-radius: 4px; }
+.lv-units .v { font-size: 12.5px; color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lv-left { max-height: 420px; overflow: auto; }
+.lv-left li { padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 12px; }
+.lv-left .u { color: var(--text-3); font-size: 12.5px; text-align: right; }
+.lv-left li:last-child { border-bottom: 0; }
+@media (max-width: 900px) { .lv-hero, .lv-grid, .lv-grid2 { grid-template-columns: 1fr; } .lv-big { font-size: 48px; } .lv-units li { grid-template-columns: 8rem 1fr auto; } }
 </style>
 </head>
 <body>
@@ -529,6 +580,7 @@ dialog .ack input { margin-top: 3px; }
       </div>
       <span class="tag" id="sampleTag" hidden>Dữ liệu mẫu</span>
       <div class="spacer"></div>
+      <div class="seg2 modes" id="modeTabs" role="group" aria-label="Chế độ xem"><button type="button" data-mode="pre" aria-pressed="true">Trước sự kiện</button><button type="button" data-mode="live" aria-pressed="false">Ngày check-in</button></div>
       <div class="status" id="status" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="statusText">Đang tải…</span></div>
       <button class="btn icon-btn" id="refreshBtn" type="button" aria-label="Làm mới dữ liệu" title="Làm mới (R)">
         <svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>
@@ -623,6 +675,43 @@ dialog .ack input { margin-top: 3px; }
           <button class="btn ghost" id="missingCopy" type="button"><svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg><span>Chép tất cả</span></button></div>
         <div class="mcols" id="missingList"></div>
         <details class="extra" id="extraBox" hidden><summary id="extraSum"></summary><ul id="extraList"></ul></details>
+      </section>
+
+      <section class="lv" id="liveView" aria-label="Check-in trong ngày">
+        <div class="card lv-hero">
+          <div class="lv-main">
+            <div class="lv-k">Đã check-in</div>
+            <div class="lv-big num"><span id="lvIn">0</span><small> / <span id="lvTot">0</span></small><span class="pct" id="lvPct"></span></div>
+            <div class="stackbar lv-bar" id="lvBar" role="img"><i class="s-reg"></i></div>
+          </div>
+          <dl class="lv-stats">
+            <div><dt>Chưa đến</dt><dd class="num" id="lvLeft">0</dd></div>
+            <div><dt>15 phút qua</dt><dd class="num" id="lvRate">0</dd><span id="lvRateU">người</span></div>
+            <div><dt>Lượt gần nhất</dt><dd class="num" id="lvLast">—</dd></div>
+          </dl>
+        </div>
+        <div class="lv-grid">
+          <div class="card">
+            <div class="card-head"><h2>Lượng người đến</h2><p class="hint">Mỗi cột = 10 phút · vạch = giờ khai mạc 13:00</p></div>
+            <div class="lv-chart" id="lvChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Mới check-in</h2></div>
+            <ul class="lv-feed" id="lvFeed"></ul>
+          </div>
+        </div>
+        <div class="lv-grid lv-grid2">
+          <div class="card">
+            <div class="card-head"><h2>Theo đơn vị</h2><p class="hint">Đơn vị còn nhiều người chưa đến xếp trước</p></div>
+            <ul class="lv-units" id="lvUnits"></ul>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Chưa check-in</h2><span class="spacer"></span>
+              <label class="search mini-search"><span class="sr-only">Tìm người chưa đến</span><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><input type="search" id="lvQ" placeholder="Tìm tên, đơn vị…" autocomplete="off"></label></div>
+            <p class="hint" id="lvLeftHint"></p>
+            <ul class="lv-left" id="lvLeftList"></ul>
+          </div>
+        </div>
       </section>
 
       <section class="card" id="peopleCard">
@@ -972,12 +1061,79 @@ dialog .ack input { margin-top: 3px; }
     setStatus('live');
   }
 
+
+  /* ---------- modes + check-in day view ---------- */
+  var mode = 'pre';
+  function setMode(m, save) {
+    mode = m; document.body.setAttribute('data-mode', m);
+    Array.prototype.forEach.call($('modeTabs').querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-mode') === m ? 'true' : 'false'); });
+    if (save) { try { localStorage.setItem('dashMode', m); } catch (e) {} }
+    if (m === 'live' && state.data) renderLiveView(state.data);
+  }
+  $('modeTabs').addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('button'); if (b) setMode(b.getAttribute('data-mode'), true); });
+  (function () {
+    var m = null; try { m = localStorage.getItem('dashMode'); } catch (e) {}
+    if (!m) { var n = new Date(); m = (n.getFullYear() === 2026 && n.getMonth() === 11 && n.getDate() === 22) ? 'live' : 'pre'; }
+    setMode(m === 'live' ? 'live' : 'pre', false);
+  })();
+  var lvQ = '';
+  $('lvQ').addEventListener('input', function () { lvQ = this.value; if (state.data) renderLiveView(state.data); });
+  function renderLiveView(d) {
+    if (mode !== 'live') return;
+    var p = d.people, now = Date.now();
+    var arr = p.filter(function (x) { return x.checkedInAt; }).sort(function (a, b) { return a.checkedInAt - b.checkedInAt; });
+    var tot = p.length, n = arr.length, left = tot - n;
+    $('lvIn').textContent = n; $('lvTot').textContent = tot;
+    $('lvPct').textContent = tot ? Math.round(n / tot * 100) + '%' : '';
+    $('lvBar').firstChild.style.width = (tot ? n / tot * 100 : 0) + '%';
+    $('lvLeft').textContent = left;
+    var recent = arr.filter(function (x) { return now - x.checkedInAt <= 900000; }).length;
+    $('lvRate').textContent = recent;
+    $('lvLast').textContent = n ? fmtTime(arr[n - 1].checkedInAt).slice(-5) : '—';
+    // arrivals per 10 minutes
+    var B = 600000, evt = new Date(2026, 11, 22, 13, 0).getTime();
+    var t0 = n ? Math.min(arr[0].checkedInAt, evt - 3600000) : evt - 3600000;
+    t0 = Math.floor(t0 / B) * B;
+    var t1 = Math.max(evt + 1800000, n ? arr[n - 1].checkedInAt : 0, mode === 'live' && Math.abs(now - evt) < 864e5 ? now : 0);
+    var nb = Math.min(60, Math.ceil((t1 - t0) / B) + 1), bins = [], mx = 1, i;
+    for (i = 0; i < nb; i++) bins.push(0);
+    arr.forEach(function (x) { var k = Math.floor((x.checkedInAt - t0) / B); if (k >= 0 && k < nb) bins[k]++; });
+    bins.forEach(function (v) { if (v > mx) mx = v; });
+    var W = 720, H = 240, M = { l: 34, r: 10, t: 12, b: 28 }, pw = W - M.l - M.r, ph = H - M.t - M.b, bw = pw / nb;
+    var top = mx <= 5 ? 5 : Math.ceil(mx / 5) * 5, g = '';
+    [0, .5, 1].forEach(function (f) { var y = M.t + ph - ph * f; g += '<line class="gl" x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + y + '" y2="' + y + '"/><text class="ax" x="' + (M.l - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + Math.round(top * f) + '</text>'; });
+    bins.forEach(function (v, k) { var h = ph * v / top, tm = new Date(t0 + k * B); if (v) g += '<rect class="bar" x="' + (M.l + k * bw + 1) + '" y="' + (M.t + ph - h) + '" width="' + Math.max(1, bw - 2) + '" height="' + h + '" rx="2"><title>' + pad(tm.getHours()) + ':' + pad(tm.getMinutes()) + ' · ' + v + ' người</title></rect>'; });
+    var step = Math.ceil(nb / 8);
+    for (i = 0; i < nb; i += step) { var tm2 = new Date(t0 + i * B); g += '<text class="ax" x="' + (M.l + i * bw + bw / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + pad(tm2.getHours()) + ':' + pad(tm2.getMinutes()) + '</text>'; }
+    var ek = (evt - t0) / B;
+    if (ek >= 0 && ek <= nb) g += '<line class="open" x1="' + (M.l + ek * bw) + '" x2="' + (M.l + ek * bw) + '" y1="' + M.t + '" y2="' + (M.t + ph) + '"/>';
+    $('lvChart').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Số người check-in theo từng 10 phút">' + g + '</svg>';
+    // latest arrivals
+    $('lvFeed').innerHTML = n ? arr.slice(-8).reverse().map(function (x) { return '<li><time>' + fmtTime(x.checkedInAt).slice(-5) + '</time><span><b>' + esc(x.name) + '</b><br><span class="u">' + esc(unitCompact(x.unit)) + '</span></span></li>'; }).join('') : '<li class="muted">Chưa có ai check-in.</li>';
+    // per unit (most people still missing first)
+    var U = {};
+    p.forEach(function (x) { var u = U[x.unit] || (U[x.unit] = { u: x.unit, t: 0, a: 0 }); u.t++; if (x.checkedInAt) u.a++; });
+    var rows = Object.keys(U).map(function (k) { return U[k]; }).filter(function (r) { return r.a < r.t; })
+      .sort(function (a, b) { return (b.t - b.a) - (a.t - a.a) || a.u.localeCompare(b.u, 'vi'); });
+    var done = Object.keys(U).length - rows.length;
+    $('lvUnits').innerHTML = rows.slice(0, 12).map(function (r) { return '<li><span class="n" title="' + esc(shortUnit(r.u)) + '">' + esc(unitCompact(r.u)) + '</span><span class="tr"><i style="width:' + Math.round(r.a / r.t * 100) + '%"></i></span><span class="v">' + r.a + '/' + r.t + '</span></li>'; }).join('') +
+      (rows.length > 12 ? '<li class="muted">… và ' + (rows.length - 12) + ' đơn vị khác chưa đủ người</li>' : '') +
+      (done ? '<li class="muted">' + done + ' đơn vị đã đến đủ ✓</li>' : '');
+    // not yet arrived
+    var q = foldQ(lvQ).trim();
+    var miss = p.filter(function (x) { return !x.checkedInAt && (!q || foldQ(x.name + ' ' + x.unit + ' ' + x.title).indexOf(q) >= 0); })
+      .sort(function (a, b) { return String(a.name).localeCompare(b.name, 'vi'); });
+    $('lvLeftHint').textContent = miss.length + ' người' + (q ? ' khớp' : '') + (miss.length > 80 ? ' · hiển thị 80 đầu' : '');
+    $('lvLeftList').innerHTML = miss.slice(0, 80).map(function (x) { return '<li><b>' + esc(x.name) + '</b><span class="u">' + esc(unitCompact(x.unit)) + '</span></li>'; }).join('');
+  }
+
   /* ---------- render ---------- */
   // Check-ins arrive every few seconds on the day: only the parts that depend on them are redrawn.
   function renderLive() {
     var d = state.data;
     if (!d) return;
     renderKpis(d);
+    renderLiveView(d);
     renderTable();
   }
 
@@ -996,6 +1152,7 @@ dialog .ack input { margin-top: 3px; }
     renderDiet(d.people);
     renderGala(d.people);
     renderUnitFilter(d);
+    renderLiveView(d);
     renderTable();
   }
 
