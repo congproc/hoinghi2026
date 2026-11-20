@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-20-msg-lines">
+<meta name="build" content="2026-11-20-gpu-lite">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -422,7 +422,8 @@ body.idle-cursor .ctl { opacity: 0; }
 /* frosted glass re-blurs the moving background every frame — the biggest cost on laptops: use a deeper tint instead */
 .panel { backdrop-filter: none; -webkit-backdrop-filter: none; background: linear-gradient(160deg, rgba(0,31,56,.95), rgba(0,17,34,.95)); }
 /* background art: no blend mode (forces re-blending each frame); pre-tinted with a filter on its own layer */
-.bg img { mix-blend-mode: normal; filter: grayscale(.55) brightness(.9) contrast(1.1); opacity: .10; will-change: transform; }
+/* background art: tint is pre-baked into cover-bg.jpg (grayscale .55 · brightness .9 · contrast 1.1), so the 80 s pan is a pure GPU transform with no per-frame filter pass */
+.bg img { mix-blend-mode: normal; filter: none; opacity: .10; will-change: transform; }
 .bg .scan { will-change: transform; }
 /* looping glows animated shadows/filters (repaint every frame) → static glow + opacity-only motion */
 .logo { animation: none; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 30px rgba(255,242,0,.4); }
@@ -438,7 +439,7 @@ body.idle-cursor .ctl { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .sweepl { display: none; } }
 
 /* ---------- arrival signal (replaces fireworks): shock rings + grid light-up ---------- */
-.pgrid { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0; will-change: opacity;
+.pgrid { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0;
   background-image: linear-gradient(rgba(130,225,255,.95) 1px, transparent 1px), linear-gradient(90deg, rgba(130,225,255,.95) 1px, transparent 1px),
     linear-gradient(rgba(95,211,255,.45) 1px, transparent 1px), linear-gradient(90deg, rgba(95,211,255,.45) 1px, transparent 1px);
   background-size: 96px 96px, 96px 96px, 24px 24px, 24px 24px;
@@ -449,7 +450,9 @@ body.idle-cursor .ctl { opacity: 0; }
 .prings { position: fixed; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
 .prings i { position: absolute; left: var(--px, 30%); top: var(--py, 55%); width: 80vmax; height: 80vmax; margin: -40vmax 0 0 -40vmax; border-radius: 50%;
   border: 2px solid rgba(95,211,255,.85); box-shadow: 0 0 22px rgba(95,211,255,.45), inset 0 0 22px rgba(95,211,255,.2);
-  opacity: 0; transform: scale(.02); will-change: transform, opacity; }
+  opacity: 0; transform: scale(.02); }
+/* promoted to GPU layers only while flashing: idle, they would pin two 80vmax + one full-screen texture in GPU memory */
+.pgrid.go { will-change: opacity; } .prings.go i { will-change: transform, opacity; }
 .prings i.r2 { border: 2px dashed rgba(255,242,0,.8); box-shadow: 0 0 16px rgba(255,242,0,.35); }
 .prings.go i.r1 { animation: ringout 1.3s cubic-bezier(.16, 1, .3, 1) both; }
 .prings.go i.r2 { animation: ringout 1.6s .16s cubic-bezier(.16, 1, .3, 1) both; }
@@ -467,7 +470,7 @@ body.idle-cursor .ctl { opacity: 0; }
 </style>
 </head>
 <body>
-<div class="bg" aria-hidden="true"><img src="../assets/cover.jpg" alt="" decoding="async"><div class="grid-bg"></div><div class="scan"></div><div class="vignette"></div></div>
+<div class="bg" aria-hidden="true"><img src="../assets/cover-bg.jpg" alt="" decoding="async"><div class="grid-bg"></div><div class="scan"></div><div class="vignette"></div></div>
 <div class="pgrid" id="pgrid" aria-hidden="true"></div>
 <div class="prings" id="prings" aria-hidden="true"><i class="r1"></i><i class="r2"></i></div>
 
