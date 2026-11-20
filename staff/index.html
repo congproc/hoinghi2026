@@ -531,7 +531,9 @@ body[data-mode="pre"] .unit-cols { gap: 40px; }
 /* ================= final polish ================= */
 /* pre-event: the pace panel carries "today", so the tile row is not needed; food + Gala sit side by side */
 body[data-mode="pre"] #kpis { display: none; }
-body[data-mode="live"] #content > .stack { display: none !important; }
+body[data-mode="live"] #content > .stack, body[data-mode="live"] #wordCard { display: none !important; }
+#wordCard { margin: 0 0 16px; }
+#wordCard .scroll { max-height: 300px; }
 #content > .stack { height: auto; min-height: 0; grid-template-rows: none; grid-template-columns: 1fr 1fr; margin: 0 0 16px; }
 #content > .stack .scroll { max-height: 260px; min-height: 0; }
 @media (max-width: 800px) { #content > .stack { grid-template-columns: 1fr; } }
@@ -850,6 +852,13 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
           <div class="chips" id="galaTypes"></div>
           <div class="scroll"><table class="mini"><thead><tr><th>Tiết mục</th><th>Thể loại</th><th class="num">Số người</th><th>Người đăng ký</th></tr></thead><tbody id="galaList"></tbody></table></div>
         </div>
+      </section>
+
+      <section class="card" id="wordCard" aria-label="Mô tả năm 2026">
+        <div class="card-head"><h2>Mô tả năm 2026</h2><p class="hint">Hiện trên màn hình chào mừng khi bật trong trang quản trị · từ 2 ký tự, không chứa từ bị chặn</p></div>
+        <div class="stat-line" id="wordStats"></div>
+        <div class="chips" id="wordTop"></div>
+        <div class="scroll"><table class="mini"><thead><tr><th>Mô tả năm 2026</th><th>Người trả lời</th><th>Màn hình</th></tr></thead><tbody id="wordList"></tbody></table></div>
       </section>
 
       <section class="lv" id="liveView" aria-label="Check-in trong ngày">
@@ -1197,9 +1206,9 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   function stamp(ms) { var d = new Date(ms); return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
   $('csvBtn').addEventListener('click', function () {
     if (!state.data) return;
-    var rows = [['Mã check-in', 'Họ và tên', 'Chức danh', 'Đơn vị', 'Nhóm', 'SĐT', 'Check-in lúc', 'Hình thức']];
+    var rows = [['Mã check-in', 'Họ và tên', 'Chức danh', 'Đơn vị', 'Nhóm', 'SĐT', 'Mô tả năm 2026', 'Check-in lúc', 'Hình thức']];
     state.data.people.slice().sort(function (a, b) { return (a.checkedInAt || 9e15) - (b.checkedInAt || 9e15) || String(a.name).localeCompare(b.name, 'vi'); })
-      .forEach(function (p) { rows.push([p.id, p.name, p.title, p.unit, p.group, "'" + p.phone, p.checkedInAt ? stamp(p.checkedInAt) : 'Chưa check-in', p.checkedVia || '']); });
+      .forEach(function (p) { rows.push([p.id, p.name, p.title, p.unit, p.group, "'" + p.phone, wordText(p), p.checkedInAt ? stamp(p.checkedInAt) : 'Chưa check-in', p.checkedVia || '']); });
     var csv = '\ufeff' + rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n');
     var a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
@@ -1388,6 +1397,7 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
     renderMissing(d);
     renderDiet(d.people);
     renderGala(d.people);
+    renderWord(d.people);
     renderUnitFilter(d);
     renderLiveView(d);
     renderTable();
@@ -1402,7 +1412,7 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
     $('companyTotal').textContent = ''; $('branchTotal').textContent = '';
     $('dietStats').innerHTML = '<span class="sk" style="width:80%;height:36px"></span>';
     $('galaStats').innerHTML = '<span class="sk" style="width:70%;height:36px"></span>';
-    $('dietList').innerHTML = ''; $('galaList').innerHTML = ''; $('galaTypes').innerHTML = '';
+    $('dietList').innerHTML = ''; $('galaList').innerHTML = ''; $('galaTypes').innerHTML = ''; $('wordList').innerHTML = ''; $('wordTop').innerHTML = ''; $('wordStats').innerHTML = '';
     renderHead();
     var tr = '';
     for (var j = 0; j < 6; j++) tr += '<tr>' + COLUMNS.map(function () { return '<td><span class="sk" style="height:10px;width:70%"></span></td>'; }).join('') + '</tr>';
@@ -1856,6 +1866,46 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
     }).join('') : '<tr><td colspan="4" class="muted">Chưa có tiết mục nào.</td></tr>';
   }
 
+  // "Mô tả năm 2026": same rule as firebase/tools.mjs extras() and the admin page (trim, at least 2 characters,
+  // no blocked term, max 40 characters). Keep WORD_BLOCKLIST in sync with firebase/word-blocklist.txt.
+  // Shows the Sheet answer; a correction made in the local admin page is not reflected here.
+  var WORD_BLOCKLIST = ['dm', 'dcm', 'dmm', 'vcl', 'vl', 'cc', 'cl', 'lon', 'buoi', 'cac', 'cut', 'dit',
+    'du ma', 'dau buoi', 'me may', 'con di', 'dit me', 'cho de', 'cho chet', 'ngu', 'oc cho',
+    'khon nan', 'mat day', 'deo', 'fuck', 'shit', 'bitch'];
+  function wordText(p) { return String(p.word || '').trim().slice(0, 40); }
+  function wordBlocked(v) {
+    var w = foldQ(v).replace(/[^a-z0-9]+/g, ' ').trim(), text = ' ' + w + ' ', squashed = w.replace(/ /g, '');
+    return WORD_BLOCKLIST.some(function (b) { return text.indexOf(' ' + b + ' ') >= 0 || (b.length >= 4 && squashed.indexOf(b.replace(/ /g, '')) >= 0); });
+  }
+  function wordIssue(v) { return v.length < 2 ? 'Quá ngắn' : wordBlocked(v) ? 'Từ bị chặn' : ''; }
+  function renderWord(people) {
+    var rows = people.filter(function (p) { return wordText(p); });
+    var shown = 0, groups = {};
+    rows.forEach(function (p) {
+      var v = wordText(p);
+      if (wordIssue(v)) return;
+      shown++;
+      var k = foldQ(v).replace(/[^a-z0-9]+/g, ' ').trim();
+      if (!groups[k]) groups[k] = { label: v, n: 0 };
+      groups[k].n++;
+    });
+    $('wordStats').innerHTML =
+      '<div><b class="num">' + rows.length + '</b><span>Người trả lời</span></div>' +
+      '<div><b class="num">' + shown + '</b><span>Hiện được trên màn hình</span></div>' +
+      '<div><b class="num">' + (rows.length - shown) + '</b><span>Bị lọc</span></div>' +
+      '<div><b class="num">' + (people.length - rows.length) + '</b><span>Không trả lời</span></div>';
+    $('wordTop').innerHTML = Object.keys(groups).filter(function (k) { return groups[k].n > 1; })
+      .sort(function (a, b) { return groups[b].n - groups[a].n || groups[a].label.localeCompare(groups[b].label, 'vi'); }).slice(0, 12)
+      .map(function (k) { return '<span class="chip">' + esc(groups[k].label) + '<b class="num">' + groups[k].n + '</b></span>'; }).join('');
+    $('wordList').innerHTML = rows.length ? rows.slice().sort(function (a, b) {
+      return (wordIssue(wordText(b)) ? 1 : 0) - (wordIssue(wordText(a)) ? 1 : 0) || wordText(a).localeCompare(wordText(b), 'vi');
+    }).map(function (p) {
+      var v = wordText(p), issue = wordIssue(v);
+      return '<tr><td>“' + esc(v) + '”</td><td>' + esc(p.name) + '<div class="muted">' + esc(shortUnit(p.unit)) + '</div></td><td>' +
+        (issue ? '<span class="flag">' + issue + '</span>' : '<span class="muted">Hiện được</span>') + '</td></tr>';
+    }).join('') : '<tr><td colspan="3" class="muted">Chưa có ai trả lời.</td></tr>';
+  }
+
   function renderUnitFilter(d) {
     var counts = unitCounts(d.people);
     var opt = function (u) { return '<option value="' + esc(u) + '">' + esc(shortUnit(u)) + ' (' + (counts[u] || 0) + ')</option>'; };
@@ -1881,7 +1931,7 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
       if (diet && p.diet !== diet) return false;
       if (gala && p.gala !== gala) return false;
       if (!q) return true;
-      var hay = (p.name + ' ' + p.title + ' ' + p.unit + ' ' + p.dept + ' ' + p.id).toLowerCase();
+      var hay = (p.name + ' ' + p.title + ' ' + p.unit + ' ' + p.dept + ' ' + p.id + ' ' + (p.word || '')).toLowerCase();
       return hay.indexOf(q) >= 0 || (qDigits.length >= 3 && p.phone.indexOf(qDigits) >= 0);
     });
   }
@@ -2107,6 +2157,7 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
       diet: diet, dietOther: diet === 'other' ? pick(['Không ăn hải sản', 'Chay ngày rằm', 'Dị ứng đậu phộng']) : '',
       gala: gala, galaTitle: gala === 'yes' ? pick(['Việt Nam ơi', 'Hành trình mới', 'Sắc màu Saigontourist', 'Tình ca du lịch']) : '',
       galaType: gala === 'yes' ? pick(['Hát', 'Hát', 'Múa', 'Nhạc cụ', 'Kịch/Tiểu phẩm']) : '', galaPerformers: gala === 'yes' ? 1 + Math.floor(rnd() * 8) : null,
+      word: early || rnd() < 0.45 ? '' : pick(['Bứt phá', 'Đoàn kết', 'Bền bỉ', 'Tăng trưởng', 'Cố gắng hết mình', 'Vượt khó', 'Bứt phá']),
       submittedAt: ts, submissions: rnd() < 0.05 ? 2 : 1, checkedInAt: rnd() < 0.4 ? Date.now() - Math.floor(rnd() * 3600000) : null
     });
   }
