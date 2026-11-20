@@ -9,6 +9,7 @@
 <link rel="icon" href="../assets/favicon.png">
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="preconnect" href="https://hoinghi2026-5a68e-default-rtdb.asia-southeast1.firebasedatabase.app" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1141,6 +1142,23 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
       overlayCheckins(state.data); renderLive();
     }, 120);
   }
+  // Same merge as screen/index.html: admin corrections arrive as field paths (/ID/name, or patch at /ID).
+  function mergeEvent(map, type, path, data) {
+    var base = String(path || '/').split('/').filter(Boolean);
+    if (type === 'put' && !base.length) return data && typeof data === 'object' ? data : {};
+    var writes = type === 'put' ? [[base, data]] : Object.keys(data || {}).map(function (k) { return [base.concat(k.split('/').filter(Boolean)), data[k]]; });
+    writes.forEach(function (w) {
+      var parts = w[0], val = w[1], o = map, chain = [];
+      if (!parts.length) return;
+      for (var i = 0; i < parts.length - 1; i++) {
+        if (!o[parts[i]] || typeof o[parts[i]] !== 'object') { if (val == null) return; o[parts[i]] = {}; }
+        chain.push([o, parts[i]]); o = o[parts[i]];
+      }
+      if (val == null) delete o[parts[parts.length - 1]]; else o[parts[parts.length - 1]] = val;
+      for (var j = chain.length - 1; j >= 0; j--) { var c = chain[j]; if (Object.keys(c[0][c[1]]).length) break; delete c[0][c[1]]; }
+    });
+    return map;
+  }
   function fbConnect() {
     if (DEMO || typeof EventSource === 'undefined') return;
     if (fbSrc) { try { fbSrc.close(); } catch (e) {} }
@@ -1149,13 +1167,7 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
       fbLast = Date.now();
       var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d) return;
-      var path = d.path || '/';
-      if (ev.type === 'put') {
-        if (path === '/') fbMap = d.data || {};
-        else if (path.split('/').length === 2) { var id = path.split('/')[1]; if (d.data) fbMap[id] = d.data; else delete fbMap[id]; }
-      } else {
-        Object.keys(d.data || {}).forEach(function (k) { if (d.data[k]) fbMap[k] = d.data[k]; else delete fbMap[k]; });
-      }
+      fbMap = mergeEvent(fbMap, ev.type, d.path, d.data);
       fbChanged();
     };
     fbSrc.addEventListener('put', onData);
@@ -1173,14 +1185,14 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
     return Promise.all(ids.map(function (id) {
       var up = {}; up['people/' + id] = null; up['byCode/' + id] = null; up['checkins/' + id] = null; up['delreq/' + id] = null;
       if (phones[id]) up['byPhone/' + phones[id] + '/' + id] = null;
-      return fetch(FB_URL + '/delreq/' + id + '.json', { method: 'PUT', body: JSON.stringify(pw), credentials: 'omit' })
+      return fetch(FB_URL + '/delreq/' + id + '.json', { method: 'PUT', body: JSON.stringify({ pin: pw, createdAt: { '.sv': 'timestamp' } }), credentials: 'omit' })
         .then(function (r) { if (!r.ok) throw new Error('pin'); return fetch(FB_URL + '/.json', { method: 'PATCH', body: JSON.stringify(up), credentials: 'omit' }); })
         .then(function (r) { if (!r.ok) throw new Error('del'); })
         .catch(function () { failed++; });
     })).then(function () { return failed; });
   }
 
-  function csvCell(v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function csvCell(v) { v = String(v == null ? '' : v); if (/^\s*[=+@-]/.test(v)) v = "'" + v; return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
   function stamp(ms) { var d = new Date(ms); return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
   $('csvBtn').addEventListener('click', function () {
