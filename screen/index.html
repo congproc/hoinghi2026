@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-20-align">
+<meta name="build" content="2026-11-20-mota">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -940,7 +940,7 @@ body.idle-cursor .ctl { opacity: 0; }
     return t.length ? '<div class="chips">' + t.map(function (c) { return '<span class="chip ' + c[0] + '">' + esc(c[1]) + '</span>'; }).join('').replace(/<span class="chip /g, function () { return '<span style="--c:' + (ci++) + '" class="chip '; }) + '</div>' : '';
   }
   function wordHtml(a) {
-    return SHOW.word && a.word ? '<div class="word">Một từ cho năm 2026 của ' + esc(addr(a.gender)) + ': <b>“' + esc(a.word) + '”</b></div>' : '';
+    return SHOW.word && a.word ? '<div class="word">Mô tả năm 2026 của ' + esc(addr(a.gender)) + ': <b>“' + esc(a.word) + '”</b></div>' : '';
   }
   function buildGuest(a, n) {
     var hero = $('heroInner'), el = $('spotInner');
