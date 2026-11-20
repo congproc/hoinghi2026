@@ -113,7 +113,6 @@
   var DEMO_SET = { demo: '1', photo: '1', extras: '1', show: 'first,years,bday,act,word' };
   function loadScreen() {
     var inner = new URLSearchParams(location.search); OWN.forEach(function (k) { inner.delete(k); });
-    if (!inner.has('lite')) inner.set('lite', '1');
     f.src = './?' + inner.toString();
     var on = inner.get('demo') === '1';
     document.body.classList.toggle('testing', on);
