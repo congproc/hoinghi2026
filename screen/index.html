@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-20-mota-staff">
+<meta name="build" content="2026-11-20-msg-lines">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
@@ -83,7 +83,7 @@ body.idle-cursor { cursor: none; }
 .tag::before { content: ""; width: .65em; aspect-ratio: 1; flex: none; background: var(--yellow); clip-path: polygon(0 0, 100% 50%, 0 100%, 23% 50%); }
 .tag .r { margin-left: auto; color: var(--ink-3); letter-spacing: .08em; }
 .spot .tag > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.spot .tag .r { flex-shrink: 0; max-width: 50%; }
+.spot .tag .r { flex-shrink: 0; max-width: 50%; overflow: visible; text-overflow: clip; padding-right: .2em; } /* never clip the short right label */
 
 /* ---------- Motion ---------- */
 .top, .panel, .bottom { animation: boot .8s cubic-bezier(.16, 1, .3, 1) both; }
@@ -360,6 +360,12 @@ body.idle-cursor .ctl { opacity: 0; }
 .gwrap.idle { gap: 0; }
 .gwrap.idle .ginfo { flex: 1; align-self: center; }
 .gwrap.idle .guest-title { font-size: calc(clamp(20px, 3vw, 70px) * var(--is, 1)); max-width: 100%; }
+.msg-sub { display: block; -webkit-line-clamp: none; overflow: visible; text-wrap: pretty; }
+.msg-sub p { margin: 0; }
+.msg-sub p + p, .msg-sub ul + p, .msg-sub p + ul { margin-top: .45em; }
+.msg-sub ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .35em; }
+.msg-sub li { position: relative; padding-left: 1.05em; }
+.msg-sub li::before { content: ""; position: absolute; left: .1em; top: .52em; width: .4em; height: .4em; background: var(--yellow); clip-path: polygon(0 0, 100% 50%, 0 100%, 23% 50%); }
 .readout.idle3 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 2.4vh; gap: 2vh 1.6vw; max-width: 100%; }
 .readout.idle3 .cell:first-child:nth-last-child(3) { grid-column: auto; }
 .readout.idle3 .cell:last-child { grid-column: 1 / -1; }
@@ -973,6 +979,18 @@ body.idle-cursor .ctl { opacity: 0; }
   function showIdle() {
     swapSpot(CFG.mode === 'message' ? buildMessage : buildIdle);
   }
+  // message sub-text: one <p> per line; lines starting with -, •, * or + become bullet items
+  function msgSubHtml(v) {
+    var out = '', list = '';
+    String(v).replace(/\r/g, '').split('\n').forEach(function (ln) {
+      ln = ln.trim(); if (!ln) return;
+      var b = /^[-•*+–]\s*(.*)$/.exec(ln);
+      if (b) { if (b[1]) list += '<li>' + esc(b[1]) + '</li>'; return; }
+      if (list) { out += '<ul>' + list + '</ul>'; list = ''; }
+      out += '<p>' + esc(ln) + '</p>';
+    });
+    return out + (list ? '<ul>' + list + '</ul>' : '');
+  }
   function buildMessage() {
     var hero = $('heroInner'), el = $('spotInner'), m = CFG.msg || {};
     enter(hero); enter(el);
@@ -981,7 +999,7 @@ body.idle-cursor .ctl { opacity: 0; }
       '<div class="guest-name idle-name">' + esc(txt(m.title, 'Quý Anh Chị')) + '</div>';
     el.innerHTML =
       '<div class="gwrap idle"><div class="ginfo">' +
-        (txt(m.sub, '') ? '<p class="guest-title">' + esc(m.sub) + '</p>' : '') +
+        (txt(m.sub, '') ? '<div class="guest-title msg-sub">' + msgSubHtml(m.sub) + '</div>' : '') +
       '</div></div>';
     fitGuest(); fitInfo();
     $('spotLabel').textContent = txt(m.kicker, 'Thông báo');
