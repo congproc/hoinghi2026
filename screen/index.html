@@ -2,16 +2,24 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="2026-11-19-c1">
+<meta name="build" content="2026-11-20-align">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Màn hình chào mừng</title>
 <link rel="icon" href="../assets/favicon.png">
-<link rel="preconnect" href="https://script.google.com" crossorigin>
-<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://hoinghi2026-5a68e-default-rtdb.asia-southeast1.firebasedatabase.app" crossorigin>
+<script>
+(function () {
+  if (new URLSearchParams(location.search).get('lite') === '1') {
+    document.documentElement.classList.add('lite');
+    return;
+  }
+  var fonts = document.createElement('link');
+  fonts.rel = 'stylesheet';
+  fonts.href = 'https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap';
+  document.head.appendChild(fonts);
+})();
+</script>
 <style>
 :root {
   color-scheme: dark;
@@ -189,19 +197,6 @@ body.idle-cursor { cursor: none; }
 body.idle-cursor .ctl { opacity: 0; }
 
 /* ---------- Login ---------- */
-.login { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px; background: rgba(0,16,30,.78); backdrop-filter: blur(6px); }
-.login form { width: 100%; max-width: 400px; padding: 30px 26px; background: #00294a; border: 1px solid var(--line); position: relative; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
-.login form::before, .login form::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid var(--yellow); top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
-.login form::after { top: auto; left: auto; bottom: -2px; right: -2px; border: 2px solid var(--yellow); border-left: 0; border-top: 0; }
-.login .tagline { font-family: var(--mono); font-size: 12px; letter-spacing: .16em; color: var(--cyan); text-transform: uppercase; }
-.login h2 { margin: 8px 0 4px; font-size: 22px; }
-.login p { margin: 0 0 20px; color: var(--ink-2); font-size: 14px; }
-.login label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
-.login input { width: 100%; height: 48px; border: 1px solid var(--line); background: rgba(255,255,255,.06); padding: 0 14px; font-size: 16px; font-family: var(--mono); }
-.login input:focus { outline: none; border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255,242,0,.22); }
-.login button { width: 100%; height: 50px; margin-top: 16px; border: 0; font-weight: 800; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; color: #00355c; background: var(--yellow); }
-.login button:disabled { opacity: .6; cursor: default; }
-.login .err { color: #ffb4b4; font-size: 14px; margin-top: 10px; min-height: 20px; }
 
 @media (max-width: 1000px) {
   body { overflow: auto; }
@@ -454,6 +449,15 @@ body.idle-cursor .ctl { opacity: 0; }
 .prings.go i.r2 { animation: ringout 1.6s .16s cubic-bezier(.16, 1, .3, 1) both; }
 @keyframes ringout { 0% { opacity: 0; transform: scale(.02); } 6% { opacity: 1; } 70% { opacity: .35; } 100% { opacity: 0; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .pgrid, .prings { display: none; } }
+.lite *, .lite *::before, .lite *::after {
+  animation: none !important;
+  transition: none !important;
+  will-change: auto !important;
+  filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.lite .scan, .lite .sweepl, .lite .pgrid, .lite .prings, .lite .guest-name::after { display: none; }
 </style>
 </head>
 <body>
@@ -531,33 +535,20 @@ body.idle-cursor .ctl { opacity: 0; }
   </footer>
 </div>
 
-<div class="login" id="login" hidden>
-  <form id="loginForm" novalidate>
-    <div class="tagline">// Ban Tổ chức</div>
-    <h2>Màn hình chào mừng</h2>
-    <p>Nhập mật khẩu để bắt đầu trình chiếu.</p>
-    <input type="text" name="username" autocomplete="username" value="Ban Tổ chức" hidden>
-    <label for="pw">Mật khẩu</label>
-    <input id="pw" type="password" autocomplete="current-password" required>
-    <button type="submit" id="loginBtn">Bắt đầu</button>
-    <div class="err" id="loginErr" role="alert"></div>
-  </form>
-</div>
 
 <script>
 (function () {
   'use strict';
-  var API_URL = 'https://script.google.com/macros/s/AKfycbwi_22ZS7ztl0mTWlh-YoMJduxDmmlqsA6WaztHylVHC8VdLdLyAFl8i9jntCa32UXg/exec';
   var DEMO = /[?&]demo=1\b/.test(location.search);
-  var PW_KEY = 'hn2026_screen_pw';
   var POLL_MS = 3000;
   var SHOW_MS = 6500, SHOW_MS_BUSY = 3400;
   var FEED_MAX = 12; // upper bound; fitFeed() trims to what physically fits
   var SEGMENTS = 25;
   var $ = function (id) { return document.getElementById(id); };
-  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var lite = document.documentElement.classList.contains('lite');
+  var reduceMotion = lite || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-  var state = { pw: null, seq: -1, queue: [], feed: [], showing: false, first: true, failures: 0, totals: null, shown: 0, latency: null };
+  var state = { seq: -1, queue: [], feed: [], showing: false, first: true, failures: 0, totals: null, shown: 0, latency: null };
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -573,10 +564,6 @@ body.idle-cursor .ctl { opacity: 0; }
     var m = /^(ST\w+) - Saigontourist Travel (.+)$/.exec(u || '');
     return m ? 'Chi nhánh ' + m[2] + ' (' + m[1] + ')' : (u || '');
   }
-  function store(k, v) {
-    try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { /* blocked */ }
-    return null;
-  }
 
   /* ---------- clock ---------- */
   var DAYS = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
@@ -587,36 +574,8 @@ body.idle-cursor .ctl { opacity: 0; }
   }
   tick(); setInterval(tick, 10000);
 
-  /* ---------- transport ---------- */
-  function call(body) {
-    if (DEMO) return demoApi(body);
-    return new Promise(function (resolve, reject) {
-      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 20000);
-      var t0 = performance.now();
-      fetch(API_URL, { method: 'POST', body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined, credentials: 'omit' })
-        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(function (j) { state.latency = Math.round(performance.now() - t0); if (j.ok) resolve(j.data); else reject(Object.assign(new Error(j.error), { server: true })); })
-        .catch(reject)
-        .then(function () { clearTimeout(timer); });
-    });
-  }
-
-  /* ---------- login ---------- */
-  $('loginForm').addEventListener('submit', function (ev) {
-    ev.preventDefault();
-    var pw = $('pw').value;
-    if (!pw) return;
-    $('loginBtn').disabled = true; $('loginBtn').textContent = 'Đang kết nối…'; $('loginErr').textContent = '';
-    call({ action: 'screen', password: pw, since: -1 }).then(function (res) {
-      state.pw = pw; store(PW_KEY, pw);
-      $('login').hidden = true;
-      apply(res);
-      schedule();
-    }).catch(function (e) {
-      $('loginErr').textContent = e.server ? String(e.message) : 'Không kết nối được máy chủ. Thử lại.';
-    }).then(function () { $('loginBtn').disabled = false; $('loginBtn').textContent = 'Bắt đầu'; });
-  });
+  /* ---------- transport: Firebase streams below; call() only feeds the ?demo=1 sample data ---------- */
+  function call(body) { return demoApi(body); }
 
 
   /* ---------- live stream (Firebase) ---------- */
@@ -628,7 +587,7 @@ body.idle-cursor .ctl { opacity: 0; }
   /* ---------- remote control: Firebase /screen (written by the admin dashboard, firebase/admin.mjs) ----------
      mode: live | idle | message · msg {kicker,title,sub} · show {first,years,bday,act,word} · showMs (s)
      idle {kicker,name,sub,conf,gala,hint} · head {title,sub,foot} · hide {<code>:true} · spot {id,at} replay · reload (stamp) */
-  var URL_SHOW = SHOW, CFG = { mode: 'live', hide: {}, idle: {}, msg: {}, head: {} }, cfgFirst = true, cfgReload = 0, cfgSpot = 0, cfgEs = null;
+  var URL_SHOW = SHOW, CFG = { mode: 'live', hide: {}, idle: {}, msg: {}, head: {} }, cfgFirst = true, cfgReload = 0, cfgSpot = 0, cfgEs = null, cfgRevision = 0, lastCfgEvent = 0;
   var HEAD0 = { title: $('hdTitle').textContent, sub: $('hdSub').textContent, foot: $('ftText').textContent };
   function vis(a) { return !CFG.hide[a.id]; }
   function txt(v, d) { v = v == null ? '' : String(v).trim(); return v || d; }
@@ -640,24 +599,25 @@ body.idle-cursor .ctl { opacity: 0; }
     var ms = Number(c.showMs); SHOW_MS = ms >= 2 && ms <= 60 ? ms * 1000 : 6500; SHOW_MS_BUSY = Math.min(3400, SHOW_MS);
     $('hdTitle').textContent = txt(CFG.head.title, HEAD0.title); $('hdSub').textContent = txt(CFG.head.sub, HEAD0.sub); $('ftText').textContent = txt(CFG.head.foot, HEAD0.foot);
     var rl = Number(c.reload) || 0;
-    if (!cfgFirst && rl && rl !== cfgReload) { location.reload(); return; }
-    cfgReload = rl;
+    if (!cfgFirst && rl > cfgReload) { location.reload(); return; }
+    cfgReload = Math.max(cfgReload, rl);
     if (JSON.stringify(CFG.hide) !== oldHide && baselined) { state.queue = state.queue.filter(function (q) { return vis(q.a); }); rebuildFeed(); updateQueueNote(); }
     var paused = CFG.mode !== 'live';
     if (paused) { clearTimeout(spotTimer); clearTimeout(nextT); nextT = null; state.showing = false; pump(); }
     if (JSON.stringify([CFG.mode, CFG.msg, CFG.idle]) !== old && !state.showing) showIdle();
     var sp = c.spot && Number(c.spot.at) || 0;
-    if (!cfgFirst && sp && sp !== cfgSpot && !paused && chk[c.spot.id]) replay(c.spot.id);
-    cfgSpot = sp; cfgFirst = false;
+    if (!cfgFirst && sp > cfgSpot && !paused && chk[c.spot.id]) replay(c.spot.id);
+    cfgSpot = Math.max(cfgSpot, sp); cfgFirst = false;
   }
   function connectCfg() {
-    if (DEMO) return;
+    if (!window.EventSource) return;
     if (cfgEs) { try { cfgEs.close(); } catch (e) {} }
     var cur = {};
     cfgEs = new EventSource(DB_URL + '/screen.json');
     var on = function (ev) {
       var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d) return;
+      lastCfgEvent = Date.now();
       var parts = (d.path || '/').split('/').filter(Boolean);
       if (ev.type === 'put') {
         if (!parts.length) cur = d.data || {};
@@ -666,9 +626,11 @@ body.idle-cursor .ctl { opacity: 0; }
         var t = cur; parts.forEach(function (p) { if (!t[p] || typeof t[p] !== 'object') t[p] = {}; t = t[p]; });
         Object.keys(d.data || {}).forEach(function (k) { if (d.data[k] == null) delete t[k]; else t[k] = d.data[k]; });
       }
+      cfgRevision++;
       applyCfg(JSON.parse(JSON.stringify(cur)));
     };
     cfgEs.addEventListener('put', on); cfgEs.addEventListener('patch', on);
+    cfgEs.addEventListener('keep-alive', function () { lastCfgEvent = Date.now(); });
   }
   function toA(id) { var r = chk[id] || {}; return { id: id, at: r.t, name: r.name, title: r.title, gender: r.gender, unit: r.unit, group: r.group, photo: r.photo, first: r.first, since: r.since, bday: r.bday, act: r.act, word: r.word }; }
   function sortedList() { return Object.keys(chk).map(toA).sort(function (x, y) { return x.at - y.at || (x.id < y.id ? -1 : 1); }); }
@@ -679,12 +641,12 @@ body.idle-cursor .ctl { opacity: 0; }
   function replay(id) {
     var list = sortedList(), n = 0;
     list.forEach(function (a, i) { if (a.id === id) n = i + 1; });
-    var a = toA(id); preload(a.photo);
+    var a = toA(id);
     state.queue.unshift({ a: a, n: n, replay: true });
     if (state.showing) { clearTimeout(nextT); nextT = null; advance(); } else pump();
   }
 
-  var evAt = 0, chk = {}, meta = { total: 0, company: 0, branch: 0 }, es = null, lastEvent = 0;
+  var checkinRevision = 0, chk = {}, meta = { total: 0, company: 0, branch: 0 }, es = null, lastEvent = 0;
   var seen = {}, baselined = false;
   function pushUpdate() {
     var list = sortedList();
@@ -710,86 +672,123 @@ body.idle-cursor .ctl { opacity: 0; }
       state.feed = list.map(function (a, i) { return { a: a, n: i + 1 }; }).filter(function (it) { return vis(it.a); }).reverse().slice(0, FEED_MAX);
       state.shown = Math.min(state.shown, n); renderFeed();
     }
-    fresh.forEach(function (a) { if (vis(a)) { preload(a.photo); state.queue.push({ a: a, n: a.n }); } else state.shown = Math.min(state.shown + 1, n); });
+    fresh.forEach(function (a) { if (vis(a)) { state.queue.push({ a: a, n: a.n }); } else state.shown = Math.min(state.shown + 1, n); });
     if (fresh.length) pump(); else renderStats(state.shown);
     setConn(true); updateQueueNote();
   }
+  var pendingReads = {};
+  function readSnapshot(name, apply, failed) {
+    if (pendingReads[name]) return;
+    pendingReads[name] = true;
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 8000);
+    fetch(DB_URL + '/' + name + '.json', { credentials: 'omit', cache: 'no-store', signal: controller.signal })
+      .then(function (response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
+      }).then(function (data) {
+        if (data !== null && (typeof data !== 'object' || Array.isArray(data) || 'error' in data)) throw new Error('Invalid snapshot');
+        apply(data);
+      }).catch(function () {
+        if (failed) failed();
+      }).finally(function () {
+        clearTimeout(timer);
+        delete pendingReads[name];
+      });
+  }
   function loadMeta() {
-    return fetch(DB_URL + '/meta.json', { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (m) {
-      if (m) {
-        meta = { total: m.total || 0, company: m.company || 0, branch: m.branch || 0 };
-        unitTotals = {}; (m.unitList || []).forEach(function (x) { if (x && x.u) unitTotals[x.u] = x.n; });
+    readSnapshot('meta', function (m) {
+      if (!m) return;
+      meta = { total: m.total || 0, company: m.company || 0, branch: m.branch || 0 };
+      unitTotals = {};
+      if (Array.isArray(m.unitList)) m.unitList.forEach(function (x) { if (x && x.u) unitTotals[x.u] = x.n; });
+      if (state.totals) {
+        Object.assign(state.totals, { registered: meta.total, registeredCompany: meta.company, registeredBranch: meta.branch });
+        renderStats(state.shown);
       }
-    }).catch(function () {});
+    });
+  }
+  // Applies a Firebase stream event to a local copy of /checkins. Admin corrections arrive as
+  // field paths (/ID/name, or patch at /ID), so a key is a check-in ID only at the top level.
+  function mergeEvent(map, type, path, data) {
+    var base = String(path || '/').split('/').filter(Boolean);
+    if (type === 'put' && !base.length) return data && typeof data === 'object' ? data : {};
+    var writes = type === 'put' ? [[base, data]] : Object.keys(data || {}).map(function (k) { return [base.concat(k.split('/').filter(Boolean)), data[k]]; });
+    writes.forEach(function (w) {
+      var parts = w[0], val = w[1], o = map, chain = [];
+      if (!parts.length) return;
+      for (var i = 0; i < parts.length - 1; i++) {
+        if (!o[parts[i]] || typeof o[parts[i]] !== 'object') { if (val == null) return; o[parts[i]] = {}; }
+        chain.push([o, parts[i]]); o = o[parts[i]];
+      }
+      if (val == null) delete o[parts[parts.length - 1]]; else o[parts[parts.length - 1]] = val;
+      for (var j = chain.length - 1; j >= 0; j--) { var c = chain[j]; if (Object.keys(c[0][c[1]]).length) break; delete c[0][c[1]]; }
+    });
+    return map;
   }
   function connect() {
+    if (!window.EventSource) return;
     if (es) { try { es.close(); } catch (e) {} }
     es = new EventSource(DB_URL + '/checkins.json');
     var onData = function (ev) {
-      lastEvent = Date.now(); evAt = lastEvent;
       var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
       if (!d) return;
-      var path = d.path || '/';
-      if (ev.type === 'put') {
-        if (path === '/') chk = d.data || {};
-        else { var id = path.split('/')[1]; if (path.split('/').length === 2) { if (d.data) chk[id] = d.data; else delete chk[id]; } }
-      } else if (ev.type === 'patch') {
-        Object.keys(d.data || {}).forEach(function (k) { if (d.data[k]) chk[k] = d.data[k]; else delete chk[k]; });
-      }
+      lastEvent = Date.now(); checkinRevision++;
+      chk = mergeEvent(chk, ev.type, d.path, d.data);
       pushUpdate();
     };
     es.addEventListener('put', onData);
     es.addEventListener('patch', onData);
-    es.addEventListener('keep-alive', function () { lastEvent = Date.now(); });
-    es.onopen = function () { lastEvent = Date.now(); setConn(true); };
+    es.addEventListener('keep-alive', function () { lastEvent = Date.now(); if (baselined) setConn(true); });
     es.onerror = function () { state.failures++; setConn(false); };
   }
-  // safety nets: reconnect if the stream goes quiet, and re-read everything now and then
-  setInterval(function () { if (!DEMO && Date.now() - lastEvent > 70000) { connect(); connectCfg(); } }, 15000);
   function reread() {
-    if (DEMO) return;
-    var t0 = performance.now(), started = Date.now();
-    fetch(DB_URL + '/checkins.json', { credentials: 'omit', cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (all) {
+    var t0 = performance.now(), started = Date.now(), dataRevision = checkinRevision, configRevision = cfgRevision;
+    readSnapshot('checkins', function (all) {
+      if (dataRevision !== checkinRevision) return;
       state.latency = Math.round(performance.now() - t0);
-      if (evAt > started) return; // the live stream delivered something newer while this was in flight
       chk = all || {}; pushUpdate();
-    }).catch(function () { state.failures++; setConn(false); });
-    fetch(DB_URL + '/screen.json', { credentials: 'omit', cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : Promise.reject(); }).then(applyCfg).catch(function () {});
+    }, function () {
+      if (lastEvent < started && Date.now() - lastEvent > 45000) { state.failures++; setConn(false); }
+    });
+    readSnapshot('screen', function (cfg) { if (configRevision === cfgRevision) applyCfg(cfg); });
   }
-  // The live stream already pushes every change. The full re-read is only a safety net: once a minute while the stream is healthy
-  // (Firebase sends a keep-alive every ~30 s), every 4 s only if the stream has gone quiet. Keeps data use ~15x lower (free plan = 10 GB/month).
-  var rereadAt = 0;
-  setInterval(function () { var quiet = Date.now() - lastEvent > 45000; if (quiet || Date.now() - rereadAt > 60000) { rereadAt = Date.now(); reread(); } }, 4000);
-  setInterval(function () { if (!DEMO) loadMeta(); }, 60000);
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { reread(); if (!DEMO && Date.now() - lastEvent > 40000) connect(); } });
-
-  // Pick up a newer deployment of this page by itself (an open tab never reloads on its own).
-  function selfUpdate(canReload) {
-    if (DEMO) return;
-    fetch(location.pathname + '?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
-      var m = /<meta name="build" content="([^"]+)"/.exec(t), cur = document.querySelector('meta[name=build]');
-      if (m && cur && m[1] !== cur.content && canReload()) location.reload();
-    }).catch(function () {});
-  }
-  setInterval(function () { selfUpdate(function () { return true; }); }, 60000);
   function startLive() {
-    $('login').hidden = true;
+    connect();
     connectCfg();
-    loadMeta().then(connect);
+    loadMeta();
+    reread();
+    var rereadAt = Date.now();
+    setInterval(function () {
+      if (Date.now() - lastEvent > 45000 || Date.now() - rereadAt > 60000) { rereadAt = Date.now(); reread(); }
+    }, 4000);
+    function reconnectIfQuiet(ms) {
+      var now = Date.now();
+      if (now - lastEvent > ms) connect();
+      if (now - lastCfgEvent > ms) connectCfg();
+    }
+    setInterval(function () { reconnectIfQuiet(70000); }, 15000);
+    setInterval(loadMeta, 60000);
+    function recover() {
+      reconnectIfQuiet(40000);
+      reread(); loadMeta();
+    }
+    addEventListener('offline', function () { setConn(false); });
+    addEventListener('online', recover);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) recover(); });
   }
 
   /* ---------- polling (demo only) ---------- */
   var pollTimer = null;
   function schedule() { clearTimeout(pollTimer); pollTimer = setTimeout(poll, POLL_MS); }
   function poll() {
-    call({ action: 'screen', password: state.pw, since: state.seq }).then(function (res) {
+    call({ action: 'screen', since: state.seq }).then(function (res) {
       state.failures = 0; apply(res);
     }).catch(function (e) {
-      if (e.server && /mật khẩu/i.test(e.message)) { store(PW_KEY, null); $('login').hidden = false; $('loginErr').textContent = e.message; return; }
       console.error('screen poll failed:', e && (e.stack || e.message || e));
       state.failures++;
       setConn(false);
-    }).then(function () { if ($('login').hidden) schedule(); });
+    }).then(schedule);
   }
   function setConn(ok) {
     $('liveDot').classList.toggle('off', !ok);
@@ -844,6 +843,7 @@ body.idle-cursor .ctl { opacity: 0; }
     var item = state.queue.shift();
     state.showing = true; shownAt = Date.now();
     showGuest(item.a, item.n);
+    preloadNextPhoto();
     if (!item.replay) {
       state.feed.unshift(item); state.feed = state.feed.slice(0, FEED_MAX);
       state.shown = Math.min(state.shown + 1, state.totals ? state.totals.arrived : state.shown + 1);
@@ -915,8 +915,15 @@ body.idle-cursor .ctl { opacity: 0; }
     if (document.fonts.ready) document.fonts.ready.then(function () { if (state.showing) fitGuest(); });
     if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', function () { if (state.showing) fitGuest(); }); // a face that loads late changes the text width
   }
-  var photoCache = {};
-  function preload(url) { if (!url || photoCache[url]) return; var im = new Image(); im.src = url; photoCache[url] = im; }
+  var nextPhoto = null;
+  function preloadNextPhoto() {
+    if (lite) return;
+    var next = state.queue[0];
+    if (!next || !next.a.photo) { nextPhoto = null; return; }
+    if (nextPhoto && nextPhoto.getAttribute('src') === next.a.photo) return;
+    nextPhoto = new Image();
+    nextPhoto.src = next.a.photo;
+  }
   function uprogHtml(a) {
     var tot = unitTotals[a.unit], arr = Math.min(unitArr[a.unit] || 0, unitTotals[a.unit] || 0);
     if (!tot || !a.unit) return '';
@@ -1110,7 +1117,6 @@ body.idle-cursor .ctl { opacity: 0; }
   }
   $('fsBtn').addEventListener('click', toggleFs);
   document.addEventListener('keydown', function (e) {
-    if (!$('login').hidden) return;
     if (e.key === 'f' || e.key === 'F') toggleFs();
   });
   var idleT = null;
@@ -1128,7 +1134,10 @@ body.idle-cursor .ctl { opacity: 0; }
     if (!demo) {
       demo = { list: [], reg: 132, regC: 73, regB: 59 };
       for (var i = 0; i < 38; i++) demo.list.push(fakeArrival(Date.now() - (40 - i) * 60000));
-      setInterval(function () { if (demo.list.length < demo.reg) demo.list.push(fakeArrival(Date.now())); if (Math.random() < 0.3) demo.list.push(fakeArrival(Date.now())); }, 4000);
+      setInterval(function () {
+        if (demo.list.length < demo.reg) demo.list.push(fakeArrival(Date.now()));
+        if (demo.list.length < demo.reg && Math.random() < 0.3) demo.list.push(fakeArrival(Date.now()));
+      }, 4000);
     }
     return new Promise(function (resolve) {
       var t0 = performance.now();
@@ -1164,7 +1173,7 @@ body.idle-cursor .ctl { opacity: 0; }
     var only = /[?&]only=(\d)/.exec(location.search);
     if (only && LONG[Number(only[1])]) { var O = LONG[Number(only[1])]; a.name = O.name; a.title = O.title; a.unit = O.unit; a.group = /^ST/.test(O.unit) ? 'branch' : 'company'; }
     if (DEMO_LONG && Math.random() < 0.7) { var L = r(LONG); a.name = L.name; a.title = L.title; a.unit = L.unit; a.group = /^ST/.test(L.unit) ? 'branch' : 'company'; }
-    if (DEMO_PHOTO) a.photo = 'https://congproc.github.io/hoinghi2026/assets/guide.jpg';
+    if (DEMO_PHOTO) a.photo = '../assets/guide.jpg';
     var ex = /[?&]extras=(\d)/.exec(location.search); // extras=1 random, extras=2 everything (worst-case layout)
     if (ex) { var all = ex[1] === '2'; if (all || Math.random() < .6) a.first = 1; a.since = 1990 + Math.floor(Math.random() * 35); if (all || Math.random() < .3) a.bday = 1; if (all || Math.random() < .5) a.act = r(['Tình ca du lịch (Hát)', 'Sắc màu Việt Nam (Múa)', 'Hành trình mới (Nhạc cụ)']); a.word = r(['Bứt phá', 'Đoàn kết', 'Bền bỉ', 'Tăng trưởng', 'Cố gắng hết mình']); }
     return a;
@@ -1173,8 +1182,7 @@ body.idle-cursor .ctl { opacity: 0; }
   /* ---------- start ---------- */
   showIdle(); renderFeed(); setConn(true); $('sysConn').textContent = '● đang tải';
   if (DEMO) {
-    state.pw = 'demo';
-    call({ action: 'screen', password: 'demo', since: -1 }).then(function (res) { apply(res); schedule(); });
+    call({ action: 'screen', since: -1 }).then(function (res) { apply(res); schedule(); });
   } else {
     startLive();
   }
