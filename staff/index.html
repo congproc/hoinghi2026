@@ -1867,12 +1867,12 @@ body.has-sel .toasts { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   }
 
   // "Mô tả năm 2026": same rule as firebase/tools.mjs extras() and the admin page (trim, at least 2 characters,
-  // no blocked term, max 40 characters). Keep WORD_BLOCKLIST in sync with firebase/word-blocklist.txt.
+  // no blocked term, max 55 characters). Keep WORD_BLOCKLIST in sync with firebase/word-blocklist.txt.
   // Shows the Sheet answer; a correction made in the local admin page is not reflected here.
   var WORD_BLOCKLIST = ['dm', 'dcm', 'dmm', 'vcl', 'vl', 'cc', 'cl', 'lon', 'buoi', 'cac', 'cut', 'dit',
     'du ma', 'dau buoi', 'me may', 'con di', 'dit me', 'cho de', 'cho chet', 'ngu', 'oc cho',
     'khon nan', 'mat day', 'deo', 'fuck', 'shit', 'bitch'];
-  function wordText(p) { return String(p.word || '').trim().slice(0, 40); }
+  function wordText(p) { return String(p.word || '').trim().slice(0, 55); }
   function wordBlocked(v) {
     var w = foldQ(v).replace(/[^a-z0-9]+/g, ' ').trim(), text = ' ' + w + ' ', squashed = w.replace(/ /g, '');
     return WORD_BLOCKLIST.some(function (b) { return text.indexOf(' ' + b + ' ') >= 0 || (b.length >= 4 && squashed.indexOf(b.replace(/ /g, '')) >= 0); });
